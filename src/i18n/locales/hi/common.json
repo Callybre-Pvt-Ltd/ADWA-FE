@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "home": "होम",
+    "about": "परिचय",
+    "services": "सेवाएं",
+    "apply": "आवेदन",
+    "track": "ट्रैक",
+    "renewal": "नवीनीकरण",
+    "downloads": "डाउनलोड",
+    "rules": "नियम",
+    "contact": "संपर्क",
+    "applyNow": "अभी आवेदन करें",
+    "language": "भाषा"
+  },
+  "footer": {
+    "about": "ADWA के बारे में",
+    "aboutText": "ऑल ड्राइवर्स वेलफेयर एसोसिएशन पूरे भारत में डिजिटल ड्राइवर पंजीकरण, कल्याण और पहचान प्रबंधन के लिए एक राष्ट्रीय मंच है।",
+    "quickLinks": "त्वरित लिंक",
+    "services": "सेवाएं",
+    "contact": "संपर्क करें",
+    "copyright": "© 2025 ऑल ड्राइवर्स वेलफेयर एसोसिएशन। सर्वाधिकार सुरक्षित।",
+    "tagline": "भारत भर के पेशेवर ड्राइवरों को सशक्त बनाना",
+    "brandName": "ऑल ड्राइवर्स वेलफेयर",
+    "brandSub": "एसोसिएशन",
+    "social": {
+      "facebook": "फेसबुक",
+      "twitter": "ट्विटर",
+      "instagram": "इंस्टाग्राम",
+      "youtube": "यूट्यूब"
+    },
+    "serviceLinks": {
+      "driverIdReg": "ड्राइवर ID पंजीकरण",
+      "membershipRenewal": "सदस्यता नवीनीकरण",
+      "appTracking": "आवेदन ट्रैकिंग",
+      "downloadCenter": "डाउनलोड केंद्र",
+      "rulesGuidelines": "नियम एवं दिशानिर्देश"
+    }
+  },
+  "buttons": {
+    "applyNow": "ID कार्ड के लिए आवेदन",
+    "trackApplication": "आवेदन ट्रैक करें",
+    "learnMore": "अधिक जानें",
+    "submit": "जमा करें",
+    "next": "आगे",
+    "back": "पीछे",
+    "cancel": "रद्द करें",
+    "search": "खोजें",
+    "download": "डाउनलोड",
+    "clear": "साफ करें",
+    "viewAll": "सभी देखें",
+    "contactUs": "संपर्क करें",
+    "saveData": "डेटा सेव करें",
+    "clearData": "डेटा साफ करें",
+    "searching": "खोज रहे हैं...",
+    "sending": "भेज रहे हैं...",
+    "submitting": "जमा कर रहे हैं..."
+  },
+  "errors": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "invalidEmail": "कृपया वैध ईमेल पता दर्ज करें",
+    "invalidPhone": "कृपया वैध 10 अंकों का फ़ोन नंबर दर्ज करें",
+    "invalidAadhaar": "आधार नंबर 12 अंकों का होना चाहिए",
+    "invalidPincode": "पिनकोड 6 अंकों का होना चाहिए",
+    "notFound": "दिए गए विवरण से कोई रिकॉर्ड नहीं मिला",
+    "generic": "कुछ गलत हुआ। कृपया पुनः प्रयास करें।"
+  },
+  "status": {
+    "loading": "लोड हो रहा है...",
+    "success": "सफल",
+    "error": "त्रुटि",
+    "submitted": "जमा किया",
+    "verified": "सत्यापित",
+    "approved": "स्वीकृत",
+    "printed": "मुद्रित",
+    "dispatched": "भेज दिया",
+    "active": "सक्रिय",
+    "expired": "समाप्त",
+    "inProgress": "प्रक्रिया में"
+  },
+  "lang": {
+    "english": "English",
+    "hindi": "हिंदी"
+  },
+  "misc": {
+    "toggleMenu": "मेनू टॉगल करें",
+    "stepOf": "{{current}} में से {{total}} चरण पूरे",
+    "stepLabel": "चरण {{n}}: {{title}}",
+    "example": "उदाहरण:",
+    "note": "नोट:",
+    "digitalIndia": "🇮🇳 डिजिटल इंडिया",
+    "mapPlaceholder": "मानचित्र"
+  }
+}

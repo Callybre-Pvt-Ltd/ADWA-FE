@@ -1,0 +1,270 @@
+import type {
+  LeadershipMember, Statistic, Service, FAQ, Testimonial, DownloadItem,
+} from '@/types'
+
+export const mockLeadership: LeadershipMember[] = [
+  {
+    id: 1,
+    name: 'Surendra Prasad',
+    designation: 'National President',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=SP&backgroundColor=0F4C81&textColor=ffffff',
+    bio: 'Leading ADWA for 12+ years with a vision of digitally empowered drivers across India.',
+  },
+  {
+    id: 2,
+    name: 'Prakash Kumar Singh',
+    designation: 'Vice President',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=PK&backgroundColor=16A34A&textColor=ffffff',
+    bio: 'Driving welfare initiatives and state coordination for over a decade.',
+  },
+  {
+    id: 3,
+    name: 'Awtar Singh',
+    designation: 'General Secretary',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=AS&backgroundColor=F59E0B&textColor=ffffff',
+    bio: 'Manages national operations and inter-state welfare programs efficiently.',
+  },
+  {
+    id: 4,
+    name: 'Ramesh Yadav',
+    designation: 'Joint Secretary',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=RY&backgroundColor=0F4C81&textColor=ffffff',
+    bio: 'Oversees member registrations and document verification processes.',
+  },
+  {
+    id: 5,
+    name: 'Meera Devi',
+    designation: 'Treasurer',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=MD&backgroundColor=16A34A&textColor=ffffff',
+    bio: 'Manages financial operations and welfare fund disbursements.',
+  },
+  {
+    id: 6,
+    name: 'Ajay Sharma',
+    designation: 'Welfare Director',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=AJ&backgroundColor=F59E0B&textColor=ffffff',
+    bio: 'Leads emergency assistance programs and driver welfare schemes.',
+  },
+  {
+    id: 7,
+    name: 'Vinod Kumar',
+    designation: 'Operations Head',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=VK&backgroundColor=0F4C81&textColor=ffffff',
+    bio: 'Streamlines day-to-day operations across all 28 state offices.',
+  },
+  {
+    id: 8,
+    name: 'Sunita Rathore',
+    designation: 'State Coordinator',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=SR&backgroundColor=16A34A&textColor=ffffff',
+    bio: 'Coordinates between national HQ and 200+ district offices.',
+  },
+  {
+    id: 9,
+    name: 'Ankit Mishra',
+    designation: 'Digital Director',
+    image: 'https://api.dicebear.com/7.x/initials/svg?seed=AM&backgroundColor=F59E0B&textColor=ffffff',
+    bio: 'Spearheading the digital transformation of all ADWA services.',
+  },
+]
+
+export const mockStatistics: Statistic[] = [
+  { id: 'drivers', label: 'Registered Drivers', value: 1250000, suffix: '+', icon: 'users' },
+  { id: 'members', label: 'Active Members', value: 890000, suffix: '+', icon: 'user-check' },
+  { id: 'renewals', label: 'Renewals Completed', value: 340000, suffix: '+', icon: 'refresh-cw' },
+  { id: 'states', label: 'States Covered', value: 28, suffix: '', icon: 'map-pin' },
+]
+
+export const mockServices: Service[] = [
+  {
+    id: 'driver-id',
+    icon: 'id-card',
+    title: 'Driver ID Registration',
+    description: 'Apply for your official ADWA Driver Identity Card — a nationally recognized digital credential.',
+    eligibility: 'Any professional driver with a valid driving license and Aadhaar card can apply.',
+    process: ['Fill the online application form', 'Upload required documents', 'Pay the registration fee', 'Receive ID card via Indian Post in 10–30 days'],
+  },
+  {
+    id: 'membership-renewal',
+    icon: 'refresh-cw',
+    title: 'Membership Renewal',
+    description: 'Renew your ADWA membership and keep your driver ID active with the latest credentials.',
+    eligibility: 'Existing ADWA members whose membership has expired or is within 60 days of expiry.',
+    process: ['Search with membership number', 'Verify existing details', 'Update any changed information', 'Pay renewal fee and confirm'],
+  },
+  {
+    id: 'app-tracking',
+    icon: 'search',
+    title: 'Application Tracking',
+    description: 'Track the real-time status of your driver ID application with your reference number.',
+    eligibility: 'Any applicant with a valid ADWA reference number.',
+    process: ['Enter reference number', 'Enter date of birth', 'View live status and timeline', 'Receive SMS/email updates'],
+  },
+  {
+    id: 'download-id',
+    icon: 'download',
+    title: 'Download ID Card',
+    description: 'Download your digital ADWA Driver ID Card and membership certificate instantly.',
+    eligibility: 'Members with approved and active membership status.',
+    process: ['Login with membership number', 'Navigate to Download Center', 'Choose document type', 'Download PDF'],
+  },
+  {
+    id: 'welfare',
+    icon: 'heart',
+    title: 'Welfare Benefits',
+    description: 'Access accident insurance, medical assistance, and financial aid programs for drivers.',
+    eligibility: 'Active ADWA members in good standing with valid membership.',
+    process: ['Contact welfare helpline', 'Submit welfare claim form', 'Provide supporting documents', 'Receive assistance within 7 working days'],
+  },
+  {
+    id: 'support',
+    icon: 'headphones',
+    title: 'Support Center',
+    description: 'Get dedicated support via phone, email, and WhatsApp from our trained representatives.',
+    eligibility: 'All ADWA applicants, members, and general public.',
+    process: ['Call helpline or WhatsApp', 'Or submit a support ticket online', 'Track ticket status', 'Resolution within 48 hours'],
+  },
+]
+
+export const mockFAQs: FAQ[] = [
+  {
+    id: '1',
+    question: 'Who is eligible to apply for ADWA Driver ID Card?',
+    answer: 'Any professional driver with a valid driving license issued by a recognized RTO, along with a valid Aadhaar card, is eligible to apply. You must be a resident of India.',
+    category: 'Eligibility',
+  },
+  {
+    id: '2',
+    question: 'How long does it take to receive the ID card?',
+    answer: 'After successful application and payment, your ID card will be dispatched via Indian Post within 10 to 30 working days. You will receive a tracking number via SMS.',
+    category: 'Timeline',
+  },
+  {
+    id: '3',
+    question: 'What documents are required for registration?',
+    answer: 'You need: Passport-size photo, Signature, Aadhaar Card (front and back), and Driving License (front and back). All documents must be in JPG/PNG format under 300KB each.',
+    category: 'Documents',
+  },
+  {
+    id: '4',
+    question: 'How do I track my application status?',
+    answer: 'Visit the Track Application page and enter your reference number (e.g., ADWA-2025-XXXXX) along with your date of birth to view real-time status.',
+    category: 'Tracking',
+  },
+  {
+    id: '5',
+    question: 'What is the registration fee?',
+    answer: 'The current registration fee is ₹250 (increased from ₹210). Payment can be made online via UPI, Net Banking, Debit/Credit Card through our secure payment gateway.',
+    category: 'Payment',
+  },
+  {
+    id: '6',
+    question: 'How do I renew my membership?',
+    answer: 'Go to the Renewal page, enter your membership number and date of birth, verify your details, and pay the renewal fee. Your renewed card will be dispatched within 10–30 days.',
+    category: 'Renewal',
+  },
+  {
+    id: '7',
+    question: 'Is the ADWA ID Card legally recognized?',
+    answer: 'The ADWA Driver ID Card serves as a professional identity document for drivers. While it is not a government-issued ID, it is widely accepted by fleet operators and transport companies.',
+    category: 'Legal',
+  },
+  {
+    id: '8',
+    question: 'What welfare benefits are available for members?',
+    answer: 'Active members can access accident insurance support, emergency medical assistance, legal aid, financial hardship grants, and family welfare schemes.',
+    category: 'Welfare',
+  },
+]
+
+export const mockTestimonials: Testimonial[] = [
+  {
+    id: '1',
+    name: 'Rajesh Kumar',
+    role: 'Truck Driver',
+    state: 'Uttar Pradesh',
+    content: 'Getting my ADWA ID card was very simple. The online form was easy to fill and I received my card in just 15 days. Now companies trust me more because I have a verified ID.',
+    rating: 5,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=RK&backgroundColor=0F4C81&textColor=ffffff',
+  },
+  {
+    id: '2',
+    name: 'Suresh Patel',
+    role: 'Auto Rickshaw Driver',
+    state: 'Gujarat',
+    content: 'ADWA ne meri bahut madad ki jab mujhe accident hua. Welfare benefits se hospital bills cover hue. Main sabhi drivers ko ADWA join karne ki salah dunga.',
+    rating: 5,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=SP2&backgroundColor=16A34A&textColor=ffffff',
+  },
+  {
+    id: '3',
+    name: 'Mohammed Irfan',
+    role: 'Cab Driver',
+    state: 'Maharashtra',
+    content: 'The digital ID card download feature is excellent. I can show it on my phone anytime. The renewal process is also very smooth — done in just 5 minutes online.',
+    rating: 5,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=MI&backgroundColor=F59E0B&textColor=ffffff',
+  },
+  {
+    id: '4',
+    name: 'Gurpreet Singh',
+    role: 'Bus Driver',
+    state: 'Punjab',
+    content: 'ADWA ID card bahut important hai mere liye. Jab bhi koi pucha identification toh main ye card dikhata hoon. Bahut professional aur trustworthy document hai.',
+    rating: 4,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=GS&backgroundColor=0F4C81&textColor=ffffff',
+  },
+  {
+    id: '5',
+    name: 'Anita Devi',
+    role: 'Taxi Driver',
+    state: 'Delhi',
+    content: 'As a woman driver, having ADWA membership has given me confidence. The association supports us well and the tracking portal is very easy to use.',
+    rating: 5,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=AD&backgroundColor=16A34A&textColor=ffffff',
+  },
+  {
+    id: '6',
+    name: 'Ramesh Chandra',
+    role: 'Heavy Vehicle Driver',
+    state: 'Rajasthan',
+    content: 'Maine pehle suna tha ADWA ke baare mein. Application submit ki aur reference number mila. Status track karna bahut easy tha. Card bhi time pe aaya.',
+    rating: 5,
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=RC&backgroundColor=F59E0B&textColor=ffffff',
+  },
+]
+
+export const mockDownloads: DownloadItem[] = [
+  {
+    id: 'membership-cert',
+    title: 'Membership Certificate',
+    description: 'Official ADWA membership certificate for active members.',
+    type: 'PDF',
+    size: '245 KB',
+    icon: 'award',
+  },
+  {
+    id: 'driver-id',
+    title: 'Digital Driver ID Card',
+    description: 'Your printable ADWA Driver Identity Card in credit card format.',
+    type: 'PDF',
+    size: '180 KB',
+    icon: 'credit-card',
+  },
+  {
+    id: 'app-receipt',
+    title: 'Application Receipt',
+    description: 'Official receipt for your driver ID card application.',
+    type: 'PDF',
+    size: '120 KB',
+    icon: 'file-text',
+  },
+  {
+    id: 'renewal-receipt',
+    title: 'Renewal Receipt',
+    description: 'Payment receipt for your membership renewal.',
+    type: 'PDF',
+    size: '115 KB',
+    icon: 'receipt',
+  },
+]

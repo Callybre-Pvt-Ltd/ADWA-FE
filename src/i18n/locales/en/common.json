@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "apply": "Apply",
+    "track": "Track",
+    "renewal": "Renewal",
+    "downloads": "Downloads",
+    "rules": "Rules",
+    "contact": "Contact",
+    "applyNow": "Apply Now",
+    "language": "Language"
+  },
+  "footer": {
+    "about": "About ADWA",
+    "aboutText": "All Drivers Welfare Association is a national platform for digital driver registration, welfare, and identity management across India.",
+    "quickLinks": "Quick Links",
+    "services": "Services",
+    "contact": "Contact Us",
+    "copyright": "© 2025 All Drivers Welfare Association. All rights reserved.",
+    "tagline": "Empowering Professional Drivers Across India",
+    "brandName": "All Drivers Welfare",
+    "brandSub": "Association",
+    "social": {
+      "facebook": "Facebook",
+      "twitter": "Twitter",
+      "instagram": "Instagram",
+      "youtube": "YouTube"
+    },
+    "serviceLinks": {
+      "driverIdReg": "Driver ID Registration",
+      "membershipRenewal": "Membership Renewal",
+      "appTracking": "Application Tracking",
+      "downloadCenter": "Download Center",
+      "rulesGuidelines": "Rules & Guidelines"
+    }
+  },
+  "buttons": {
+    "applyNow": "Apply for ID Card",
+    "trackApplication": "Track Application",
+    "learnMore": "Learn More",
+    "submit": "Submit",
+    "next": "Next",
+    "back": "Back",
+    "cancel": "Cancel",
+    "search": "Search",
+    "download": "Download",
+    "clear": "Clear",
+    "viewAll": "View All",
+    "contactUs": "Contact Us",
+    "saveData": "Save Data",
+    "clearData": "Clear Data",
+    "searching": "Searching...",
+    "sending": "Sending...",
+    "submitting": "Submitting..."
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "invalidPhone": "Please enter a valid 10-digit phone number",
+    "invalidAadhaar": "Aadhaar number must be 12 digits",
+    "invalidPincode": "Pincode must be 6 digits",
+    "notFound": "No record found with the provided details",
+    "generic": "Something went wrong. Please try again."
+  },
+  "status": {
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "submitted": "Submitted",
+    "verified": "Verified",
+    "approved": "Approved",
+    "printed": "Printed",
+    "dispatched": "Dispatched",
+    "active": "Active",
+    "expired": "Expired",
+    "inProgress": "In Progress"
+  },
+  "lang": {
+    "english": "English",
+    "hindi": "हिंदी"
+  },
+  "misc": {
+    "toggleMenu": "Toggle menu",
+    "stepOf": "Step {{current}} of {{total}} completed",
+    "stepLabel": "Step {{n}}: {{title}}",
+    "example": "Example:",
+    "note": "Note:",
+    "digitalIndia": "🇮🇳 Digital India",
+    "mapPlaceholder": "Map Placeholder"
+  }
+}
