@@ -52,7 +52,7 @@ importers:
         specifier: ^8.0.12
         version: 8.0.16(@types/node@24.13.2)
 
-packages:
+packages:c
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}

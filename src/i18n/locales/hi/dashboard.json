@@ -1,0 +1,26 @@
+{
+  "dashboard": {
+    "welcome": "वापस स्वागत है",
+    "quickActions": "त्वरित कार्रवाई",
+    "recentActivity": "हाल की गतिविधि",
+    "registrationsChart": "ड्राइवर पंजीकरण",
+    "districtChart": "जिले के अनुसार पंजीकरण",
+    "paymentChart": "भुगतान स्थिति",
+    "viewAll": "सभी देखें",
+    "approve": "स्वीकृत करें",
+    "reject": "अस्वीकार करें",
+    "confirmPayment": "भुगतान की पुष्टि करें",
+    "generateId": "आईडी जनरेट करें",
+    "export": "निर्यात",
+    "createEvent": "कार्यक्रम बनाएं",
+    "createNotification": "सूचना बनाएं",
+    "addDistrict": "जिला जोड़ें",
+    "pendingRequests": "लंबित अनुरोध",
+    "paymentPending": "भुगतान लंबित",
+    "idsGenerated": "आईडी जनरेट",
+    "totalDrivers": "कुल ड्राइवर",
+    "totalDistricts": "कुल जिले",
+    "pendingPayments": "लंबित भुगतान",
+    "generatedIds": "जनरेटेड आईडी"
+  }
+}

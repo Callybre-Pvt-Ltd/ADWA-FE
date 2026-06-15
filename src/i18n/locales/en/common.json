@@ -53,7 +53,9 @@
     "clearData": "Clear Data",
     "searching": "Searching...",
     "sending": "Sending...",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "edit": "Edit",
+    "change": "Change"
   },
   "errors": {
     "required": "This field is required",
@@ -89,5 +91,6 @@
     "note": "Note:",
     "digitalIndia": "🇮🇳 Digital India",
     "mapPlaceholder": "Map Placeholder"
-  }
+  },
+  "optional": "Optional"
 }

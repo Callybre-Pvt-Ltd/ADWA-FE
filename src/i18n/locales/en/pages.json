@@ -34,20 +34,62 @@
       "Bridge the gap between drivers and government welfare schemes."
     ],
     "welfare": [
-      { "title": "Accident Insurance", "desc": "Coverage support for road accident victims among our members.", "icon": "🛡️" },
-      { "title": "Medical Assistance", "desc": "Help with hospital bills and medical expenses in emergencies.", "icon": "🏥" },
-      { "title": "Legal Aid", "desc": "Free legal consultation for members facing traffic disputes.", "icon": "⚖️" },
-      { "title": "Education Support", "desc": "Scholarship assistance for children of active members.", "icon": "📚" },
-      { "title": "Financial Aid", "desc": "Hardship grants for members in genuine financial distress.", "icon": "💰" },
-      { "title": "Family Welfare", "desc": "Support for families of deceased or permanently disabled members.", "icon": "❤️" }
+      {
+        "title": "Accident Insurance",
+        "desc": "Coverage support for road accident victims among our members.",
+        "icon": "🛡️"
+      },
+      {
+        "title": "Medical Assistance",
+        "desc": "Help with hospital bills and medical expenses in emergencies.",
+        "icon": "🏥"
+      },
+      {
+        "title": "Legal Aid",
+        "desc": "Free legal consultation for members facing traffic disputes.",
+        "icon": "⚖️"
+      },
+      {
+        "title": "Education Support",
+        "desc": "Scholarship assistance for children of active members.",
+        "icon": "📚"
+      },
+      {
+        "title": "Financial Aid",
+        "desc": "Hardship grants for members in genuine financial distress.",
+        "icon": "💰"
+      },
+      {
+        "title": "Family Welfare",
+        "desc": "Support for families of deceased or permanently disabled members.",
+        "icon": "❤️"
+      }
     ],
     "timeline": [
-      { "year": "2010", "event": "ADWA founded in New Delhi with 200 founding members." },
-      { "year": "2013", "event": "Expanded to 10 states. Launched first membership ID card program." },
-      { "year": "2016", "event": "Registered 1 lakh members. Launched welfare fund." },
-      { "year": "2019", "event": "Digital ID card system launched. Mobile-friendly portal released." },
-      { "year": "2022", "event": "Reached 10 lakh members across 25 states." },
-      { "year": "2025", "event": "Launched full digital platform. 12+ lakh members, 28 states." }
+      {
+        "year": "2010",
+        "event": "ADWA founded in New Delhi with 200 founding members."
+      },
+      {
+        "year": "2013",
+        "event": "Expanded to 10 states. Launched first membership ID card program."
+      },
+      {
+        "year": "2016",
+        "event": "Registered 1 lakh members. Launched welfare fund."
+      },
+      {
+        "year": "2019",
+        "event": "Digital ID card system launched. Mobile-friendly portal released."
+      },
+      {
+        "year": "2022",
+        "event": "Reached 10 lakh members across 25 states."
+      },
+      {
+        "year": "2025",
+        "event": "Launched full digital platform. 12+ lakh members, 28 states."
+      }
     ]
   },
   "services": {
@@ -83,6 +125,15 @@
     "submitApplication": "Submit Application",
     "reviewApplication": "Review Application",
     "declaration": "By submitting this application, you confirm that all the information provided is accurate and genuine. ADWA is not responsible for incorrect or duplicate documents.",
+    "declarationWarning": "Please check the declaration before submitting",
+    "sections": {
+      "nameContact": "Name & Contact",
+      "dateOfBirth": "Date of Birth",
+      "address": "Address",
+      "licenseDetails": "License Details",
+      "healthInfo": "Health Info",
+      "aadharDetails": "Aadhar Details"
+    },
     "fields": {
       "fullName": "Full Name",
       "fullNamePlaceholder": "As on Aadhaar card",
@@ -127,7 +178,21 @@
       "employmentType": "Employment Type",
       "employmentTypeSelect": "Select employment type",
       "rtoCode": "District RTO Code",
-      "rtoPlaceholder": "e.g. DL04"
+      "rtoPlaceholder": "e.g. DL04",
+      "thana": "Thana / Area",
+      "thanaPlaceholder": "Select area",
+      "selectDistrict": "Select district",
+      "selectThana": "Select area",
+      "selectLicenseType": "Select license type",
+      "licenseType": "License Type",
+      "licenseExpiry": "License Expiry Date",
+      "fullNameHint": "As written on Aadhaar card",
+      "mobileHint": "OTP will be sent to this number",
+      "addressHint": "House No, Street, Locality, City",
+      "licenseHint": "Number as on driving license",
+      "aadhaarHint": "12-digit Aadhaar number",
+      "aadharSecurity": "Your Aadhaar number is secure. It will not be shared with anyone.",
+      "selectDistrictFirst": "Select district first"
     },
     "docs": {
       "noteText": "All documents must be in JPG/PNG format, under 300KB each. Ensure documents are clear and fully visible.",
@@ -143,7 +208,7 @@
       "licenseFront": "Driving Licence Front",
       "licenseBack": "Driving Licence Back"
     },
-    "review": {
+    "reviewDetails": {
       "personalDetails": "Personal Details",
       "addressDetails": "Address Details",
       "professionalDetails": "Professional Details",
@@ -162,6 +227,12 @@
       "vehicleType": "Vehicle Type",
       "experience": "Experience",
       "rtoCode": "RTO Code"
+    },
+    "licenseTypes": {
+      "LMV": "LMV — Light Motor Vehicle",
+      "HMV": "HMV — Heavy Motor Vehicle",
+      "Transport": "Transport Vehicle",
+      "Commercial": "Commercial Vehicle"
     }
   },
   "track": {
@@ -285,12 +356,30 @@
       "Members must report any change in driving license status to ADWA within 30 days."
     ],
     "docs": [
-      { "item": "Passport Size Photo", "spec": "JPG/PNG, 1.48in × 1.85in, under 300KB" },
-      { "item": "Signature", "spec": "JPG/PNG, 2cm × 4.5cm, under 300KB" },
-      { "item": "Aadhaar Card (Front)", "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB" },
-      { "item": "Aadhaar Card (Back)", "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB" },
-      { "item": "Driving License (Front)", "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB" },
-      { "item": "Driving License (Back)", "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB" }
+      {
+        "item": "Passport Size Photo",
+        "spec": "JPG/PNG, 1.48in × 1.85in, under 300KB"
+      },
+      {
+        "item": "Signature",
+        "spec": "JPG/PNG, 2cm × 4.5cm, under 300KB"
+      },
+      {
+        "item": "Aadhaar Card (Front)",
+        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+      },
+      {
+        "item": "Aadhaar Card (Back)",
+        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+      },
+      {
+        "item": "Driving License (Front)",
+        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+      },
+      {
+        "item": "Driving License (Back)",
+        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+      }
     ],
     "renewal": [
       "Membership must be renewed before or within 90 days of expiry to avoid re-registration.",
@@ -338,5 +427,25 @@
     "officeAddress": "Office Address",
     "workingHours": "Working Hours",
     "mapAddress": "H.No. 199/1, Kartar Nagar, India"
+  },
+  "login": {
+    "districtTitle": "District Portal Login",
+    "districtSubtitle": "Sign in to manage driver requests and payments",
+    "adminTitle": "Super Admin Login",
+    "adminSubtitle": "Sign in to manage districts, payments, and system settings"
+  },
+  "payment": {
+    "title": "Membership Payment",
+    "subtitle": "Pay your ADWA membership fee securely",
+    "onlineTitle": "Online Payment",
+    "offlineTitle": "Pay at District Office",
+    "offlineDesc": "You can also pay in cash or UPI at your nearest ADWA district office during working hours.",
+    "refNumber": "Reference / Membership Number",
+    "refPlaceholder": "e.g. ADWA-2025-ABC123",
+    "amount": "Amount (INR)",
+    "payNow": "Proceed to Payment"
+  },
+  "memberDashboard": {
+    "subtitle": "About, rules, team, events and more — all in one place."
   }
 }

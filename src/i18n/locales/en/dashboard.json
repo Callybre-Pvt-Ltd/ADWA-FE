@@ -1,0 +1,26 @@
+{
+  "dashboard": {
+    "welcome": "Welcome back",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity",
+    "registrationsChart": "Driver Registrations",
+    "districtChart": "Registrations by District",
+    "paymentChart": "Payment Status",
+    "viewAll": "View all",
+    "approve": "Approve",
+    "reject": "Reject",
+    "confirmPayment": "Confirm Payment",
+    "generateId": "Generate ID",
+    "export": "Export",
+    "createEvent": "Create Event",
+    "createNotification": "Create Notification",
+    "addDistrict": "Add District",
+    "pendingRequests": "Pending Requests",
+    "paymentPending": "Payment Pending",
+    "idsGenerated": "IDs Generated",
+    "totalDrivers": "Total Drivers",
+    "totalDistricts": "Total Districts",
+    "pendingPayments": "Pending Payments",
+    "generatedIds": "Generated IDs"
+  }
+}

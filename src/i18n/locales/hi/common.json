@@ -53,7 +53,9 @@
     "clearData": "डेटा साफ करें",
     "searching": "खोज रहे हैं...",
     "sending": "भेज रहे हैं...",
-    "submitting": "जमा कर रहे हैं..."
+    "submitting": "जमा कर रहे हैं...",
+    "edit": "बदलें",
+    "change": "बदलें"
   },
   "errors": {
     "required": "यह फ़ील्ड आवश्यक है",
@@ -89,5 +91,6 @@
     "note": "नोट:",
     "digitalIndia": "🇮🇳 डिजिटल इंडिया",
     "mapPlaceholder": "मानचित्र"
-  }
+  },
+  "optional": "वैकल्पिक"
 }

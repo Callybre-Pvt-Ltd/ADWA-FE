@@ -1,0 +1,50 @@
+import type { Event } from '../types/event.types'
+
+export const mockEvents: Event[] = [
+  {
+    id: 'evt-001',
+    title: 'National Driver Welfare Summit 2025',
+    description: 'Annual summit bringing together drivers, district incharges, and policymakers.',
+    date: '2025-08-15T09:00:00Z',
+    location: 'New Delhi',
+    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+    status: 'upcoming',
+    createdAt: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'evt-002',
+    title: 'Road Safety Awareness Drive',
+    description: 'State-wide campaign promoting safe driving practices among commercial drivers.',
+    date: '2025-04-20T08:00:00Z',
+    location: 'Lucknow, UP',
+    status: 'upcoming',
+    createdAt: '2025-02-01T00:00:00Z',
+  },
+  {
+    id: 'evt-003',
+    title: 'Digital ID Card Launch Ceremony',
+    description: 'Launch of the new digital driver ID card with QR verification.',
+    date: '2025-03-10T10:00:00Z',
+    location: 'Ahmedabad, Gujarat',
+    status: 'upcoming',
+    createdAt: '2025-01-15T00:00:00Z',
+  },
+  {
+    id: 'evt-004',
+    title: 'Driver Health Camp',
+    description: 'Free health checkups and eye tests for registered ADWA members.',
+    date: '2024-12-05T09:00:00Z',
+    location: 'Mumbai, Maharashtra',
+    status: 'past',
+    createdAt: '2024-11-01T00:00:00Z',
+  },
+  {
+    id: 'evt-005',
+    title: 'Membership Renewal Workshop',
+    description: 'Workshop on online renewal process for district incharges.',
+    date: '2024-11-20T14:00:00Z',
+    location: 'Jaipur, Rajasthan',
+    status: 'past',
+    createdAt: '2024-10-15T00:00:00Z',
+  },
+]

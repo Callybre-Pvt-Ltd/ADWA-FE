@@ -1,16 +1,12 @@
-export const ROUTES = {
-  HOME: '/',
-  ABOUT: '/about',
-  SERVICES: '/services',
-  APPLY: '/apply',
-  TRACK: '/track',
-  RENEWAL: '/renewal',
-  DOWNLOADS: '/downloads',
-  RULES: '/rules',
-  CONTACT: '/contact',
-} as const
+export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
 
-export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+export const LICENSE_TYPES = [
+  'LMV',
+  'HMV',
+  'Transport Vehicle',
+  'Motorcycle',
+  'Auto Rickshaw',
+] as const
 
 export const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',

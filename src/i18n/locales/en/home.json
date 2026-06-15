@@ -1,11 +1,17 @@
 {
   "hero": {
-    "badge": "Official Driver Welfare Platform",
+    "badge": "Registered Welfare Association",
     "title": "All Drivers Welfare",
     "titleHighlight": "Association",
+    "hindiLine": "ड्राइवर ID कार्ड बनवाएं",
+    "subtitleShort": "Get your official Driver ID Card",
     "subtitle": "Digital driver registration, verification, renewal and welfare support platform for professional drivers across India.",
-    "applyButton": "Apply for Driver ID Card",
+    "applyButton": "Apply for ID Card",
     "trackButton": "Track Application",
+    "trustFree": "Free to apply",
+    "trustSteps": "Only 3 easy steps",
+    "illustrationTitle": "Your Official Driver ID",
+    "illustrationSubtitle": "Recognized across India",
     "cardAllDrivers": "All Drivers",
     "cardWelfareAssoc": "Welfare Association",
     "cardVerified": "Verified",
@@ -19,6 +25,50 @@
     "socialProof": "drivers already registered",
     "socialProofCount": "12 lakh+",
     "cardDriverType": "Heavy Vehicle Driver"
+  },
+  "quickActions": {
+    "title": "What do you want to do?",
+    "subtitle": "Tap a card to get started",
+    "apply": { "title": "Apply New ID Card", "hindi": "नया ID बनवाएं" },
+    "track": { "title": "Track Application", "hindi": "आवेदन ट्रैक करें" },
+    "renew": { "title": "Renew My ID Card", "hindi": "ID रिन्यू करें" },
+    "verify": { "title": "Verify Card by QR", "hindi": "QR से जांचें" }
+  },
+  "steps": {
+    "title": "How It Works",
+    "subtitle": "Get your ADWA Driver ID in 4 simple steps",
+    "cta": "Start Your Application",
+    "items": [
+      { "title": "Fill Form", "hindi": "आवेदन भरें", "hint": "5 minutes" },
+      { "title": "Upload Docs", "hindi": "कागज अपलोड", "hint": "2 documents" },
+      { "title": "Pay Fee", "hindi": "फीस भरें", "hint": "At district office" },
+      { "title": "Get Card", "hindi": "कार्ड पाएं", "hint": "12 days" }
+    ]
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "districts": "Find District Office",
+    "contact": "Contact"
+  },
+  "safety": {
+    "title": "Driver Safety Guidelines",
+    "items": [
+      "Follow Traffic Signals",
+      "No Mobile While Driving",
+      "Wear Seat Belt / Helmet",
+      "Maintain Safe Distance",
+      "Regular Vehicle Check"
+    ]
+  },
+  "professionalRules": {
+    "title": "Professional Driver Rules",
+    "items": [
+      "No Drink & Drive",
+      "Carry Valid Documents",
+      "Follow Working Hours",
+      "Respect Passengers",
+      "Report Incidents Promptly"
+    ]
   },
   "stats": {
     "title": "Trusted by Drivers Across India",
@@ -39,6 +89,8 @@
     "renewalDesc": "Renew your ADWA membership quickly online.",
     "trackingTitle": "Application Tracking",
     "trackingDesc": "Track your application status in real time.",
+    "paymentTitle": "Membership Payment",
+    "paymentDesc": "Pay your ADWA membership fee online or at district office.",
     "downloadTitle": "Download ID Card",
     "downloadDesc": "Download your digital ID card instantly.",
     "welfareTitle": "Welfare Benefits",
