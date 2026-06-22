@@ -3,6 +3,7 @@ import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { User, MapPin, IdCard, FileCheck, Pencil } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
+import { usePublicDistricts } from '@/hooks/useDistricts'
 import type { DriverRequestFormData } from '@/utils/validators'
 
 interface ReviewSectionProps {
@@ -53,9 +54,7 @@ function DocumentRow({ label, uploaded }: { label: string; uploaded: boolean }) 
           <span>✓</span> {t('apply.docs.uploaded')}
         </span>
       ) : (
-        <span className="text-sm font-semibold text-red-500 flex items-center gap-1">
-          <span>⚠</span> —
-        </span>
+        <span className="text-sm text-neutral-400">—</span>
       )}
     </div>
   )
@@ -70,46 +69,62 @@ interface StepReviewProps {
 export default function StepReview({ goToStep, declared, setDeclared }: StepReviewProps) {
   const { getValues } = useFormContext<DriverRequestFormData>()
   const { t } = useTranslation('pages')
-  const f = (key: string) => t(`apply.fields.${key}`)
+  const f = (key: string, fallback?: string) => t(`apply.fields.${key}`, fallback ?? key)
   const data = getValues()
+  const { data: districts } = usePublicDistricts()
+  const districtName = districts?.find(d => d.id === data.districtId)?.name ?? '—'
+
+  const genderLabel = data.gender
+    ? t(`apply.fields.gender${data.gender.charAt(0)}${data.gender.slice(1).toLowerCase()}`, data.gender)
+    : '—'
 
   return (
     <div className="space-y-5">
 
-      {/* Top row: Personal + Address side by side on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <ReviewSection icon={<User size={18} />} title={t('apply.personalDetails')} onEdit={() => goToStep(0)}>
-          <ReviewRow label={f('fullName')}    value={data.name} />
-          <ReviewRow label={f('mobile')}      value={data.mobile} />
-          <ReviewRow label={f('email')}       value={data.email || '—'} />
+          <ReviewRow label={f('fullName')} value={data.name} />
+          <ReviewRow label={f('fatherName')} value={data.fatherName} />
+          <ReviewRow label={f('motherName')} value={data.motherName} />
+          <ReviewRow label={f('gender')} value={genderLabel} />
+          <ReviewRow label={f('mobile')} value={data.mobile} />
+          <ReviewRow label={f('alternateMobile')} value={data.altMobile || '—'} />
+          <ReviewRow label={f('email')} value={data.email || '—'} />
           <ReviewRow label={f('dateOfBirth')} value={data.dateOfBirth ? formatDate(data.dateOfBirth) : '—'} />
         </ReviewSection>
 
         <ReviewSection icon={<MapPin size={18} />} title={t('apply.addressDetails')} onEdit={() => goToStep(0)}>
-          <ReviewRow label={f('district')}    value={data.district} />
-          <ReviewRow label={f('thana')}       value={data.thana} />
+          <ReviewRow label={f('district')} value={districtName} />
+          <ReviewRow label={f('village')} value={data.village} />
+          <ReviewRow label={f('thana')} value={data.tehsil} />
+          <ReviewRow label={f('state')} value={data.state} />
+          <ReviewRow label={f('pincode')} value={data.pincode} />
           <ReviewRow label={f('fullAddress')} value={data.address} />
         </ReviewSection>
       </div>
 
-      {/* Bottom row: Professional + Documents side by side on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <ReviewSection icon={<IdCard size={18} />} title={t('apply.professionalDetails')} onEdit={() => goToStep(1)}>
-          <ReviewRow label={f('bloodGroup')}    value={data.bloodGroup} />
-          <ReviewRow label={f('aadhaar')}       value={data.aadharNumber ? `••••••••${data.aadharNumber.slice(-4)}` : '—'} />
-          <ReviewRow label={f('license')}       value={data.licenseNumber} />
-          <ReviewRow label={f('licenseType')}   value={data.licenseType} />
+          <ReviewRow label={f('bloodGroup')} value={data.bloodGroup} />
+          <ReviewRow label={f('aadhaar')} value={data.aadharNumber ? `••••••••${data.aadharNumber.slice(-4)}` : '—'} />
+          <ReviewRow label={f('license')} value={data.licenseNumber} />
+          <ReviewRow label={f('licenseIssueDate', 'License Issue Date')} value={data.licenseIssueDate ? formatDate(data.licenseIssueDate) : '—'} />
           <ReviewRow label={f('licenseExpiry')} value={data.licenseExpiryDate ? formatDate(data.licenseExpiryDate) : '—'} />
+          <ReviewRow label={f('vehicleType')} value={data.vehicleType} />
+          <ReviewRow label={f('vehicleNumber', 'Vehicle Number')} value={data.vehicleNumber} />
+          <ReviewRow label={f('experience')} value={`${data.experienceYears} years`} />
         </ReviewSection>
 
         <ReviewSection icon={<FileCheck size={18} />} title={t('apply.documentUpload')} onEdit={() => goToStep(2)}>
-          <DocumentRow label={t('apply.docs.photo')}        uploaded={Boolean(data.passportPhoto)} />
-          <DocumentRow label={t('apply.docs.aadhaarFront')} uploaded={Boolean(data.aadharCopy)} />
-          <DocumentRow label={t('apply.docs.licenseFront')} uploaded={Boolean(data.licenseCopy)} />
+          <DocumentRow label={t('apply.docs.photo')} uploaded={Boolean(data.driverPhoto)} />
+          <DocumentRow label={t('apply.docs.aadhaarFront')} uploaded={Boolean(data.aadhaarFront)} />
+          <DocumentRow label={t('apply.docs.aadhaarBack')} uploaded={Boolean(data.aadhaarBack)} />
+          <DocumentRow label={t('apply.docs.licenseFront')} uploaded={Boolean(data.licenseFront)} />
+          <DocumentRow label={t('apply.docs.licenseBack')} uploaded={Boolean(data.licenseBack)} />
+          <DocumentRow label={t('apply.docs.vehicleRc', 'Vehicle RC')} uploaded={Boolean(data.vehicleRc)} />
         </ReviewSection>
       </div>
 
-      {/* Declaration */}
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <input

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { paymentsService } from '../services/mock/payments.service'
+import { paymentsService } from '../services'
 import type { PaymentFilters, PaymentStatus } from '../types/payment.types'
 import { toast } from 'sonner'
 

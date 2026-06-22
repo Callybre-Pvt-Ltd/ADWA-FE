@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { notificationsService } from '../services/mock/notifications.service'
+import { notificationsService } from '../services'
 import type { CreateNotificationDto } from '../types/notification.types'
 import { toast } from 'sonner'
 

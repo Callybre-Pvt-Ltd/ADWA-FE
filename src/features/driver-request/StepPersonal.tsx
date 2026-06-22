@@ -5,26 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { DOBPicker } from '@/components/shared/DOBPicker'
+import { usePublicDistricts } from '@/hooks/useDistricts'
+import { INDIAN_STATES } from '@/constants'
 import type { DriverRequestFormData } from '@/utils/validators'
 import { FormField, FormSection } from './FormField'
+import { SkeletonCard } from '@/components/shared/SkeletonCard'
 
-const DISTRICTS = [
-  'Lucknow', 'Ahmedabad', 'Mumbai', 'Delhi', 'Jaipur',
-  'Agra', 'Kanpur', 'Varanasi', 'Allahabad', 'Meerut',
-]
-
-const THANAS: Record<string, string[]> = {
-  Lucknow:   ['Hazratganj', 'Gomti Nagar', 'Alambagh', 'Chinhat', 'Sarojini Nagar'],
-  Ahmedabad: ['Navrangpura', 'Maninagar', 'Vastrapur', 'Bapunagar'],
-  Mumbai:    ['Andheri', 'Bandra', 'Dadar', 'Kurla', 'Borivali'],
-  Delhi:     ['Connaught Place', 'Karol Bagh', 'Dwarka', 'Rohini', 'Saket'],
-  Jaipur:    ['Malviya Nagar', 'Vaishali Nagar', 'C Scheme', 'Mansarovar'],
-  Agra:      ['Taj Ganj', 'Shahganj', 'Lohamandi', 'Etmadpur'],
-  Kanpur:    ['Swaroop Nagar', 'Kidwai Nagar', 'Armapur', 'Kalyanpur'],
-  Varanasi:  ['Lanka', 'Sigra', 'Shivpur', 'Manduadih'],
-  Allahabad: ['Civil Lines', 'George Town', 'Naini', 'Phaphamau'],
-  Meerut:    ['Hapur Road', 'Lisari Gate', 'Daurala', 'Mawana'],
-}
+const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const
 
 export default function StepPersonal() {
   const { t } = useTranslation('pages')
@@ -32,15 +19,47 @@ export default function StepPersonal() {
   const s = (key: string) => t(`apply.sections.${key}`)
 
   const { register, setValue, watch, formState: { errors } } = useFormContext<DriverRequestFormData>()
-  const district = watch('district')
+  const districtId = watch('districtId')
+  const { data: districts, isLoading } = usePublicDistricts()
+
+  const handleDistrictChange = (id: string) => {
+    const selected = districts?.find((d) => d.id === id)
+    setValue('districtId', id, { shouldValidate: true })
+    setValue('district', selected?.name ?? '', { shouldValidate: false })
+  }
 
   return (
     <div className="space-y-8">
 
-      {/* Name & Contact — 3 fields → col1: Full Name, col2: Mobile, col-span-full: Email */}
       <FormSection icon={<User size={16} />} title={s('nameContact')}>
         <FormField label={f('fullName')} htmlFor="name" required hint={f('fullNameHint')} error={errors.name?.message}>
           <Input id="name" placeholder={f('fullNamePlaceholder')} {...register('name')} />
+        </FormField>
+
+        <FormField label={f('fatherName')} htmlFor="fatherName" required error={errors.fatherName?.message}>
+          <Input id="fatherName" placeholder={f('fatherNamePlaceholder')} {...register('fatherName')} />
+        </FormField>
+
+        <FormField label={f('motherName')} htmlFor="motherName" required error={errors.motherName?.message}>
+          <Input id="motherName" placeholder={f('motherName', "Mother's Full Name")} {...register('motherName')} />
+        </FormField>
+
+        <FormField label={f('gender')} required error={errors.gender?.message}>
+          <Select
+            value={watch('gender')}
+            onValueChange={(v) => setValue('gender', v as DriverRequestFormData['gender'], { shouldValidate: true })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={f('genderSelect')} />
+            </SelectTrigger>
+            <SelectContent>
+              {GENDERS.map((g) => (
+                <SelectItem key={g} value={g}>
+                  {f(g === 'MALE' ? 'genderMale' : g === 'FEMALE' ? 'genderFemale' : 'genderOther')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FormField>
 
         <FormField label={f('mobile')} htmlFor="mobile" required hint={f('mobileHint')} error={errors.mobile?.message}>
@@ -50,6 +69,10 @@ export default function StepPersonal() {
             </span>
             <Input id="mobile" type="tel" inputMode="numeric" placeholder={f('mobilePlaceholder')} className="pl-10" {...register('mobile')} />
           </div>
+        </FormField>
+
+        <FormField label={f('alternateMobile')} htmlFor="altMobile" optional error={errors.altMobile?.message}>
+          <Input id="altMobile" type="tel" inputMode="numeric" placeholder={f('alternateMobilePlaceholder')} {...register('altMobile')} />
         </FormField>
 
         <FormField label={f('email')} htmlFor="email" optional hint={f('emailPlaceholder')} error={errors.email?.message} fullWidth>
@@ -62,47 +85,56 @@ export default function StepPersonal() {
         </FormField>
       </FormSection>
 
-      {/* DOB — full width (3-part picker looks better unconstrained) */}
       <FormSection icon={<Calendar size={16} />} title={s('dateOfBirth')} singleCol>
         <FormField label={f('dateOfBirth')} required error={errors.dateOfBirth?.message}>
           <DOBPicker name="dateOfBirth" error={errors.dateOfBirth?.message} />
         </FormField>
       </FormSection>
 
-      {/* Address */}
       <FormSection icon={<MapPin size={16} />} title={t('apply.addressDetails')}>
-        <FormField label={f('district')} required error={errors.district?.message}>
+        {isLoading ? (
+          <SkeletonCard />
+        ) : (
+          <FormField label={f('district')} required error={errors.districtId?.message}>
+            <Select value={districtId} onValueChange={handleDistrictChange}>
+              <SelectTrigger>
+                <SelectValue placeholder={f('selectDistrict')} />
+              </SelectTrigger>
+              <SelectContent>
+                {(districts ?? []).map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        )}
+
+        <FormField label={f('village')} htmlFor="village" required error={errors.village?.message}>
+          <Input id="village" placeholder={f('villagePlaceholder')} {...register('village')} />
+        </FormField>
+
+        <FormField label={f('thana')} htmlFor="tehsil" required error={errors.tehsil?.message}>
+          <Input id="tehsil" placeholder={f('thanaPlaceholder')} {...register('tehsil')} />
+        </FormField>
+
+        <FormField label={f('state')} required error={errors.state?.message}>
           <Select
-            value={district}
-            onValueChange={v => { setValue('district', v, { shouldValidate: true }); setValue('thana', '') }}
+            value={watch('state')}
+            onValueChange={(v) => setValue('state', v, { shouldValidate: true })}
           >
             <SelectTrigger>
-              <SelectValue placeholder={f('selectDistrict')} />
+              <SelectValue placeholder={f('stateSelect')} />
             </SelectTrigger>
             <SelectContent>
-              {DISTRICTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              {INDIAN_STATES.map((st) => (
+                <SelectItem key={st} value={st}>{st}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </FormField>
 
-        <FormField
-          label={f('thana')}
-          required
-          hint={!district ? f('selectDistrictFirst') : undefined}
-          error={errors.thana?.message}
-        >
-          <Select
-            value={watch('thana')}
-            onValueChange={v => setValue('thana', v, { shouldValidate: true })}
-            disabled={!district}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={f('selectThana')} />
-            </SelectTrigger>
-            <SelectContent>
-              {(THANAS[district] ?? []).map(th => <SelectItem key={th} value={th}>{th}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <FormField label={f('pincode')} htmlFor="pincode" required error={errors.pincode?.message}>
+          <Input id="pincode" inputMode="numeric" placeholder={f('pincodePlaceholder')} {...register('pincode')} />
         </FormField>
 
         <FormField label={f('fullAddress')} htmlFor="address" required hint={f('addressHint')} error={errors.address?.message} fullWidth>

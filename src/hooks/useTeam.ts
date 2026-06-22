@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { teamService } from '../services/mock/team.service'
+import { teamService } from '../services'
 
 export function useTeam() {
   return useQuery({
@@ -8,21 +8,6 @@ export function useTeam() {
     staleTime: 1000 * 60 * 10,
   })
 }
-
-export function useStatistics() {
-  return useQuery({
-    queryKey: ['statistics'],
-    queryFn: () => teamService.getStatistics(),
-  })
-}
-
-export function useTestimonials() {
-  return useQuery({
-    queryKey: ['testimonials'],
-    queryFn: () => teamService.getTestimonials(),
-  })
-}
-
 export function useMonthlyRegistrations() {
   return useQuery({
     queryKey: ['monthly-registrations'],

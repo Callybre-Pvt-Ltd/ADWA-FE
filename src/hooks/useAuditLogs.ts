@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { auditService } from '../services/mock/audit.service'
+import { auditService } from '../services'
 import type { AuditLogFilters } from '../types/common.types'
 
 export const AUDIT_QUERY_KEY = ['audit-logs'] as const

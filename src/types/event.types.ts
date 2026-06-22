@@ -7,6 +7,8 @@ export type Event = {
   imageUrl?: string
   status: 'upcoming' | 'past' | 'cancelled'
   createdAt: string
+  slug?: string
+  backendStatus?: string
 }
 
 export type EventFilters = {

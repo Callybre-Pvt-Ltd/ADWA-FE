@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { driversService } from '../services/mock/drivers.service'
+import { driversService, verificationService, cardsService } from '../services'
 import type { DriverFilters, DriverStatus, CreateDriverDto } from '../types/driver.types'
 import { toast } from 'sonner'
 
@@ -57,6 +57,39 @@ export function useUpdateDriverStatus() {
   })
 }
 
+export function useSuspendDriver() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      driversService.suspend(id, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY })
+      toast.success('Driver suspended')
+    },
+    onError: (err: Error) => toast.error(`Failed: ${err.message}`),
+  })
+}
+
+export function useActivateDriver() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => driversService.activate(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: DRIVERS_QUERY_KEY })
+      toast.success('Driver activated')
+    },
+    onError: (err: Error) => toast.error(`Failed: ${err.message}`),
+  })
+}
+
+export function useDriverCards() {
+  return useQuery({
+    queryKey: ['cards'],
+    queryFn: () => cardsService.list(),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
 export function useCreateDriver() {
   const qc = useQueryClient()
   return useMutation({
@@ -69,11 +102,11 @@ export function useCreateDriver() {
   })
 }
 
-export function useVerifyDriver(id: string) {
+export function useVerifyDriver(code: string) {
   return useQuery({
-    queryKey: ['verify', id],
-    queryFn: () => driversService.verify(id),
-    enabled: !!id,
+    queryKey: ['verify', code],
+    queryFn: () => verificationService.verify(code),
+    enabled: !!code,
     retry: false,
   })
 }

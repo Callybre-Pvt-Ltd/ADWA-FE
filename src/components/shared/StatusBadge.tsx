@@ -47,6 +47,7 @@ export function StatusBadge({ variant, label, dot, className, testId }: StatusBa
 }
 
 export function statusToVariant(status: string): BadgeVariant {
+  const normalized = status.toLowerCase()
   const map: Record<string, BadgeVariant> = {
     pending: 'warning',
     approved: 'info',
@@ -62,6 +63,14 @@ export function statusToVariant(status: string): BadgeVariant {
     invalid: 'danger',
     active: 'success',
     inactive: 'neutral',
+    submitted: 'info',
+    pending_district_review: 'warning',
+    rejected_by_district: 'danger',
+    forwarded_to_admin: 'primary',
+    rejected_by_admin: 'danger',
+    id_card_generated: 'success',
+    suspended: 'danger',
+    revoked: 'danger',
   }
-  return map[status] ?? 'neutral'
+  return map[normalized] ?? 'neutral'
 }

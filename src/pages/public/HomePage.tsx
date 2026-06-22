@@ -3,17 +3,14 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-  MapPin, CheckCircle2, Wallet, Shield, Star, ChevronLeft, ChevronRight,
+  MapPin, CheckCircle2, Wallet, Shield, ChevronLeft, ChevronRight,
   Heart, Phone, Users, Award, Building2, Truck, Mail,
   Quote, Moon, Sun, Navigation,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, popIn, slideInRight } from '@/utils/animations'
-import { useStatistics, useTestimonials } from '@/hooks/useTeam'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { CountUp } from '@/components/shared/CountUp'
 import { AdwaSeal } from '@/components/shared/AdwaSeal'
-import { SkeletonCard } from '@/components/shared/SkeletonCard'
-import { ErrorState } from '@/components/shared/ErrorState'
 import { Button } from '@/components/ui/button'
 
 
@@ -50,6 +47,13 @@ const DRIVER_VOICES = [
     icon: Navigation,
     accent: '#D97706',
   },
+] as const
+
+const ORG_STATS = [
+  { id: '1', label: 'Registered Members', value: 1200000, suffix: '+' },
+  { id: '2', label: 'Districts Covered', value: 52, suffix: '' },
+  { id: '3', label: 'ID Cards Issued', value: 85000, suffix: '+' },
+  { id: '4', label: 'Years of Service', value: 7, suffix: '+' },
 ] as const
 
 const PATRON = {
@@ -101,8 +105,6 @@ function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; si
 export default function HomePage() {
   const { t, i18n } = useTranslation('home')
   const isHi = i18n.language === 'hi'
-  const stats = useStatistics()
-  const testimonials = useTestimonials()
   const [testimonialIdx, setTestimonialIdx] = useState(0)
 
   return (
@@ -221,18 +223,13 @@ export default function HomePage() {
             light
             className="mb-8"
           />
-          {stats.isLoading ? (
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}</div>
-          ) : stats.isError ? (
-            <ErrorState onRetry={() => stats.refetch()} />
-          ) : (
-            <motion.div
-              initial="initial"
-              animate="animate"
-              variants={staggerContainer}
-              className="grid gap-4 grid-cols-2 lg:grid-cols-4"
-            >
-              {stats.data?.map((s, i) => {
+          <motion.div
+            initial="initial"
+            animate="animate"
+            variants={staggerContainer}
+            className="grid gap-4 grid-cols-2 lg:grid-cols-4"
+          >
+            {ORG_STATS.map((s, i) => {
                 const StatIcons = [Users, MapPin, CheckCircle2, Truck]
                 const Icon = StatIcons[i % StatIcons.length]
                 const colors = ['#1D4ED8', '#F97316', '#16A34A', '#D97706']
@@ -252,18 +249,13 @@ export default function HomePage() {
                       <Icon className="h-7 w-7" aria-hidden="true" />
                     </div>
                     <p className="text-2xl md:text-4xl font-extrabold tabular-nums" style={{ color }}>
-                      {typeof s.value === 'number' && s.id !== 'days' ? (
-                        <CountUp end={s.value} suffix={s.suffix ?? ''} />
-                      ) : (
-                        <>{s.value}{s.suffix ?? ''}</>
-                      )}
+                      <CountUp end={s.value} suffix={s.suffix ?? ''} />
                     </p>
                     <p className="mt-1 text-sm md:text-base font-bold text-neutral-700">{s.label}</p>
                   </motion.div>
                 )
-              })}
-            </motion.div>
-          )}
+            })}
+          </motion.div>
         </div>
       </section>
 
@@ -417,23 +409,22 @@ export default function HomePage() {
       <section className="section-padding bg-white">
         <div className="container-wide max-w-2xl">
           <SectionHeading title={t('testimonials.title')} subtitle={t('testimonials.subtitle')} align="center" />
-          {testimonials.isLoading ? <SkeletonCard /> : testimonials.data && (
-            <motion.div {...popIn} className="surface-card p-6 relative overflow-hidden mt-6">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 via-blue-600 to-green-500" aria-hidden="true" />
-              <div className="flex gap-1 justify-center mb-4">
-                {Array.from({ length: testimonials.data[testimonialIdx]?.rating ?? 5 }).map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-center text-sm text-neutral-800 leading-relaxed">&ldquo;{testimonials.data[testimonialIdx]?.content}&rdquo;</p>
-              <p className="mt-4 text-center text-sm font-bold text-blue-900">{testimonials.data[testimonialIdx]?.name}</p>
-              <p className="text-center text-xs text-neutral-500">{testimonials.data[testimonialIdx]?.role}, {testimonials.data[testimonialIdx]?.state}</p>
-              <div className="mt-5 flex justify-center gap-3">
-                <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i - 1 + testimonials.data!.length) % testimonials.data!.length)}><ChevronLeft className="h-5 w-5" /></Button>
-                <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i + 1) % testimonials.data!.length)}><ChevronRight className="h-5 w-5" /></Button>
-              </div>
-            </motion.div>
-          )}
+          <motion.div {...popIn} className="surface-card p-6 relative overflow-hidden mt-6">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 via-blue-600 to-green-500" aria-hidden="true" />
+            <p className="text-center text-sm text-neutral-800 leading-relaxed">
+              &ldquo;{isHi ? DRIVER_VOICES[testimonialIdx].quoteHi : DRIVER_VOICES[testimonialIdx].quoteEn}&rdquo;
+            </p>
+            <p className="mt-4 text-center text-sm font-bold text-blue-900">
+              {isHi ? DRIVER_VOICES[testimonialIdx].nameHi : DRIVER_VOICES[testimonialIdx].nameEn}
+            </p>
+            <p className="text-center text-xs text-neutral-500">
+              {isHi ? DRIVER_VOICES[testimonialIdx].roleHi : DRIVER_VOICES[testimonialIdx].roleEn}
+            </p>
+            <div className="mt-5 flex justify-center gap-3">
+              <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i - 1 + DRIVER_VOICES.length) % DRIVER_VOICES.length)}><ChevronLeft className="h-5 w-5" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i + 1) % DRIVER_VOICES.length)}><ChevronRight className="h-5 w-5" /></Button>
+            </div>
+          </motion.div>
         </div>
       </section>
 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { districtsService } from '../services/mock/districts.service'
+import { districtsService } from '../services'
 import type { CreateDistrictDto } from '../types/district.types'
 import { toast } from 'sonner'
 
@@ -10,6 +10,14 @@ export function useDistricts() {
     queryKey: DISTRICTS_QUERY_KEY,
     queryFn: () => districtsService.getAll(),
     staleTime: 1000 * 60 * 10,
+  })
+}
+
+export function usePublicDistricts() {
+  return useQuery({
+    queryKey: [...DISTRICTS_QUERY_KEY, 'public'],
+    queryFn: () => districtsService.getPublic(),
+    staleTime: 1000 * 60 * 30,
   })
 }
 

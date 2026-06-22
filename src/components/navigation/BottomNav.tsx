@@ -18,7 +18,7 @@ export function BottomNav({ routes }: BottomNavProps) {
       className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-neutral-200 bg-white safe-area-pb"
       aria-label="Bottom navigation"
     >
-      <div className="flex items-center justify-around">
+      <div className="flex items-stretch justify-around">
         {navRoutes.map((route) => {
           const Icon = getIcon(route.icon)
           const active = location.pathname === route.path
@@ -27,12 +27,12 @@ export function BottomNav({ routes }: BottomNavProps) {
               key={route.key}
               to={route.path}
               className={cn(
-                'flex flex-1 flex-col items-center gap-0.5 py-2 min-h-[56px] justify-center text-xs font-medium',
-                active ? 'text-primary' : 'text-neutral-500',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] uppercase tracking-wide',
+                active ? 'text-neutral-900' : 'text-neutral-400',
               )}
             >
-              <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="truncate max-w-[64px]">{t(route.label.replace('nav.', ''))}</span>
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              <span className="truncate max-w-[56px]">{t(route.label.replace('nav.', ''))}</span>
             </Link>
           )
         })}

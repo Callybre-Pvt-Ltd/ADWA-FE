@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { PanelLeft, PanelLeftClose } from 'lucide-react'
 import type { RouteConfig } from '@/routes/routes.data'
 import { getIcon } from '@/routes/iconMap'
 import { cn } from '@/utils/cn'
-import { Button } from '@/components/ui/button'
 
 interface SidebarProps {
   routes: RouteConfig[]
@@ -21,19 +20,27 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel }: SidebarPro
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col border-r border-neutral-200 bg-white transition-all shadow-sm',
-        collapsed ? 'w-16' : 'w-64',
+        'hidden md:flex flex-col border-r border-neutral-200 bg-white transition-all',
+        collapsed ? 'w-14' : 'w-52',
       )}
     >
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-4 bg-royal-800">
+      <div className="flex h-14 items-center justify-between border-b border-neutral-100 px-3">
         {!collapsed && (
-          <span className="font-bold text-sm text-white">{portalLabel}</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">
+            {portalLabel}
+          </span>
         )}
-        <Button variant="ghost" size="icon" onClick={onToggle} aria-label="Toggle sidebar" className="rounded-full text-white hover:bg-white/15">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="Toggle sidebar"
+          className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50"
+        >
           {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </Button>
+        </button>
       </div>
-      <nav className="flex-1 p-2 space-y-1" aria-label="Sidebar navigation">
+
+      <nav className="flex-1 p-2 space-y-0.5" aria-label="Sidebar navigation">
         {sidebarRoutes.map((route) => {
           const Icon = getIcon(route.icon)
           const active = location.pathname === route.path
@@ -43,29 +50,32 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel }: SidebarPro
               to={route.path}
               title={collapsed ? t(route.label.replace('nav.', '')) : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all min-h-[44px]',
+                'flex items-center gap-2.5 rounded px-2.5 py-2 text-sm transition-colors min-h-[40px]',
                 active
-                  ? 'bg-royal-700 text-white shadow-sm'
-                  : 'text-neutral-700 hover:bg-royal-50 hover:text-royal-800',
+                  ? 'bg-neutral-900 text-white'
+                  : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
                 collapsed && 'justify-center px-2',
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-              {!collapsed && t(route.label.replace('nav.', ''))}
+              <Icon className="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />
+              {!collapsed && (
+                <span className="truncate">{t(route.label.replace('nav.', ''))}</span>
+              )}
             </Link>
           )
         })}
       </nav>
-      <div className="border-t border-neutral-200 p-2 bg-neutral-50">
+
+      <div className="border-t border-neutral-100 p-2">
         <Link
           to="/"
           className={cn(
-            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-white hover:text-royal-700 transition-colors',
-            collapsed && 'justify-center',
+            'flex items-center justify-center rounded px-2 py-2 text-xs text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50',
+            !collapsed && 'justify-start px-2.5',
           )}
         >
-          <ChevronRight className="h-4 w-4 rotate-180" />
-          {!collapsed && 'Public Site'}
+          {!collapsed && '← Public site'}
+          {collapsed && '←'}
         </Link>
       </div>
     </aside>

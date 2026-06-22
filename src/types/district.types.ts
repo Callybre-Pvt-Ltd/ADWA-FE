@@ -1,14 +1,12 @@
 export type District = {
   id: string
   name: string
-  state: string
-  thanas: string[]
-  inchargeName: string
-  inchargeEmail: string
-  inchargeMobile: string
-  driverCount: number
-  activeRequests: number
+  code: string
   status: 'active' | 'inactive'
 }
 
-export type CreateDistrictDto = Omit<District, 'id' | 'driverCount' | 'activeRequests'>
+export type CreateDistrictDto = {
+  name: string
+  code?: string
+  status: 'active' | 'inactive'
+}

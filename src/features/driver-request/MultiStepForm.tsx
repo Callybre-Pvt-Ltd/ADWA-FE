@@ -4,9 +4,9 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, ArrowRight, User, Car, Upload, ClipboardCheck, Check } from 'lucide-react'
+import { CheckCircle, ArrowRight, User, Car, Upload, ClipboardCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useCreateDriver } from '@/hooks/useDrivers'
+import { useSubmitDriverRequest } from '@/hooks/useDriverRequests'
 import {
   driverPersonalSchema, driverDetailsSchema, documentUploadSchema,
   type DriverRequestFormData,
@@ -38,14 +38,22 @@ export default function MultiStepForm() {
   const { t, i18n } = useTranslation('pages')
   const isHi = i18n.language === 'hi'
   const [step, setStep] = useState(0)
-  const [referenceId, setReferenceId] = useState<string | null>(null)
+  const [referenceNumber, setReferenceNumber] = useState<string | null>(null)
   const [declared, setDeclared] = useState(false)
-  const createDriver = useCreateDriver()
+  const submitRequest = useSubmitDriverRequest()
 
   const form = useForm<DriverRequestFormData>({
     resolver: zodResolver(driverPersonalSchema.merge(driverDetailsSchema).merge(documentUploadSchema)),
     mode: 'onChange',
-    defaultValues: { email: '', dateOfBirth: '', licenseExpiryDate: '' },
+    defaultValues: {
+      email: '',
+      altMobile: '',
+      dateOfBirth: '',
+      licenseIssueDate: '',
+      licenseExpiryDate: '',
+      state: 'Madhya Pradesh',
+      experienceYears: 0,
+    },
   })
 
   const next = async () => {
@@ -57,21 +65,15 @@ export default function MultiStepForm() {
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const submit = form.handleSubmit(async (data) => {
-    const { passportPhoto: _p, aadharCopy: _a, licenseCopy: _l, ...driverData } = data
-    const result = await createDriver.mutateAsync({
-      ...driverData,
-      photoUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=New',
-      email: driverData.email || undefined,
-    })
-    const ref = `ADWA-${new Date().getFullYear()}-${result.id.replace('drv-', '').slice(-6).toUpperCase()}`
-    setReferenceId(ref)
+    const result = await submitRequest.mutateAsync(data)
+    setReferenceNumber(result.referenceNumber ?? result.id)
   })
 
   const isLastStep = step === FORM_STEPS.length - 1
   const progressPct = Math.round(((step + 1) / FORM_STEPS.length) * 100)
   const currentStep = FORM_STEPS[step]
 
-  if (referenceId) {
+  if (referenceNumber) {
     return (
       <motion.div {...fadeInUp} className="bg-white rounded-3xl border-2 border-neutral-200 mx-auto max-w-lg p-8 text-center shadow-sm">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
@@ -81,7 +83,7 @@ export default function MultiStepForm() {
         <p className="mt-2 text-sm text-neutral-500">{t('apply.successReceived')}</p>
         <div className="mt-6 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 px-5 py-5">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t('apply.successRef')}</p>
-          <p className="mt-2 text-3xl font-bold text-blue-900 font-mono tracking-widest">{referenceId}</p>
+          <p className="mt-2 text-3xl font-bold text-blue-900 font-mono tracking-widest">{referenceNumber}</p>
           <p className="mt-2 text-xs text-neutral-500">{t('apply.successSave')}</p>
         </div>
         <p className="mt-4 text-sm text-neutral-500 leading-relaxed">{t('apply.successMsg')}</p>
@@ -89,7 +91,7 @@ export default function MultiStepForm() {
           <Button asChild variant="accent">
             <Link to="/status">{t('apply.trackApplication')} <ArrowRight className="h-4 w-4" /></Link>
           </Button>
-          <Button variant="outline" onClick={() => { setReferenceId(null); setStep(0); form.reset() }}>
+          <Button variant="outline" onClick={() => { setReferenceNumber(null); setStep(0); form.reset() }}>
             {t('apply.printReceipt')}
           </Button>
         </div>
@@ -101,12 +103,10 @@ export default function MultiStepForm() {
     <FormProvider {...form}>
       <div className="max-w-5xl mx-auto space-y-4">
 
-        {/* Stepper — desktop */}
         <div className="hidden md:block bg-white rounded-3xl border-2 border-neutral-200 px-8 py-6 shadow-sm">
           <ApplicationStepper steps={FORM_STEPS} current={step} />
         </div>
 
-        {/* Mobile: compact progress bar */}
         <div className="md:hidden bg-white rounded-2xl border-2 border-neutral-200 px-4 py-3 shadow-sm">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-xs font-bold text-neutral-500">
@@ -123,10 +123,8 @@ export default function MultiStepForm() {
           </div>
         </div>
 
-        {/* Form card */}
         <div className="bg-white rounded-3xl border-2 border-neutral-200 shadow-sm overflow-hidden">
 
-          {/* Step header */}
           <div className="px-6 py-5 md:px-8 border-b-2 border-neutral-100 bg-gradient-to-r from-blue-50 to-white">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-200">
@@ -140,7 +138,6 @@ export default function MultiStepForm() {
                   {t('common:buttons.next')} — {isHi ? FORM_STEPS[Math.min(step + 1, FORM_STEPS.length - 1)].labelHi : FORM_STEPS[Math.min(step + 1, FORM_STEPS.length - 1)].labelEn}
                 </p>
               </div>
-              {/* Step indicator pills */}
               <div className="ml-auto flex items-center gap-1.5">
                 {FORM_STEPS.map((_, i) => (
                   <span key={i} className={cn(
@@ -152,7 +149,6 @@ export default function MultiStepForm() {
             </div>
           </div>
 
-          {/* Form content */}
           <div className="px-6 py-7 md:px-8 pb-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -174,7 +170,7 @@ export default function MultiStepForm() {
               onBack={back}
               onNext={isLastStep ? submit : next}
               nextLabel={isLastStep ? t('apply.submitApplication') : t('common:buttons.next')}
-              isLoading={createDriver.isPending}
+              isLoading={submitRequest.isPending}
               isSubmit={isLastStep}
               disabled={isLastStep && !declared}
             />

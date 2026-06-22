@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/utils/formatters'
 import { Bell } from 'lucide-react'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 const schema = z.object({
   title: z.string().min(3),
@@ -42,7 +43,8 @@ export default function NotificationsManagementPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="rounded-lg border border-neutral-200 p-6">
           <h2 className="font-semibold text-neutral-900">Create Notification</h2>
-          <form onSubmit={onSubmit} className="mt-4 space-y-4">
+          <p className="mt-2 text-sm text-neutral-600">Notification publishing is not available yet. Use email alerts from the backend workflow for now.</p>
+          <form onSubmit={onSubmit} className="mt-4 space-y-4 opacity-60 pointer-events-none" aria-disabled="true">
             <div>
               <Label htmlFor="title">Title</Label>
               <Input id="title" {...register('title')} className="mt-1" />
@@ -87,6 +89,9 @@ export default function NotificationsManagementPage() {
           <h2 className="font-semibold text-neutral-900">All Notifications</h2>
           {isLoading && <SkeletonCard />}
           {isError && <ErrorState onRetry={() => refetch()} />}
+          {!isLoading && !isError && !data?.length && (
+            <EmptyState icon={Bell} title="No notifications" description="Published notifications will appear here." className="py-10" />
+          )}
           <div className="mt-4 space-y-3">
             {data?.map((n) => (
               <div key={n.id} className="rounded-lg border border-neutral-200 p-4">

@@ -73,8 +73,24 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/15 pt-6 text-center text-sm text-white/60">
-          © {new Date().getFullYear()} All Drivers Welfare Association. All rights reserved.
+        <div className="mt-10 border-t border-white/15 pt-6">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              to="/district/login"
+              className="inline-flex min-w-[140px] items-center justify-center border border-white/30 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+            >
+              District Login
+            </Link>
+            <Link
+              to="/admin/login"
+              className="inline-flex min-w-[140px] items-center justify-center bg-white px-5 py-2.5 text-sm font-medium text-blue-900 hover:bg-white/90 transition-colors"
+            >
+              Admin Login
+            </Link>
+          </div>
+          <p className="mt-6 text-center text-sm text-white/60">
+            © {new Date().getFullYear()} All Drivers Welfare Association. All rights reserved.
+          </p>
         </div>
       </div>
       <div className="flag-stripe" aria-hidden="true" />

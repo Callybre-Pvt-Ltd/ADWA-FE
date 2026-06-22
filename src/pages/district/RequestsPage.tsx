@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDriverRequests, useUpdateDriverStatus } from '@/hooks/useDrivers'
+import {
+  useDriverRequestList,
+  useForwardApplication,
+  useRejectApplication,
+} from '@/hooks/useDriverRequests'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
@@ -11,46 +15,68 @@ import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
-import type { DriverRequest } from '@/types/driver.types'
+import type { DriverRequest, RequestStatus } from '@/types/driver.types'
 import { ClipboardList } from 'lucide-react'
 
 export default function RequestsPage() {
   const { t } = useTranslation('dashboard')
   const [status, setStatus] = useState<string>('all')
   const [selected, setSelected] = useState<DriverRequest | null>(null)
-  const [confirmAction, setConfirmAction] = useState<'approved' | 'rejected' | null>(null)
-  const { data, isLoading, isError, refetch } = useDriverRequests({ status: status as 'all' })
-  const updateStatus = useUpdateDriverStatus()
+  const [rejectOpen, setRejectOpen] = useState(false)
+  const [forwardOpen, setForwardOpen] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
+  const [verificationRemarks, setVerificationRemarks] = useState('')
+  const [diNotes, setDiNotes] = useState('')
+  const [paymentProof, setPaymentProof] = useState<File | null>(null)
+
+  const filters = status === 'all' ? undefined : { status: status as RequestStatus }
+  const { data, isLoading, isError, refetch } = useDriverRequestList(filters)
+  const forwardApp = useForwardApplication()
+  const rejectApp = useRejectApplication()
 
   const columns: ColumnDef<DriverRequest>[] = [
+    { key: 'ref', header: 'Application #', cell: (r) => r.referenceNumber ?? r.id },
     { key: 'name', header: 'Name', cell: (r) => r.name, sortable: true, sortValue: (r) => r.name },
-    { key: 'type', header: 'Type', cell: (r) => r.requestType },
+    { key: 'mobile', header: 'Mobile', cell: (r) => r.mobile },
     { key: 'district', header: 'District', cell: (r) => r.district },
     { key: 'status', header: 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={r.status} /> },
     { key: 'date', header: 'Submitted', cell: (r) => formatDate(r.submittedAt), sortable: true, sortValue: (r) => r.submittedAt },
   ]
 
-  const handleConfirm = () => {
-    if (!selected || !confirmAction) return
-    updateStatus.mutate({ id: selected.id, status: confirmAction }, {
-      onSuccess: () => { setConfirmAction(null); setSelected(null) },
-    })
+  const handleForward = () => {
+    if (!selected || !paymentProof || !verificationRemarks) return
+    forwardApp.mutate(
+      { id: selected.id, verificationRemarks, paymentProof, diNotes: diNotes || undefined },
+      { onSuccess: () => { setForwardOpen(false); setSelected(null); setPaymentProof(null) } },
+    )
+  }
+
+  const handleReject = () => {
+    if (!selected || !rejectReason) return
+    rejectApp.mutate(
+      { id: selected.id, reason: rejectReason },
+      { onSuccess: () => { setRejectOpen(false); setSelected(null); setRejectReason('') } },
+    )
   }
 
   return (
     <div className="p-6">
       <PageHeader
         title="Driver Requests"
-        subtitle="Review and approve new applications"
+        subtitle="Review applications and forward to admin"
         action={
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="PENDING_DISTRICT_REVIEW">Pending Review</SelectItem>
+              <SelectItem value="FORWARDED_TO_ADMIN">Forwarded</SelectItem>
+              <SelectItem value="REJECTED_BY_DISTRICT">Rejected</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
             </SelectContent>
           </Select>
         }
@@ -71,36 +97,37 @@ export default function RequestsPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.name ?? ''}
-        description={`Request type: ${selected?.requestType}`}
-        footer={selected?.status === 'pending' && (
+        description={selected?.referenceNumber}
+        footer={selected?.status === 'PENDING_DISTRICT_REVIEW' && (
           <div className="flex gap-2">
-            <Button variant="destructive" className="flex-1" onClick={() => setConfirmAction('rejected')}>{t('dashboard.reject')}</Button>
-            <Button className="flex-1" onClick={() => setConfirmAction('approved')}>{t('dashboard.approve')}</Button>
+            <Button variant="destructive" className="flex-1" onClick={() => setRejectOpen(true)}>{t('dashboard.reject')}</Button>
+            <Button className="flex-1" onClick={() => setForwardOpen(true)}>Forward to Admin</Button>
           </div>
         )}
       >
         {selected && (
           <dl className="space-y-3 text-sm">
-            {[
-              ['Mobile', selected.mobile], ['District', selected.district],
-              ['License', selected.licenseNumber], ['Blood Group', selected.bloodGroup],
-              ['Address', selected.address],
-            ].map(([k, v]) => (
+            {[['Mobile', selected.mobile], ['District', selected.district], ['License', selected.licenseNumber], ['Vehicle', selected.vehicleNumber], ['Address', selected.address]].map(([k, v]) => (
               <div key={k}><dt className="text-neutral-500">{k}</dt><dd className="font-medium">{v}</dd></div>
             ))}
           </dl>
         )}
       </AppDrawer>
-      <ConfirmDialog
-        open={!!confirmAction}
-        onOpenChange={() => setConfirmAction(null)}
-        title={confirmAction === 'approved' ? 'Approve Request?' : 'Reject Request?'}
-        description={`This will ${confirmAction} the application for ${selected?.name}.`}
-        confirmLabel={confirmAction === 'approved' ? t('dashboard.approve') : t('dashboard.reject')}
-        variant={confirmAction === 'rejected' ? 'destructive' : 'default'}
-        onConfirm={handleConfirm}
-        loading={updateStatus.isPending}
-      />
+      <ConfirmDialog open={rejectOpen} onOpenChange={setRejectOpen} title="Reject Application?" description={rejectReason || 'Provide a reason in the drawer and confirm.'} confirmLabel={t('dashboard.reject')} variant="destructive" onConfirm={handleReject} loading={rejectApp.isPending} />
+      {forwardOpen && selected && (
+        <AppDrawer open={forwardOpen} onClose={() => setForwardOpen(false)} title="Forward to Admin" footer={<Button className="w-full" onClick={handleForward} disabled={forwardApp.isPending || !paymentProof || !verificationRemarks}>Forward</Button>}>
+          <div className="space-y-3">
+            <div><Label>Verification remarks</Label><Textarea value={verificationRemarks} onChange={(e) => setVerificationRemarks(e.target.value)} /></div>
+            <div><Label>DI notes (optional)</Label><Textarea value={diNotes} onChange={(e) => setDiNotes(e.target.value)} /></div>
+            <div><Label>Payment screenshot</Label><Input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)} /></div>
+          </div>
+        </AppDrawer>
+      )}
+      {rejectOpen && (
+        <AppDrawer open={rejectOpen} onClose={() => setRejectOpen(false)} title="Reject Application" footer={<Button variant="destructive" className="w-full" onClick={handleReject} disabled={rejectApp.isPending || !rejectReason}>Reject</Button>}>
+          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Rejection reason" />
+        </AppDrawer>
+      )}
     </div>
   )
 }

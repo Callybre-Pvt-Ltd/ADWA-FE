@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { CheckCircle, Phone, Mail, MapPin } from 'lucide-react'
 import { contactFormSchema, type ContactFormData } from '@/utils/validators'
-import { contactService } from '@/services/mock/team.service'
+import { contactService } from '@/services'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,7 +20,11 @@ export default function ContactPage() {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
   })
-  const mutation = useMutation({ mutationFn: contactService.submit, onSuccess: () => { setSubmitted(true); reset() } })
+  const mutation = useMutation({
+    mutationFn: contactService.submit,
+    onSuccess: () => { setSubmitted(true); reset() },
+    onError: (err: Error) => toast.error(err.message),
+  })
 
   return (
     <div className="bg-white">

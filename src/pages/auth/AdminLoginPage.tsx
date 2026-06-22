@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { Lock, ArrowLeft } from 'lucide-react'
-import { useAuth, getMockCredentials } from '@/context/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -26,12 +26,11 @@ export default function AdminLoginPage() {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const creds = getMockCredentials('admin')
   const from = (location.state as { from?: string } | null)?.from ?? '/admin/dashboard'
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: creds.email, password: '' },
+    defaultValues: { email: '', password: '' },
   })
 
   const mutation = useMutation({
@@ -58,7 +57,7 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <p className="font-bold text-neutral-900">Super Admin</p>
-              <p className="text-sm text-neutral-600">Demo: {creds.email} / {creds.password}</p>
+              <p className="text-sm text-neutral-600">Sign in with your ADWA admin credentials</p>
             </div>
           </div>
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">

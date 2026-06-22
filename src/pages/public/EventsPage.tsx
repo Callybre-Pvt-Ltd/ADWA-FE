@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar, Clock, MapPin } from 'lucide-react'
-import { useEvents } from '@/hooks/useEvents'
+import { usePublicEvents } from '@/hooks/useEvents'
 import EventCard from '@/features/events/EventCard'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -18,7 +18,7 @@ const FILTERS: { value: Filter; label: string; icon: typeof Calendar }[] = [
 
 export default function EventsPage() {
   const [filter, setFilter] = useState<Filter>('all')
-  const { data, isLoading, isError, refetch } = useEvents({ status: filter })
+  const { data, isLoading, isError, refetch } = usePublicEvents({ status: filter })
 
   return (
     <div className="min-h-screen bg-neutral-50">

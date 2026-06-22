@@ -5,22 +5,44 @@ const isHi = () => i18n.language === 'hi'
 
 const t = (en: string, hi: string) => isHi() ? hi : en
 
+const mobileRegex = /^[6-9]\d{9}$/
+
 export const driverPersonalSchema = z.object({
   name: z
     .string()
     .min(2, () => t('Enter your full name', 'अपना पूरा नाम दर्ज करें'))
     .max(50, () => t('Name is too long', 'नाम बहुत लंबा है')),
+  fatherName: z
+    .string()
+    .min(2, () => t("Enter father's name", 'पिता का नाम दर्ज करें')),
+  motherName: z
+    .string()
+    .min(2, () => t("Enter mother's name", 'माता का नाम दर्ज करें')),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
+    errorMap: () => ({ message: t('Select your gender', 'लिंग चुनें') }),
+  }),
   mobile: z
     .string()
-    .regex(/^[6-9]\d{9}$/, () => t('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें')),
+    .regex(mobileRegex, () => t('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें')),
+  altMobile: z
+    .string()
+    .regex(mobileRegex, () => t('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें'))
+    .optional()
+    .or(z.literal('')),
   email: z
     .string()
     .email(() => t('Enter a valid email address', 'सही ईमेल पता डालें'))
     .optional()
     .or(z.literal('')),
   dateOfBirth: z.string().min(1, () => t('Select your date of birth', 'जन्म तिथि चुनें')),
-  district: z.string().min(1, () => t('Select your district', 'जिला चुनें')),
-  thana: z.string().min(1, () => t('Select your thana / area', 'थाना / क्षेत्र चुनें')),
+  districtId: z.string().min(1, () => t('Select your district', 'जिला चुनें')),
+  district: z.string().optional(),
+  tehsil: z.string().min(1, () => t('Enter tehsil', 'तहसील दर्ज करें')),
+  village: z.string().min(1, () => t('Enter village / town', 'गाँव / शहर दर्ज करें')),
+  state: z.string().min(1, () => t('Select state', 'राज्य चुनें')),
+  pincode: z
+    .string()
+    .regex(/^\d{6}$/, () => t('Enter a valid 6-digit pincode', 'सही 6 अंकों का पिनकोड डालें')),
   address: z.string().min(10, () => t('Enter your full address', 'पूरा पता दर्ज करें')),
 })
 
@@ -30,14 +52,25 @@ export const driverDetailsSchema = z.object({
   }),
   aadharNumber: z.string().regex(/^\d{12}$/, () => t('Enter your 12-digit Aadhaar number', '12 अंकों का आधार नंबर डालें')),
   licenseNumber: z.string().min(5, () => t('Enter your license number', 'लाइसेंस नंबर डालें')),
-  licenseType: z.string().min(1, () => t('Select your license type', 'लाइसेंस प्रकार चुनें')),
+  licenseIssueDate: z.string().min(1, () => t('Select license issue date', 'लाइसेंस जारी तिथि चुनें')),
   licenseExpiryDate: z.string().min(1, () => t('Select license expiry date', 'लाइसेंस की वैधता तिथि चुनें')),
+  vehicleType: z.string().min(1, () => t('Select vehicle type', 'वाहन प्रकार चुनें')),
+  vehicleNumber: z.string().min(4, () => t('Enter vehicle number', 'वाहन नंबर दर्ज करें')),
+  experienceYears: z.coerce
+    .number()
+    .min(0, () => t('Enter driving experience', 'अनुभव दर्ज करें'))
+    .max(60, () => t('Experience value is too high', 'अनुभव बहुत अधिक है')),
 })
 
+const optionalFile = z.instanceof(File).optional()
+
 export const documentUploadSchema = z.object({
-  passportPhoto: z.instanceof(File, { message: t('Upload your passport photo', 'पासपोर्ट फोटो अपलोड करें') }),
-  aadharCopy: z.instanceof(File, { message: t('Upload your Aadhaar card copy', 'आधार कार्ड की कॉपी अपलोड करें') }),
-  licenseCopy: z.instanceof(File, { message: t('Upload your license copy', 'लाइसेंस की कॉपी अपलोड करें') }),
+  driverPhoto: optionalFile,
+  aadhaarFront: optionalFile,
+  aadhaarBack: optionalFile,
+  licenseFront: optionalFile,
+  licenseBack: optionalFile,
+  vehicleRc: optionalFile,
 })
 
 export const contactFormSchema = z.object({
@@ -50,7 +83,7 @@ export const contactFormSchema = z.object({
 export const profileFormSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
-  mobile: z.string().regex(/^[6-9]\d{9}$/),
+  mobile: z.string().regex(mobileRegex),
   designation: z.string().min(2),
 })
 
@@ -63,3 +96,36 @@ export type ProfileFormData = z.infer<typeof profileFormSchema>
 export type DriverRequestFormData = DriverPersonalFormData &
   DriverDetailsFormData &
   DocumentUploadFormData
+
+export function buildDriverRequestFormData(data: DriverRequestFormData): FormData {
+  const formData = new FormData()
+  formData.append('district_id', data.districtId)
+  formData.append('full_name', data.name)
+  formData.append('father_name', data.fatherName)
+  formData.append('mother_name', data.motherName)
+  formData.append('date_of_birth', data.dateOfBirth)
+  formData.append('gender', data.gender)
+  formData.append('mobile_number', data.mobile)
+  if (data.altMobile) formData.append('alt_mobile_number', data.altMobile)
+  if (data.email) formData.append('email', data.email)
+  formData.append('blood_group', data.bloodGroup)
+  formData.append('address', data.address)
+  formData.append('village', data.village)
+  formData.append('tehsil', data.tehsil)
+  formData.append('state', data.state)
+  formData.append('pincode', data.pincode)
+  formData.append('license_number', data.licenseNumber)
+  formData.append('license_issue_date', data.licenseIssueDate)
+  formData.append('license_expiry_date', data.licenseExpiryDate)
+  formData.append('vehicle_type', data.vehicleType)
+  formData.append('vehicle_number', data.vehicleNumber)
+  formData.append('experience_years', String(data.experienceYears))
+  formData.append('aadhaar_number', data.aadharNumber)
+  if (data.driverPhoto) formData.append('driver_photo', data.driverPhoto)
+  if (data.aadhaarFront) formData.append('aadhaar_front', data.aadhaarFront)
+  if (data.aadhaarBack) formData.append('aadhaar_back', data.aadhaarBack)
+  if (data.licenseFront) formData.append('license_front', data.licenseFront)
+  if (data.licenseBack) formData.append('license_back', data.licenseBack)
+  if (data.vehicleRc) formData.append('vehicle_rc', data.vehicleRc)
+  return formData
+}

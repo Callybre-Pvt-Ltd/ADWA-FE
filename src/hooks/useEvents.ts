@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { eventsService } from '../services/mock/events.service'
+import { eventsService } from '../services'
 import type { EventFilters, CreateEventDto } from '../types/event.types'
 import { toast } from 'sonner'
 
@@ -9,6 +9,18 @@ export function useEvents(filters?: EventFilters) {
   return useQuery({
     queryKey: [...EVENTS_QUERY_KEY, filters],
     queryFn: () => eventsService.getAll(filters),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function usePublicEvents(filters?: EventFilters) {
+  return useQuery({
+    queryKey: [...EVENTS_QUERY_KEY, 'public', filters],
+    queryFn: async () => {
+      const events = await eventsService.getPublic()
+      if (!filters?.status || filters.status === 'all') return events
+      return events.filter((e) => e.status === filters.status)
+    },
     staleTime: 1000 * 60 * 5,
   })
 }

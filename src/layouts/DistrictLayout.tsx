@@ -1,14 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
 import { districtRoutes } from '@/routes/routes.data'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { BottomNav } from '@/components/navigation/BottomNav'
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { useAuth } from '@/context/AuthContext'
-import { Button } from '@/components/ui/button'
-import { LogOut } from 'lucide-react'
 
 export function DistrictLayout() {
   const [collapsed, setCollapsed] = useState(false)
@@ -22,31 +18,30 @@ export function DistrictLayout() {
 
   return (
     <RequireAuth role="district" loginPath="/district/login">
-      <div className="flex min-h-screen bg-neutral-100">
+      <div className="flex min-h-screen bg-neutral-50 text-neutral-900">
         <Sidebar
           routes={districtRoutes}
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
-          portalLabel="District Portal"
+          portalLabel="District"
         />
-        <div className="flex flex-1 flex-col min-w-0 pb-16 md:pb-0">
-          <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3 md:px-8 shadow-sm">
-            <p className="text-sm text-neutral-600">
-              Signed in as <span className="font-bold text-royal-800">{user?.name}</span>
+        <div className="flex flex-1 flex-col min-w-0 pb-14 md:pb-0">
+          <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3 md:px-8">
+            <p className="text-sm text-neutral-500 truncate">
+              {user?.name}
             </p>
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={() => {
                 logout()
                 navigate('/district/login')
               }}
+              className="text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-900 transition-colors"
             >
-              <LogOut className="h-4 w-4 mr-1" /> Logout
-            </Button>
+              Sign out
+            </button>
           </header>
-          <main className="flex-1 px-4 py-6 md:px-8">
-            <Breadcrumbs />
+          <main className="flex-1 px-5 py-8 md:px-10 md:py-10">
             <Outlet />
           </main>
         </div>

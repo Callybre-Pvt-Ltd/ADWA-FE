@@ -12,19 +12,13 @@ import { ErrorState } from '@/components/shared/ErrorState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { INDIAN_STATES } from '@/constants'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { District } from '@/types/district.types'
-import { formControlClassName, formControlHeightClassName } from '@/utils/formStyles'
-import { cn } from '@/utils/cn'
 import { MapPin } from 'lucide-react'
 
 const schema = z.object({
   name: z.string().min(2),
-  state: z.string().min(2),
-  inchargeName: z.string().min(2),
-  inchargeEmail: z.string().email(),
-  inchargeMobile: z.string().regex(/^[6-9]\d{9}$/),
-  thanas: z.string().min(1),
+  code: z.string().min(2).max(50),
   status: z.enum(['active', 'inactive']),
 })
 
@@ -39,31 +33,33 @@ export default function DistrictManagementPage() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { status: 'active', thanas: '' },
+    defaultValues: { status: 'active', code: '' },
   })
 
-  const openCreate = () => { setEditing(null); form.reset({ status: 'active', thanas: '' }); setDrawerOpen(true) }
+  const openCreate = () => {
+    setEditing(null)
+    form.reset({ status: 'active', code: '' })
+    setDrawerOpen(true)
+  }
+
   const openEdit = (d: District) => {
     setEditing(d)
-    form.reset({ name: d.name, state: d.state, inchargeName: d.inchargeName, inchargeEmail: d.inchargeEmail, inchargeMobile: d.inchargeMobile, thanas: d.thanas.join(', '), status: d.status })
+    form.reset({ name: d.name, code: d.code, status: d.status })
     setDrawerOpen(true)
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
-    const payload = { ...values, thanas: values.thanas.split(',').map((t) => t.trim()) }
     if (editing) {
-      await updateDistrict.mutateAsync({ id: editing.id, data: payload })
+      await updateDistrict.mutateAsync({ id: editing.id, data: values })
     } else {
-      await createDistrict.mutateAsync(payload)
+      await createDistrict.mutateAsync(values)
     }
     setDrawerOpen(false)
   })
 
   const columns: ColumnDef<District>[] = [
     { key: 'name', header: 'District', cell: (d) => d.name, sortable: true, sortValue: (d) => d.name },
-    { key: 'state', header: 'State', cell: (d) => d.state },
-    { key: 'incharge', header: 'Incharge', cell: (d) => d.inchargeName },
-    { key: 'drivers', header: 'Drivers', cell: (d) => d.driverCount },
+    { key: 'code', header: 'Code', cell: (d) => d.code },
     { key: 'status', header: 'Status', cell: (d) => <StatusBadge variant={statusToVariant(d.status)} label={d.status} /> },
   ]
 
@@ -75,23 +71,39 @@ export default function DistrictManagementPage() {
       {!isLoading && !isError && (
         <DataTable data={data ?? []} columns={columns} getRowKey={(d) => d.id} searchable onRowClick={openEdit} />
       )}
-      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? 'Edit District' : 'Add District'} footer={<Button onClick={onSubmit} className="w-full">{editing ? 'Update' : 'Create'}</Button>}>
-        <form className="space-y-4">
-          {(['name', 'state', 'inchargeName', 'inchargeEmail', 'inchargeMobile'] as const).map((f) => (
-            <div key={f}>
-              <Label htmlFor={f} className="capitalize">{f.replace(/([A-Z])/g, ' $1')}</Label>
-              {f === 'state' ? (
-                <select id={f} {...form.register(f)} className={cn(formControlClassName, formControlHeightClassName, 'mt-1')}>
-                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              ) : (
-                <Input id={f} {...form.register(f)} className="mt-1" />
-              )}
-            </div>
-          ))}
+      <AppDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={editing ? 'Edit District' : 'Add District'}
+        footer={
+          <Button onClick={onSubmit} className="w-full" disabled={createDistrict.isPending || updateDistrict.isPending}>
+            {editing ? 'Update' : 'Create'}
+          </Button>
+        }
+      >
+        <form className="space-y-4" onSubmit={onSubmit}>
           <div>
-            <Label htmlFor="thanas">Thanas (comma-separated)</Label>
-            <Input id="thanas" {...form.register('thanas')} className="mt-1" />
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" {...form.register('name')} className="mt-1" />
+            {form.formState.errors.name && <p className="text-sm text-red-600 mt-1">{form.formState.errors.name.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="code">Code</Label>
+            <Input id="code" {...form.register('code')} className="mt-1" placeholder="e.g. bhopal" />
+            {form.formState.errors.code && <p className="text-sm text-red-600 mt-1">{form.formState.errors.code.message}</p>}
+          </div>
+          <div>
+            <Label>Status</Label>
+            <Select
+              value={form.watch('status')}
+              onValueChange={v => form.setValue('status', v as 'active' | 'inactive')}
+            >
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </form>
       </AppDrawer>

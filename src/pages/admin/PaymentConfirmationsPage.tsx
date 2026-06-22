@@ -7,7 +7,7 @@ import PaymentWorkflowCard from '@/features/payments/PaymentWorkflowCard'
 import { CreditCard } from 'lucide-react'
 
 export default function PaymentConfirmationsPage() {
-  const { data, isLoading, isError, refetch } = usePayments({ status: 'waiting_confirmation' })
+  const { data, isLoading, isError, refetch } = usePayments({ status: 'collected' })
 
   return (
     <div className="p-6">

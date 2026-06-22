@@ -27,6 +27,8 @@
   "districtIdGeneration": "ID Generation",
   "districtProfile": "Profile",
   "adminDashboard": "Dashboard",
+  "adminApplications": "Applications",
+  "adminUsers": "Users",
   "adminDistricts": "Districts",
   "adminDrivers": "Drivers",
   "adminPayments": "Payments",

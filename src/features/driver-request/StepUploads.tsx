@@ -9,6 +9,15 @@ function fileToPreview(file: File): string {
   return URL.createObjectURL(file)
 }
 
+const UPLOAD_FIELDS: { field: keyof DriverRequestFormData; labelKey: string; hintKey?: string }[] = [
+  { field: 'driverPhoto', labelKey: 'photo', hintKey: 'photoSize' },
+  { field: 'aadhaarFront', labelKey: 'aadhaarFront', hintKey: 'docSize' },
+  { field: 'aadhaarBack', labelKey: 'aadhaarBack', hintKey: 'docSize' },
+  { field: 'licenseFront', labelKey: 'licenseFront', hintKey: 'docSize' },
+  { field: 'licenseBack', labelKey: 'licenseBack', hintKey: 'docSize' },
+  { field: 'vehicleRc', labelKey: 'vehicleRc', hintKey: 'docSize' },
+]
+
 export default function StepUploads() {
   const { t } = useTranslation('pages')
   const docs = (key: string) => t(`apply.docs.${key}`)
@@ -24,37 +33,22 @@ export default function StepUploads() {
   return (
     <FormSection title={t('apply.documentUpload')} singleCol>
       <p className="text-xs text-neutral-600 bg-amber-50 border-2 border-amber-200 rounded-2xl px-4 py-3">
-        {docs('noteText')}
+        {docs('noteText')} {t('apply.docs.optionalNote', '(All documents are optional for now — you can upload later.)')}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <FileUploadZone
-          label={docs('photo')}
-          hint={docs('photoSize')}
-          accept="image/*"
-          maxSizeMB={1}
-          preview={previews.passportPhoto}
-          onFileSelect={f => handleFile('passportPhoto', f)}
-          error={errors.passportPhoto?.message}
-        />
-        <FileUploadZone
-          label={docs('aadhaarFront')}
-          hint={docs('docSize')}
-          accept="image/*,.pdf"
-          maxSizeMB={2}
-          preview={previews.aadharCopy}
-          onFileSelect={f => handleFile('aadharCopy', f)}
-          error={errors.aadharCopy?.message}
-        />
-        <FileUploadZone
-          label={docs('licenseFront')}
-          hint={docs('docSize')}
-          accept="image/*,.pdf"
-          maxSizeMB={2}
-          preview={previews.licenseCopy}
-          onFileSelect={f => handleFile('licenseCopy', f)}
-          error={errors.licenseCopy?.message}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {UPLOAD_FIELDS.map(({ field, labelKey, hintKey }) => (
+          <FileUploadZone
+            key={field}
+            label={docs(labelKey)}
+            hint={hintKey ? docs(hintKey) : undefined}
+            accept="image/*,.pdf"
+            maxSizeMB={field === 'driverPhoto' ? 1 : 2}
+            preview={previews[field]}
+            onFileSelect={f => handleFile(field, f)}
+            error={errors[field]?.message as string | undefined}
+          />
+        ))}
       </div>
     </FormSection>
   )

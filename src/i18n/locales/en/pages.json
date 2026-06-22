@@ -139,6 +139,8 @@
       "fullNamePlaceholder": "As on Aadhaar card",
       "fatherName": "Father's Full Name",
       "fatherNamePlaceholder": "Father's name",
+      "motherName": "Mother's Full Name",
+      "motherNamePlaceholder": "Mother's name",
       "dateOfBirth": "Date of Birth",
       "gender": "Gender",
       "genderSelect": "Select gender",
@@ -206,7 +208,8 @@
       "aadhaarBack": "Aadhaar Card Back",
       "docSize": "Size: 8.5cm × 5.4cm, Under 300KB",
       "licenseFront": "Driving Licence Front",
-      "licenseBack": "Driving Licence Back"
+      "licenseBack": "Driving Licence Back",
+      "vehicleRc": "Vehicle RC"
     },
     "reviewDetails": {
       "personalDetails": "Personal Details",
@@ -241,6 +244,7 @@
     "badge": "Application Status",
     "refNumber": "Reference Number",
     "refPlaceholder": "e.g. ADWA-2025-ABC123",
+    "mobile": "Mobile Number",
     "exampleText": "ADWA-2025-ABC123",
     "dob": "Date of Birth",
     "searchBtn": "Search Record",
