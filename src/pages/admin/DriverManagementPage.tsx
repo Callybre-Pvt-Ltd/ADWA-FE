@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useDrivers, useSuspendDriver, useActivateDriver } from '@/hooks/useDrivers'
+import { useDrivers, useSuspendDriver, useActivateDriver, useDriverActiveCard } from '@/hooks/useDrivers'
+import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { useDistricts } from '@/hooks/useDistricts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
@@ -35,6 +36,7 @@ export default function DriverManagementPage() {
   })
   const suspend = useSuspendDriver()
   const activate = useActivateDriver()
+  const { data: activeCard } = useDriverActiveCard(selected?.id ?? null)
 
   const columns: ColumnDef<Driver>[] = [
     { key: 'name', header: 'Name', cell: (r) => r.name, sortable: true, sortValue: (r) => r.name },
@@ -125,20 +127,29 @@ export default function DriverManagementPage() {
         )}
       >
         {selected && (
-          <dl className="space-y-2 text-sm">
-            {[
-              ['Member No', selected.memberNumber ?? '—'],
-              ['Mobile', selected.mobile],
-              ['License', selected.licenseNumber],
-              ['Status', selected.status],
-              ['Registered', formatDate(selected.createdAt)],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between">
-                <dt className="text-neutral-500">{k}</dt>
-                <dd className="font-medium">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="space-y-4">
+            <dl className="space-y-2 text-sm">
+              {[
+                ['Member No', selected.memberNumber ?? '—'],
+                ['Mobile', selected.mobile],
+                ['License', selected.licenseNumber],
+                ['Status', selected.status],
+                ['Registered', formatDate(selected.createdAt)],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <dt className="text-neutral-500">{k}</dt>
+                  <dd className="font-medium">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            {activeCard && (
+              <DriverQrPanel
+                cardId={activeCard.id}
+                verificationCode={activeCard.verificationCode}
+                driverName={selected.name}
+              />
+            )}
+          </div>
         )}
       </AppDrawer>
 

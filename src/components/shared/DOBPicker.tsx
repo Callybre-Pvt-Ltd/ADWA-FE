@@ -43,13 +43,12 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
 
   function commit(d: string, m: string, y: string) {
     const complete = Boolean(d && m && y)
-    setValue(name, complete ? `${y}-${m}-${d}` : '', { shouldValidate: true })
+    setValue(name, complete ? `${y}-${m}-${d}` : '', { shouldValidate: complete })
   }
 
-  const isComplete = Boolean(day && month && year)
-  const hasError   = Boolean(error) && !isComplete
+  const showError = Boolean(error)
 
-  const errCls = hasError ? '!border-red-500' : ''
+  const errCls = showError ? '!border-red-500' : ''
 
   return (
     <div>
@@ -103,12 +102,6 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
           <p className="mt-1 text-xs text-neutral-400 text-center">{isHi ? 'साल' : 'Year'}</p>
         </div>
       </div>
-
-      {hasError && (
-        <p className="mt-2 text-sm font-medium text-red-600 flex items-center gap-1">
-          <span aria-hidden>⚠</span> {error}
-        </p>
-      )}
     </div>
   )
 }

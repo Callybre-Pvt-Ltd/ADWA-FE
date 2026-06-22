@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useDriverRequestList,
+  useDriverRequest,
   useForwardApplication,
   useRejectApplication,
 } from '@/hooks/useDriverRequests'
+import { DriverRequestDetailView } from '@/features/driver-request/DriverRequestDetailView'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
@@ -25,7 +27,7 @@ import { ClipboardList } from 'lucide-react'
 export default function RequestsPage() {
   const { t } = useTranslation('dashboard')
   const [status, setStatus] = useState<string>('all')
-  const [selected, setSelected] = useState<DriverRequest | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [rejectOpen, setRejectOpen] = useState(false)
   const [forwardOpen, setForwardOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
@@ -35,6 +37,7 @@ export default function RequestsPage() {
 
   const filters = status === 'all' ? undefined : { status: status as RequestStatus }
   const { data, isLoading, isError, refetch } = useDriverRequestList(filters)
+  const { data: selected, isLoading: detailLoading } = useDriverRequest(selectedId)
   const forwardApp = useForwardApplication()
   const rejectApp = useRejectApplication()
 
@@ -47,11 +50,25 @@ export default function RequestsPage() {
     { key: 'date', header: 'Submitted', cell: (r) => formatDate(r.submittedAt), sortable: true, sortValue: (r) => r.submittedAt },
   ]
 
+  const closeDrawer = () => {
+    setSelectedId(null)
+    setRejectOpen(false)
+    setForwardOpen(false)
+  }
+
   const handleForward = () => {
-    if (!selected || !paymentProof || !verificationRemarks) return
+    if (!selected || !paymentProof || !verificationRemarks || selected.registrationConflict) return
     forwardApp.mutate(
       { id: selected.id, verificationRemarks, paymentProof, diNotes: diNotes || undefined },
-      { onSuccess: () => { setForwardOpen(false); setSelected(null); setPaymentProof(null) } },
+      {
+        onSuccess: () => {
+          setForwardOpen(false)
+          setSelectedId(null)
+          setPaymentProof(null)
+          setVerificationRemarks('')
+          setDiNotes('')
+        },
+      },
     )
   }
 
@@ -59,7 +76,13 @@ export default function RequestsPage() {
     if (!selected || !rejectReason) return
     rejectApp.mutate(
       { id: selected.id, reason: rejectReason },
-      { onSuccess: () => { setRejectOpen(false); setSelected(null); setRejectReason('') } },
+      {
+        onSuccess: () => {
+          setRejectOpen(false)
+          setSelectedId(null)
+          setRejectReason('')
+        },
+      },
     )
   }
 
@@ -89,33 +112,43 @@ export default function RequestsPage() {
           columns={columns}
           getRowKey={(r) => r.id}
           searchable
-          onRowClick={setSelected}
+          onRowClick={(r) => setSelectedId(r.id)}
           emptyState={<EmptyState icon={ClipboardList} title="No requests found" />}
         />
       )}
       <AppDrawer
-        open={!!selected}
-        onClose={() => setSelected(null)}
+        open={!!selectedId}
+        onClose={closeDrawer}
         title={selected?.name ?? ''}
         description={selected?.referenceNumber}
-        footer={selected?.status === 'PENDING_DISTRICT_REVIEW' && (
+        footer={selected?.status === 'PENDING_DISTRICT_REVIEW' && !detailLoading && (
           <div className="flex gap-2">
             <Button variant="destructive" className="flex-1" onClick={() => setRejectOpen(true)}>{t('dashboard.reject')}</Button>
-            <Button className="flex-1" onClick={() => setForwardOpen(true)}>Forward to Admin</Button>
+            <Button
+              className="flex-1"
+              onClick={() => setForwardOpen(true)}
+              disabled={Boolean(selected.registrationConflict)}
+            >
+              Forward to Admin
+            </Button>
           </div>
         )}
       >
-        {selected && (
-          <dl className="space-y-3 text-sm">
-            {[['Mobile', selected.mobile], ['District', selected.district], ['License', selected.licenseNumber], ['Vehicle', selected.vehicleNumber], ['Address', selected.address]].map(([k, v]) => (
-              <div key={k}><dt className="text-neutral-500">{k}</dt><dd className="font-medium">{v}</dd></div>
-            ))}
-          </dl>
+        {detailLoading && <p className="text-sm text-neutral-500">Loading application...</p>}
+        {selected && !detailLoading && (
+          <>
+            <StatusBadge
+              variant={statusToVariant(selected.status)}
+              label={selected.status.replace(/_/g, ' ')}
+              className="mb-4"
+            />
+            <DriverRequestDetailView request={selected} />
+          </>
         )}
       </AppDrawer>
       <ConfirmDialog open={rejectOpen} onOpenChange={setRejectOpen} title="Reject Application?" description={rejectReason || 'Provide a reason in the drawer and confirm.'} confirmLabel={t('dashboard.reject')} variant="destructive" onConfirm={handleReject} loading={rejectApp.isPending} />
       {forwardOpen && selected && (
-        <AppDrawer open={forwardOpen} onClose={() => setForwardOpen(false)} title="Forward to Admin" footer={<Button className="w-full" onClick={handleForward} disabled={forwardApp.isPending || !paymentProof || !verificationRemarks}>Forward</Button>}>
+        <AppDrawer open={forwardOpen} onClose={() => setForwardOpen(false)} title="Forward to Admin" footer={<Button className="w-full" onClick={handleForward} disabled={forwardApp.isPending || !paymentProof || !verificationRemarks || Boolean(selected?.registrationConflict)}>Forward</Button>}>
           <div className="space-y-3">
             <div><Label>Verification remarks</Label><Textarea value={verificationRemarks} onChange={(e) => setVerificationRemarks(e.target.value)} /></div>
             <div><Label>DI notes (optional)</Label><Textarea value={diNotes} onChange={(e) => setDiNotes(e.target.value)} /></div>

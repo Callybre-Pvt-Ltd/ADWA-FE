@@ -5,61 +5,63 @@ const isHi = () => i18n.language === 'hi'
 
 const t = (en: string, hi: string) => isHi() ? hi : en
 
+const msg = (en: string, hi: string) => ({ error: () => t(en, hi) })
+
 const mobileRegex = /^[6-9]\d{9}$/
 
 export const driverPersonalSchema = z.object({
   name: z
     .string()
-    .min(2, () => t('Enter your full name', 'अपना पूरा नाम दर्ज करें'))
-    .max(50, () => t('Name is too long', 'नाम बहुत लंबा है')),
+    .min(2, msg('Enter your full name', 'अपना पूरा नाम दर्ज करें'))
+    .max(50, msg('Name is too long', 'नाम बहुत लंबा है')),
   fatherName: z
     .string()
-    .min(2, () => t("Enter father's name", 'पिता का नाम दर्ज करें')),
+    .min(2, msg("Enter father's name", 'पिता का नाम दर्ज करें')),
   motherName: z
     .string()
-    .min(2, () => t("Enter mother's name", 'माता का नाम दर्ज करें')),
+    .min(2, msg("Enter mother's name", 'माता का नाम दर्ज करें')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
-    errorMap: () => ({ message: t('Select your gender', 'लिंग चुनें') }),
+    error: () => t('Select your gender', 'लिंग चुनें'),
   }),
   mobile: z
     .string()
-    .regex(mobileRegex, () => t('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें')),
+    .regex(mobileRegex, msg('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें')),
   altMobile: z
     .string()
-    .regex(mobileRegex, () => t('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें'))
+    .regex(mobileRegex, msg('Enter a valid 10-digit mobile number', 'सही 10 अंकों का मोबाइल नंबर डालें'))
     .optional()
     .or(z.literal('')),
   email: z
     .string()
-    .email(() => t('Enter a valid email address', 'सही ईमेल पता डालें'))
+    .email(msg('Enter a valid email address', 'सही ईमेल पता डालें'))
     .optional()
     .or(z.literal('')),
-  dateOfBirth: z.string().min(1, () => t('Select your date of birth', 'जन्म तिथि चुनें')),
-  districtId: z.string().min(1, () => t('Select your district', 'जिला चुनें')),
+  dateOfBirth: z.string().min(1, msg('Select your date of birth', 'जन्म तिथि चुनें')),
+  districtId: z.string().min(1, msg('Select your district', 'जिला चुनें')),
   district: z.string().optional(),
-  tehsil: z.string().min(1, () => t('Enter tehsil', 'तहसील दर्ज करें')),
-  village: z.string().min(1, () => t('Enter village / town', 'गाँव / शहर दर्ज करें')),
-  state: z.string().min(1, () => t('Select state', 'राज्य चुनें')),
+  tehsil: z.string().min(1, msg('Enter tehsil', 'तहसील दर्ज करें')),
+  village: z.string().min(1, msg('Enter village / town', 'गाँव / शहर दर्ज करें')),
+  state: z.literal('Madhya Pradesh').default('Madhya Pradesh'),
   pincode: z
     .string()
-    .regex(/^\d{6}$/, () => t('Enter a valid 6-digit pincode', 'सही 6 अंकों का पिनकोड डालें')),
-  address: z.string().min(10, () => t('Enter your full address', 'पूरा पता दर्ज करें')),
+    .regex(/^\d{6}$/, msg('Enter a valid 6-digit pincode', 'सही 6 अंकों का पिनकोड डालें')),
+  address: z.string().min(10, msg('Enter your full address', 'पूरा पता दर्ज करें')),
 })
 
 export const driverDetailsSchema = z.object({
   bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'], {
-    errorMap: () => ({ message: t('Select your blood group', 'रक्त समूह चुनें') }),
+    error: () => t('Select your blood group', 'रक्त समूह चुनें'),
   }),
-  aadharNumber: z.string().regex(/^\d{12}$/, () => t('Enter your 12-digit Aadhaar number', '12 अंकों का आधार नंबर डालें')),
-  licenseNumber: z.string().min(5, () => t('Enter your license number', 'लाइसेंस नंबर डालें')),
-  licenseIssueDate: z.string().min(1, () => t('Select license issue date', 'लाइसेंस जारी तिथि चुनें')),
-  licenseExpiryDate: z.string().min(1, () => t('Select license expiry date', 'लाइसेंस की वैधता तिथि चुनें')),
-  vehicleType: z.string().min(1, () => t('Select vehicle type', 'वाहन प्रकार चुनें')),
-  vehicleNumber: z.string().min(4, () => t('Enter vehicle number', 'वाहन नंबर दर्ज करें')),
+  aadharNumber: z.string().regex(/^\d{12}$/, msg('Enter your 12-digit Aadhaar number', '12 अंकों का आधार नंबर डालें')),
+  licenseNumber: z.string().min(5, msg('Enter your license number', 'लाइसेंस नंबर डालें')),
+  licenseIssueDate: z.string().min(1, msg('Select license issue date', 'लाइसेंस जारी तिथि चुनें')),
+  licenseExpiryDate: z.string().min(1, msg('Select license expiry date', 'लाइसेंस की वैधता तिथि चुनें')),
+  vehicleType: z.string().min(1, msg('Select vehicle type', 'वाहन प्रकार चुनें')),
+  vehicleNumber: z.string().min(4, msg('Enter vehicle number', 'वाहन नंबर दर्ज करें')),
   experienceYears: z.coerce
     .number()
-    .min(0, () => t('Enter driving experience', 'अनुभव दर्ज करें'))
-    .max(60, () => t('Experience value is too high', 'अनुभव बहुत अधिक है')),
+    .min(0, msg('Enter driving experience', 'अनुभव दर्ज करें'))
+    .max(60, msg('Experience value is too high', 'अनुभव बहुत अधिक है')),
 })
 
 const optionalFile = z.instanceof(File).optional()

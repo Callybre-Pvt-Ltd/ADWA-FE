@@ -6,6 +6,9 @@ import {
   useRejectApplication,
   useDriverRequest,
 } from '@/hooks/useDriverRequests'
+import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
+import { DriverRequestDetailView } from '@/features/driver-request/DriverRequestDetailView'
+import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
@@ -25,6 +28,12 @@ export default function ApplicationsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [rejectReason, setRejectReason] = useState('')
+  const [approvedQr, setApprovedQr] = useState<{
+    cardId: string
+    verificationUrl?: string
+    verificationCode?: string
+    driverName: string
+  } | null>(null)
   const { data, isLoading, isError, refetch } = useForwardedApplications()
   const { data: selected, isLoading: detailLoading } = useDriverRequest(selectedId)
   const approve = useApproveApplication()
@@ -35,7 +44,14 @@ export default function ApplicationsPage() {
     { key: 'name', header: 'Name', cell: (r) => r.name, sortable: true, sortValue: (r) => r.name },
     { key: 'district', header: 'District', cell: (r) => r.district },
     { key: 'mobile', header: 'Mobile', cell: (r) => r.mobile },
-    { key: 'status', header: 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={r.status.replace(/_/g, ' ')} /> },
+    { key: 'status', header: 'Status', cell: (r) => (
+      <div className="flex flex-col gap-1">
+        <StatusBadge variant={statusToVariant(r.status)} label={r.status.replace(/_/g, ' ')} />
+        {r.registrationConflict && (
+          <span className="text-[10px] font-medium text-red-600">Duplicate — cannot approve</span>
+        )}
+      </div>
+    ) },
     { key: 'date', header: 'Forwarded', cell: (r) => formatDate(r.submittedAt), sortable: true, sortValue: (r) => r.submittedAt },
   ]
 
@@ -43,16 +59,29 @@ export default function ApplicationsPage() {
     setSelectedId(null)
     setConfirmAction(null)
     setRejectReason('')
+    setApprovedQr(null)
   }
 
   const handleConfirm = () => {
     if (!selected || !confirmAction) return
     if (confirmAction === 'approve') {
       approve.mutate(selected.id, {
-        onSuccess: () => {
+        onSuccess: (result) => {
           setConfirmAction(null)
-          closeDrawer()
           void refetch()
+          if (result.cardId) {
+            setApprovedQr({
+              cardId: result.cardId,
+              verificationUrl: normalizeVerifyUrl(
+                result.verificationUrl ?? '',
+                result.verificationCode,
+              ),
+              verificationCode: result.verificationCode,
+              driverName: selected.name,
+            })
+          } else {
+            closeDrawer()
+          }
         },
       })
     } else {
@@ -68,6 +97,7 @@ export default function ApplicationsPage() {
 
   const isPending = approve.isPending || reject.isPending
   const canAct = selected?.status === 'FORWARDED_TO_ADMIN'
+  const hasConflict = Boolean(selected?.registrationConflict)
 
   return (
     <div className="p-6">
@@ -92,13 +122,19 @@ export default function ApplicationsPage() {
         onClose={closeDrawer}
         title={selected?.name ?? 'Application'}
         description={selected?.referenceNumber ? `Ref: ${selected.referenceNumber}` : undefined}
-        footer={selected && !detailLoading && (
+        footer={selected && !detailLoading && !approvedQr && (
           <div className="space-y-3">
-            {!canAct && (
+            {!canAct && !hasConflict && (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                 {selected.status === 'APPROVED'
                   ? 'This application is already approved.'
                   : `This application cannot be approved (status: ${selected.status.replace(/_/g, ' ')}).`}
+              </p>
+            )}
+            {canAct && hasConflict && (
+              <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                This application duplicates an existing driver or another active application.
+                Reject it — approval will always fail.
               </p>
             )}
             {canAct && confirmAction === 'reject' && (
@@ -122,7 +158,7 @@ export default function ApplicationsPage() {
                       variant={confirmAction === 'reject' ? 'destructive' : 'default'}
                       className="flex-1"
                       onClick={handleConfirm}
-                      disabled={isPending || (confirmAction === 'reject' && rejectReason.trim().length < 3)}
+                      disabled={isPending || (confirmAction === 'reject' && rejectReason.trim().length < 3) || (confirmAction === 'approve' && hasConflict)}
                     >
                       {isPending ? 'Processing...' : confirmAction === 'approve' ? t('dashboard.approve') : t('dashboard.reject')}
                     </Button>
@@ -132,7 +168,7 @@ export default function ApplicationsPage() {
                     <Button variant="destructive" className="flex-1" onClick={() => setConfirmAction('reject')}>
                       {t('dashboard.reject')}
                     </Button>
-                    <Button className="flex-1" onClick={() => setConfirmAction('approve')}>
+                    <Button className="flex-1" onClick={() => setConfirmAction('approve')} disabled={hasConflict}>
                       {t('dashboard.approve')}
                     </Button>
                   </>
@@ -142,26 +178,28 @@ export default function ApplicationsPage() {
           </div>
         )}
       >
-        {detailLoading && <p className="text-sm text-neutral-500">Loading application...</p>}
-        {selected && (
+        {approvedQr && (
+          <div className="space-y-4">
+            <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              Application approved. Download or print the QR code for the driver&apos;s ID card.
+            </p>
+            <DriverQrPanel
+              cardId={approvedQr.cardId}
+              verificationUrl={approvedQr.verificationUrl}
+              verificationCode={approvedQr.verificationCode}
+              driverName={approvedQr.driverName}
+            />
+            <Button className="w-full" onClick={closeDrawer}>Done</Button>
+          </div>
+        )}
+        {!approvedQr && detailLoading && <p className="text-sm text-neutral-500">Loading application...</p>}
+        {!approvedQr && selected && !detailLoading && (
           <div className="space-y-4">
             <StatusBadge
               variant={statusToVariant(selected.status)}
               label={selected.status.replace(/_/g, ' ')}
             />
-            <dl className="space-y-3 text-sm">
-              {[
-                ['Mobile', selected.mobile],
-                ['District', selected.district],
-                ['License', selected.licenseNumber],
-                ['Blood Group', selected.bloodGroup],
-                ['Address', selected.address],
-                ['DI Notes', selected.diNotes],
-                ['Verification Remarks', selected.verificationRemarks],
-              ].filter(([, v]) => v).map(([k, v]) => (
-                <div key={k}><dt className="text-neutral-500">{k}</dt><dd className="font-medium">{v}</dd></div>
-              ))}
-            </dl>
+            <DriverRequestDetailView request={selected} />
           </div>
         )}
       </AppDrawer>

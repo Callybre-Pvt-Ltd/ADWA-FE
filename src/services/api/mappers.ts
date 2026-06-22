@@ -21,6 +21,14 @@ export function toCamelCase<T>(obj: SnakeRecord): T {
   return obj as T
 }
 
+/** Turn API storage paths (/local-files/...) into absolute URLs for img src. */
+export function resolveStorageUrl(url?: string | null): string | null {
+  if (!url) return null
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, '')
+  return `${origin}${url.startsWith('/') ? url : `/${url}`}`
+}
+
 export function buildQueryParams(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -40,6 +48,9 @@ export async function extractError(error: unknown): Promise<Error> {
       code?: string
     }
     const data = axiosError.response?.data
+    if (data?.message && data.message !== 'Internal server error') {
+      return new Error(data.message)
+    }
     const details = data?.error && typeof data.error === 'object' && 'details' in data.error
       ? data.error.details
       : undefined

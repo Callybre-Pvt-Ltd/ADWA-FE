@@ -1,5 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
+import { mapDriverRequest } from './driverRequestMapper'
 import type { APIResponse } from '@/types/api.types'
 import type {
   DriverFilters,
@@ -45,38 +46,6 @@ export function buildSubmitFormData(data: DriverRequestFormData): FormData {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiDriverRequest = Record<string, any>
 
-function mapDriverRequest(raw: ApiDriverRequest): DriverRequest {
-  const item = toCamelCase<ApiDriverRequest>(raw)
-  return {
-    id: item.id,
-    name: item.fullName ?? '',
-    mobile: item.mobileNumber ?? '',
-    email: item.email ?? undefined,
-    dateOfBirth: item.dateOfBirth ?? '',
-    address: item.address ?? '',
-    district: item.districtName ?? '',
-    thana: item.tehsil ?? '',
-    bloodGroup: item.bloodGroup ?? '',
-    aadharNumber: '',
-    licenseNumber: item.licenseNumber ?? '',
-    licenseType: item.vehicleType ?? '',
-    licenseExpiryDate: item.licenseExpiryDate ?? '',
-    vehicleNumber: item.vehicleNumber ?? undefined,
-    photoUrl: '',
-    status: item.status as RequestStatus,
-    paymentConfirmed: false,
-    createdAt: item.createdAt ?? '',
-    updatedAt: item.createdAt ?? '',
-    requestType: 'new',
-    submittedAt: item.createdAt ?? '',
-    referenceNumber: item.referenceNumber,
-    districtId: item.districtId,
-    verificationRemarks: item.verificationRemarks ?? undefined,
-    diNotes: item.diNotes ?? undefined,
-    paymentProofUrl: item.paymentProofUrl ?? undefined,
-  }
-}
-
 export const driverRequestsService = {
   async submit(formData: FormData): Promise<DriverRequest> {
     try {
@@ -102,7 +71,9 @@ export const driverRequestsService = {
         status: item.status as RequestStatus,
         districtName: item.districtName ?? null,
         createdAt: item.createdAt,
-        statusHistory: (item.statusHistory ?? []).map((h: ApiDriverRequest) => toCamelCase(h)),
+        statusHistory: (item.statusHistory ?? []).map((h: ApiDriverRequest) =>
+          toCamelCase<import('@/types/driver.types').ApplicationStatusHistory>(h),
+        ),
       }
     } catch (error) {
       throw await extractError(error)
@@ -185,19 +156,31 @@ export const driverRequestsService = {
     }
   },
 
-  async approve(id: string): Promise<{ driverId: string; memberNumber: string; referenceNumber: string }> {
+  async approve(id: string): Promise<{
+    driverId: string
+    memberNumber: string
+    referenceNumber: string
+    cardId?: string
+    verificationCode?: string
+    verificationUrl?: string
+  }> {
     try {
       const { data } = await apiClient.post<APIResponse<{
         driver_id: string
         member_number: string
         reference_number: string
         card_id?: string
+        verification_code?: string
+        verification_url?: string
       }>>(`/driver-requests/${id}/approve`)
       const result = unwrapResponse(data)
       return {
         driverId: result.driver_id,
         memberNumber: result.member_number,
         referenceNumber: result.reference_number,
+        cardId: result.card_id,
+        verificationCode: result.verification_code,
+        verificationUrl: result.verification_url,
       }
     } catch (error) {
       throw await extractError(error)

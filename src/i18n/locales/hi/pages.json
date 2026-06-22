@@ -182,6 +182,8 @@
       "thana": "थाना / क्षेत्र",
       "thanaPlaceholder": "थाना चुनें",
       "selectDistrict": "जिला चुनें",
+      "searchDistrict": "जिला खोजें…",
+      "noDistrictFound": "कोई जिला नहीं मिला",
       "selectThana": "थाना चुनें",
       "selectLicenseType": "लाइसेंस प्रकार चुनें",
       "licenseType": "लाइसेंस प्रकार",

@@ -184,6 +184,8 @@
       "thana": "Thana / Area",
       "thanaPlaceholder": "Select area",
       "selectDistrict": "Select district",
+      "searchDistrict": "Search district…",
+      "noDistrictFound": "No district found",
       "selectThana": "Select area",
       "selectLicenseType": "Select license type",
       "licenseType": "License Type",

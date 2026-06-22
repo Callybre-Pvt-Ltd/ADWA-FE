@@ -35,8 +35,7 @@ export default function DriversPage() {
     }
     setDownloading(true)
     try {
-      const { downloadUrl } = await cardsService.getDownloadUrl(cardId)
-      window.open(downloadUrl, '_blank')
+      await cardsService.downloadPdf(cardId)
       toast.success('Card download started')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Download failed')

@@ -102,6 +102,15 @@ export function useCreateDriver() {
   })
 }
 
+export function useDriverActiveCard(driverId: string | null) {
+  return useQuery({
+    queryKey: [...DRIVERS_QUERY_KEY, 'active-card', driverId],
+    queryFn: () => driversService.getActiveCard(driverId!),
+    enabled: !!driverId,
+    retry: false,
+  })
+}
+
 export function useVerifyDriver(code: string) {
   return useQuery({
     queryKey: ['verify', code],

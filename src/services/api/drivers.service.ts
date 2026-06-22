@@ -2,6 +2,7 @@ import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
 import type { APIResponse } from '@/types/api.types'
 import type { Driver, DriverFilters, DriverStatus } from '@/types/driver.types'
+import type { DriverCard } from './cards.service'
 import { driverRequestsService } from './driverRequests.service'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,6 +59,17 @@ export const driversService = {
     try {
       const { data } = await apiClient.get<APIResponse<ApiDriver>>(`/drivers/${id}`)
       return mapDriver(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async getActiveCard(driverId: string): Promise<DriverCard> {
+    try {
+      const { data } = await apiClient.get<APIResponse<Record<string, unknown>>>(
+        `/drivers/${driverId}/active-card`,
+      )
+      return toCamelCase<DriverCard>(unwrapResponse(data))
     } catch (error) {
       throw await extractError(error)
     }

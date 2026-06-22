@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { User, Phone, Mail, Calendar, MapPin } from 'lucide-react'
@@ -5,11 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { DOBPicker } from '@/components/shared/DOBPicker'
+import { DistrictSearchSelect } from '@/components/shared/DistrictSearchSelect'
 import { usePublicDistricts } from '@/hooks/useDistricts'
-import { INDIAN_STATES } from '@/constants'
 import type { DriverRequestFormData } from '@/utils/validators'
 import { FormField, FormSection } from './FormField'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
+
+const MP_STATE = 'Madhya Pradesh'
 
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const
 
@@ -21,6 +24,10 @@ export default function StepPersonal() {
   const { register, setValue, watch, formState: { errors } } = useFormContext<DriverRequestFormData>()
   const districtId = watch('districtId')
   const { data: districts, isLoading } = usePublicDistricts()
+
+  useEffect(() => {
+    setValue('state', MP_STATE, { shouldValidate: true })
+  }, [setValue])
 
   const handleDistrictChange = (id: string) => {
     const selected = districts?.find((d) => d.id === id)
@@ -96,18 +103,20 @@ export default function StepPersonal() {
           <SkeletonCard />
         ) : (
           <FormField label={f('district')} required error={errors.districtId?.message}>
-            <Select value={districtId} onValueChange={handleDistrictChange}>
-              <SelectTrigger>
-                <SelectValue placeholder={f('selectDistrict')} />
-              </SelectTrigger>
-              <SelectContent>
-                {(districts ?? []).map((d) => (
-                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DistrictSearchSelect
+              districts={districts ?? []}
+              value={districtId}
+              onChange={handleDistrictChange}
+              placeholder={f('selectDistrict')}
+              searchPlaceholder={f('searchDistrict')}
+              emptyText={f('noDistrictFound')}
+            />
           </FormField>
         )}
+
+        <FormField label={f('state')}>
+          <Input value={MP_STATE} readOnly disabled className="bg-neutral-50 text-neutral-700" />
+        </FormField>
 
         <FormField label={f('village')} htmlFor="village" required error={errors.village?.message}>
           <Input id="village" placeholder={f('villagePlaceholder')} {...register('village')} />
@@ -115,22 +124,6 @@ export default function StepPersonal() {
 
         <FormField label={f('thana')} htmlFor="tehsil" required error={errors.tehsil?.message}>
           <Input id="tehsil" placeholder={f('thanaPlaceholder')} {...register('tehsil')} />
-        </FormField>
-
-        <FormField label={f('state')} required error={errors.state?.message}>
-          <Select
-            value={watch('state')}
-            onValueChange={(v) => setValue('state', v, { shouldValidate: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={f('stateSelect')} />
-            </SelectTrigger>
-            <SelectContent>
-              {INDIAN_STATES.map((st) => (
-                <SelectItem key={st} value={st}>{st}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </FormField>
 
         <FormField label={f('pincode')} htmlFor="pincode" required error={errors.pincode?.message}>

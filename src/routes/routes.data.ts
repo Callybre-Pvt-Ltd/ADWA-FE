@@ -395,6 +395,17 @@ export const adminRoutes: RouteConfig[] = [
     meta: { title: 'Driver Management', requiresRole: 'admin' },
   },
   {
+    key: 'admin-id-cards',
+    path: '/admin/id-cards',
+    label: 'nav.adminIdCards',
+    icon: 'BadgeCheck',
+    component: lazyPage(() => import('../pages/admin/IdCardGenerationPage')),
+    layout: 'admin',
+    showInNav: false,
+    showInSidebar: true,
+    meta: { title: 'ID Card Generation', requiresRole: 'admin' },
+  },
+  {
     key: 'admin-payments',
     path: '/admin/payments',
     label: 'nav.adminPayments',

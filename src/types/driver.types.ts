@@ -34,6 +34,23 @@ export type CardVerificationResult = {
   district?: string
   photoUrl?: string
   expiryDate?: string
+  metadata?: {
+    cardNumber?: string
+    issueDate?: string
+    licenseNumber?: string
+    vehicleNumber?: string
+    vehicleType?: string
+    bloodGroup?: string
+    phoneNumber?: string
+    email?: string
+    dateOfBirth?: string
+    fatherOrSpouseName?: string
+    city?: string
+    state?: string
+    policeStation?: string
+    designation?: string
+    driverStatus?: string
+  }
 }
 
 /** @deprecated Use CardVerificationResult */
@@ -69,15 +86,63 @@ export type Driver = {
   districtId?: string
 }
 
-export type DriverRequest = Omit<Driver, 'status'> & {
+export type ApplicationDocument = {
+  id: string
+  documentType: string
+  fileName: string
+  mimeType: string
+  uploadedAt: string
+  downloadUrl?: string | null
+}
+
+export type DriverRequest = {
+  id: string
+  name: string
+  fullName?: string
+  fatherName?: string
+  motherName?: string
+  gender?: string
+  mobile: string
+  altMobile?: string
+  email?: string
+  dateOfBirth: string
+  address: string
+  village?: string
+  tehsil?: string
+  state?: string
+  pincode?: string
+  district: string
+  districtId?: string
+  thana: string
+  bloodGroup: string
+  aadharNumber: string
+  licenseNumber: string
+  licenseIssueDate?: string
+  licenseType: string
+  licenseExpiryDate: string
+  vehicleNumber?: string
+  vehicleType?: string
+  experienceYears?: number
+  photoUrl: string
+  status: RequestStatus
+  paymentConfirmed: boolean
+  createdAt: string
+  updatedAt: string
   requestType: 'new' | 'renewal'
   submittedAt: string
-  status: RequestStatus
   referenceNumber?: string
-  districtId?: string
   verificationRemarks?: string
   diNotes?: string
+  remarks?: string
   paymentProofUrl?: string
+  forwardedAt?: string
+  approvedAt?: string
+  rejectedAt?: string
+  registrationConflict?: string
+  conflictMemberNumber?: string
+  conflictReferenceNumber?: string
+  documents?: ApplicationDocument[]
+  statusHistory?: ApplicationStatusHistory[]
 }
 
 export type DriverFilters = {
