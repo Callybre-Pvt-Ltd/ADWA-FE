@@ -33,7 +33,7 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel }: SidebarPro
         <button
           type="button"
           onClick={onToggle}
-          aria-label="Toggle sidebar"
+          aria-label={t('toggleSidebar')}
           className="flex h-8 w-8 items-center justify-center rounded text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50"
         >
           {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -74,7 +74,7 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel }: SidebarPro
             !collapsed && 'justify-start px-2.5',
           )}
         >
-          {!collapsed && '← Public site'}
+          {!collapsed && t('backToPublic')}
           {collapsed && '←'}
         </Link>
       </div>

@@ -60,6 +60,85 @@ export type DashboardStats = {
   pendingPayments?: number
 }
 
+export type AdminDashboardStats = {
+  totalDrivers: number
+  driverGrowthPct: number
+  driverSparkline: number[]
+  pendingDistrictReview: number
+  pendingAdminApproval: number
+  adminApprovalCritical: boolean
+  idsGenerated: number
+  idsPending: number
+  idSparkline: number[]
+  revenueCurrentMonth: number
+  revenuePrevMonth: number
+  revenueSparkline: number[]
+  // application status distribution
+  appPending: number
+  appApproved: number
+  appRejected: number
+  appCardGenerated: number
+  // membership
+  membersActive: number
+  membersExpired: number
+  membersSuspended: number
+  membersPendingRenewal: number
+  // operational queue
+  queueDistrictReview: number
+  queueAdminApproval: number
+  queuePaymentVerification: number
+  queueIdGeneration: number
+  queueMembershipRenewal: number
+  // monthly registration trend (12 months)
+  registrationTrend: { month: string; registrations: number; approvals: number }[]
+  // monthly revenue trend (12 months)
+  revenueTrend: { month: string; amount: number }[]
+}
+
+export type DistrictDashboardStats = {
+  districtName: string
+  totalDrivers: number
+  driverGrowthPct: number
+  pendingRequests: number
+  pendingRequestsCritical: boolean
+  paymentPending: number
+  idsGenerated: number
+  idsPending: number
+  // application status distribution
+  appPending: number
+  appApproved: number
+  appRejected: number
+  appCardGenerated: number
+  // membership
+  membersActive: number
+  membersExpired: number
+  membersSuspended: number
+  membersPendingRenewal: number
+  // monthly registration trend (6 months)
+  registrationTrend: { month: string; count: number }[]
+  // queue
+  queueNewRequests: number
+  queuePaymentVerification: number
+  queueIdGeneration: number
+  queueRenewals: number
+  // revenue
+  revenueCurrentMonth: number
+  revenuePrevMonth: number
+}
+
+export type DistrictPerformanceRow = {
+  id: string
+  district: string
+  state: string
+  totalDrivers: number
+  newRegistrations: number
+  activeMembers: number
+  pendingApplications: number
+  revenueGenerated: number
+  revenueMax: number
+  officerStatus: 'active' | 'inactive' | 'vacant'
+}
+
 export type ChartDataPoint = {
   label: string
   value: number

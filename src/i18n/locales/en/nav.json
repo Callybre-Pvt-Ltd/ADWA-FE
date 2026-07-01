@@ -36,5 +36,9 @@
   "adminEvents": "Events",
   "adminNotifications": "Notifications",
   "adminAudit": "Audit Logs",
-  "adminProfile": "Profile"
+  "adminProfile": "Profile",
+  "backToPublic": "← Public site",
+  "toggleSidebar": "Toggle sidebar",
+  "portalAdmin": "Admin",
+  "portalDistrict": "District"
 }

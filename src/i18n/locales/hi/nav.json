@@ -36,5 +36,9 @@
   "adminEvents": "कार्यक्रम",
   "adminNotifications": "सूचनाएं",
   "adminAudit": "ऑडिट लॉग",
-  "adminProfile": "प्रोफ़ाइल"
+  "adminProfile": "प्रोफ़ाइल",
+  "backToPublic": "← सार्वजनिक साइट",
+  "toggleSidebar": "साइडबार टॉगल करें",
+  "portalAdmin": "एडमिन",
+  "portalDistrict": "जिला"
 }

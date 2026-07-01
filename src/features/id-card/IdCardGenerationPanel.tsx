@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { Printer, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
-import IDCardPreview from '@/features/id-card/IDCardPreview'
-import IDCardActions from '@/features/id-card/IDCardActions'
+import { IDCardOverlay } from '@/features/id-card/IDCardOverlay'
 import { IdCardFormFields } from '@/features/id-card/IdCardFormFields'
 import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features/id-card/idCardForm'
 import { useCards, useGenerateIdCard, useCardSnapshot } from '@/hooks/useCards'
@@ -14,6 +15,8 @@ import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { IdCard } from 'lucide-react'
 
 export function IdCardGenerationPanel() {
+  const { t } = useTranslation('dashboard')
+  const d = (key: string) => t(`dashboard.${key}`)
   const { data: cards, isLoading, isError, refetch } = useCards()
   const [selectedCardId, setSelectedCardId] = useState('')
   const selectedCard = cards?.find((c) => c.id === selectedCardId) ?? cards?.[0]
@@ -22,8 +25,16 @@ export function IdCardGenerationPanel() {
   const generate = useGenerateIdCard()
 
   const [form, setForm] = useState<IdCardFormValues | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
+  const [qrUrl, setQrUrl] = useState<string | null>(null)
+
+  // Canvas action handles from IDCardOverlay
+  const actionsRef = useRef<{ print: () => void; downloadFront: () => void; downloadBack: () => void } | null>(null)
+  const handleActionsReady = useCallback(
+    (actions: { print: () => void; downloadFront: () => void; downloadBack: () => void }) => {
+      actionsRef.current = actions
+    },
+    [],
+  )
 
   useEffect(() => {
     if (snapshot) setForm(snapshotToForm(snapshot))
@@ -33,33 +44,20 @@ export function IdCardGenerationPanel() {
     if (cards?.length && !selectedCardId) setSelectedCardId(cards[0].id)
   }, [cards, selectedCardId])
 
-  const refreshPreview = useCallback(async (cardId: string, values: IdCardFormValues) => {
-    setPreviewLoading(true)
-    try {
-      const blob = await cardsService.getPreviewBlob(cardId, formToPayload(values))
-      const url = URL.createObjectURL(blob)
-      setPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev)
-        return url
-      })
-    } catch {
-      setPreviewUrl(null)
-    } finally {
-      setPreviewLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    if (!selectedCard?.id || !form) return
-    const timer = setTimeout(() => {
-      void refreshPreview(selectedCard.id, form)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [selectedCard?.id, form, refreshPreview])
+    if (!selectedCard?.id) return
+    let active = true
+    cardsService.getQrBlob(selectedCard.id)
+      .then((blob) => {
+        if (!active) return
+        const url = URL.createObjectURL(blob)
+        setQrUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return url })
+      })
+      .catch(() => setQrUrl(null))
+    return () => { active = false }
+  }, [selectedCard?.id])
 
-  useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-  }, [previewUrl])
+  useEffect(() => () => { if (qrUrl) URL.revokeObjectURL(qrUrl) }, [qrUrl])
 
   const onFieldChange = (field: keyof IdCardFormValues, value: string) => {
     setForm((prev) => (prev ? { ...prev, [field]: value } : prev))
@@ -69,24 +67,8 @@ export function IdCardGenerationPanel() {
     if (!selectedCard || !form) return
     generate.mutate(
       { cardId: selectedCard.id, payload: formToPayload(form) },
-      {
-        onSuccess: () => {
-          toast.success('ID card PDF generated')
-          void refetch()
-        },
-      },
+      { onSuccess: () => { toast.success(d('idCard.idGenerated')); void refetch() } },
     )
-  }
-
-  const handleDownload = async () => {
-    if (!selectedCard) return
-    try {
-      const name = form?.fullName?.replace(/\s+/g, '-') ?? selectedCard.cardNumber
-      await cardsService.downloadPdf(selectedCard.id, `${name}-id-card.pdf`)
-      toast.success('ID card downloaded')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Download failed — generate the card first')
-    }
   }
 
   if (isLoading) return <SkeletonCard />
@@ -95,17 +77,23 @@ export function IdCardGenerationPanel() {
     return (
       <EmptyState
         icon={IdCard}
-        title="No cards ready"
-        description="Approve driver applications first — each approved driver gets a card record."
+        title={d('idCard.noCardsTitle')}
+        description={d('idCard.noCardsDesc')}
       />
     )
+  }
+
+  const emptyForm: IdCardFormValues = {
+    fullName: '', fatherName: '', designation: '', mobileNumber: '',
+    licenseNumber: '', policeStation: '', city: '', state: '',
+    bloodGroup: '', dateOfBirth: '',
   }
 
   return (
     <div className="space-y-6">
       <Select value={selectedCard?.id} onValueChange={setSelectedCardId}>
         <SelectTrigger>
-          <SelectValue placeholder="Select driver card" />
+          <SelectValue placeholder={d('idCard.selectDriver')} />
         </SelectTrigger>
         <SelectContent>
           {cards.map((c: DriverCard) => (
@@ -118,39 +106,52 @@ export function IdCardGenerationPanel() {
         </SelectContent>
       </Select>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-neutral-900">Card information</h3>
-          {snapshotLoading || !form ? (
-            <SkeletonCard />
-          ) : (
-            <IdCardFormFields
-              values={form}
-              onChange={onFieldChange}
-              disabled={generate.isPending}
-            />
-          )}
-          <Button
-            className="w-full"
-            onClick={handleGenerate}
-            disabled={!form || generate.isPending}
-          >
-            {generate.isPending ? 'Generating…' : 'Generate ID Card'}
-          </Button>
-          <IDCardActions
-            onPrint={() => window.print()}
-            onDownload={handleDownload}
-            loading={generate.isPending}
-          />
-        </div>
+      {/* ── Card preview ── */}
+      <IDCardOverlay
+        values={form ?? emptyForm}
+        card={selectedCard}
+        qrUrl={qrUrl}
+        loading={snapshotLoading}
+        onActionsReady={handleActionsReady}
+      />
 
-        <div>
-          <h3 className="text-sm font-semibold text-neutral-900 mb-3">Preview</h3>
-          <IDCardPreview imageUrl={previewUrl} loading={previewLoading || snapshotLoading} />
-          <p className="mt-2 text-xs text-neutral-500 text-center">
-            Template artwork is unchanged — QR, photo, and text are placed on the card.
-          </p>
-        </div>
+      {/* ── Print / Download (canvas-based, pixel-perfect) ── */}
+      <div className="flex gap-3">
+        <Button
+          variant="outline"
+          className="flex-1 gap-2"
+          onClick={() => actionsRef.current?.print()}
+        >
+          <Printer size={15} /> {d('idCard.printCard')}
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 gap-2"
+          onClick={() => actionsRef.current?.downloadFront()}
+        >
+          <Download size={15} /> {d('idCard.downloadPng')}
+        </Button>
+      </div>
+
+      {/* ── Form + generate ── */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-neutral-900">{d('idCard.cardInfo')}</h3>
+        {snapshotLoading || !form ? (
+          <SkeletonCard />
+        ) : (
+          <IdCardFormFields
+            values={form}
+            onChange={onFieldChange}
+            disabled={generate.isPending}
+          />
+        )}
+        <Button
+          className="w-full"
+          onClick={handleGenerate}
+          disabled={!form || generate.isPending}
+        >
+          {generate.isPending ? d('idCard.generating') : d('idCard.generatePdf')}
+        </Button>
       </div>
     </div>
   )
