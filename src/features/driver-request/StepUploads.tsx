@@ -26,9 +26,29 @@ export default function StepUploads() {
   const [previews, setPreviews] = useState<Record<string, string>>({})
 
   const handleFile = (field: keyof DriverRequestFormData, file: File) => {
+    setPreviews((current) => {
+      const existingPreview = current[field]
+      if (existingPreview) URL.revokeObjectURL(existingPreview)
+      return {
+        ...current,
+        [field]: fileToPreview(file),
+      }
+    })
     setValue(field, file as never, { shouldValidate: true })
-    setPreviews(p => ({ ...p, [field]: fileToPreview(file) }))
   }
+
+  const handleRemoveFile = (field: keyof DriverRequestFormData) => {
+    setValue(field, undefined as never, { shouldValidate: true, shouldDirty: true })
+    setPreviews((current) => {
+      const existingPreview = current[field]
+      if (existingPreview) URL.revokeObjectURL(existingPreview)
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
+
+  const fileFieldValue = (field: keyof DriverRequestFormData) => handleFile.bind(null, field)
 
   return (
     <FormSection title={t('apply.documentUpload')} singleCol>
@@ -45,7 +65,8 @@ export default function StepUploads() {
             accept="image/*,.pdf"
             maxSizeMB={field === 'driverPhoto' ? 1 : 2}
             preview={previews[field]}
-            onFileSelect={f => handleFile(field, f)}
+            onFileSelect={fileFieldValue(field)}
+            onFileRemove={() => handleRemoveFile(field)}
             error={errors[field]?.message as string | undefined}
           />
         ))}

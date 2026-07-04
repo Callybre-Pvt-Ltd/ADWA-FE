@@ -43,7 +43,9 @@ export default function MultiStepForm() {
   const submitRequest = useSubmitDriverRequest()
 
   const form = useForm<DriverRequestFormData>({
-    resolver: zodResolver(driverPersonalSchema.merge(driverDetailsSchema).merge(documentUploadSchema)),
+    resolver: zodResolver(
+      driverPersonalSchema.merge(driverDetailsSchema).merge(documentUploadSchema),
+    ) as any,
     mode: 'onChange',
     defaultValues: {
       email: '',
@@ -125,7 +127,7 @@ export default function MultiStepForm() {
 
         <div className="bg-white rounded-3xl border-2 border-neutral-200 shadow-sm overflow-hidden">
 
-          <div className="px-6 py-5 md:px-8 border-b-2 border-neutral-100 bg-gradient-to-r from-blue-50 to-white">
+          <div className="px-6 py-5 md:px-8 border-b-2 border-neutral-100 bg-linear-to-r from-blue-50 to-white">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-200">
                 <currentStep.icon size={18} />

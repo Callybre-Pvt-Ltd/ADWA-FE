@@ -283,7 +283,7 @@ export function RevenueTrendChart({ data, nameRevenue = 'Revenue' }: { data: { m
         <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0', boxShadow: '0 4px 12px 0 rgb(0 0 0 / 0.08)' }} formatter={(v: number) => [formatCurrency(v), nameRevenue]} />
+        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0', boxShadow: '0 4px 12px 0 rgb(0 0 0 / 0.08)' }} formatter={(v: any) => [formatCurrency(Number(v)), nameRevenue]} />
         <Line type="monotone" dataKey="amount" stroke="#1D4ED8" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#1D4ED8' }} />
       </LineChart>
     </ResponsiveContainer>
@@ -311,7 +311,7 @@ export function AppStatusDoughnut({ pending, approved, rejected, cardGenerated, 
           {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
         </Pie>
         <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0' }} formatter={(v: number) => [v.toLocaleString('en-IN'), '']} />
+        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0' }} formatter={(v: any) => [Number(v).toLocaleString('en-IN'), '']} />
       </PieChart>
     </ResponsiveContainer>
   )

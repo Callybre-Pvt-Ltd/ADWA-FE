@@ -1,4 +1,4 @@
-import { Phone, Mail, Clock, Share2 } from 'lucide-react'
+import { Phone, Mail, Clock } from 'lucide-react'
 import { CONTACT_INFO, SOCIAL_LINKS } from '@/constants'
 
 const SOCIAL = [

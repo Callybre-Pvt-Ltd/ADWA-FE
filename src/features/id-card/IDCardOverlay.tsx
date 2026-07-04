@@ -52,7 +52,6 @@ function loadUrl(url: string): Promise<HTMLImageElement> {
 
 // ─── Canvas dimensions ────────────────────────────────────────────────────────
 
-const FULL_W = 1600
 const FULL_H = 1235
 const FACE_W = 800   // each half
 const FACE_H = FULL_H
@@ -138,7 +137,7 @@ async function drawFront(
 
   const maxW = FACE_W - FRONT.valueX - 20
   for (const row of FRONT.rows) {
-    let raw = String(form[row.key] || '')
+    const raw = String(form[row.key] || '')
     if (!raw) continue
     // Normalize ISO dates (YYYY-MM-DD) to DD/MM/YYYY
     let display = raw.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1')
@@ -213,13 +212,10 @@ interface FaceCanvasProps {
 }
 
 function FaceCanvas({ draw, label, canvasRef }: FaceCanvasProps) {
-  const drawRef = useRef(draw)
-  drawRef.current = draw
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    void drawRef.current(canvas)
+    void draw(canvas)
   }, [draw, canvasRef])
 
   return (
@@ -270,7 +266,7 @@ function printCanvases(front: HTMLCanvasElement, back: HTMLCanvasElement, driver
     <img src="${frontDataUrl}" alt="Front" />
     <img src="${backDataUrl}"  alt="Back" />
   </div>
-  <script>window.onload = () => { window.print(); window.onafterprint = () => window.close() }<\/script>
+  <script>window.onload = () => { window.print(); window.onafterprint = () => window.close() }</script>
 </body>
 </html>`)
   win.document.close()

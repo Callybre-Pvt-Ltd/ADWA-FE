@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNotifications, useMarkNotificationRead } from '@/hooks/useNotifications'
-import { SectionHeading } from '@/components/shared/SectionHeading'
+
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { ErrorState } from '@/components/shared/ErrorState'

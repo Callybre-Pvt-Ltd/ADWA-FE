@@ -6,7 +6,7 @@ import { Sidebar } from '@/components/navigation/Sidebar'
 import { BottomNav } from '@/components/navigation/BottomNav'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { useAuth } from '@/context/AuthContext'
-import { cn } from '@/utils/cn'
+
 function LangToggle() {
   const { t, i18n: i18nInst } = useTranslation('dashboard')
   const lang = i18nInst.language

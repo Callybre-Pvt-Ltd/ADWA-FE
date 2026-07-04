@@ -45,10 +45,12 @@ export function useSubmitDriverRequest() {
   })
 }
 
-export function useTrackApplication() {
-  return useMutation({
-    mutationFn: ({ ref, mobile }: { ref: string; mobile: string }) =>
-      driverRequestsService.track(ref, mobile),
+export function useTrackApplication(ref: string, mobile: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...DRIVER_REQUESTS_QUERY_KEY, 'track', ref, mobile],
+    queryFn: () => driverRequestsService.track(ref, mobile),
+    enabled,
+    staleTime: 0,
   })
 }
 

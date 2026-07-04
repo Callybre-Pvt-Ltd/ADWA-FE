@@ -8,6 +8,7 @@ export interface FileUploadZoneProps {
   accept: string
   maxSizeMB: number
   onFileSelect: (file: File) => void
+  onFileRemove?: () => void
   preview?: string
   hint?: string
   error?: string
@@ -20,6 +21,7 @@ export function FileUploadZone({
   accept,
   maxSizeMB,
   onFileSelect,
+  onFileRemove,
   preview,
   hint,
   error,
@@ -66,7 +68,7 @@ export function FileUploadZone({
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition-all min-h-[170px] bg-neutral-50',
+          'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition-all min-h-42.5 bg-neutral-50',
           dragOver ? 'border-royal-600 bg-royal-50 scale-[1.01]' : 'border-neutral-400 hover:border-royal-500 hover:bg-white',
           preview && 'border-emerald-500 bg-emerald-50/40',
           displayError && 'border-red-500 bg-red-50/40',
@@ -95,7 +97,7 @@ export function FileUploadZone({
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="h-3.5 w-3.5" /> Uploaded
             </span>
-            {fileName && <p className="text-xs text-neutral-500 truncate max-w-[140px]">{fileName}</p>}
+            {fileName && <p className="text-xs text-neutral-500 truncate max-w-35">{fileName}</p>}
             <Button
               type="button"
               variant="outline"
@@ -105,6 +107,7 @@ export function FileUploadZone({
                 e.stopPropagation()
                 setFileName(null)
                 if (inputRef.current) inputRef.current.value = ''
+                onFileRemove?.()
               }}
               aria-label="Remove file"
             >

@@ -127,10 +127,12 @@ export const driversService = {
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async verify(_cardId: string) {
     throw new Error('Use verification endpoint for card lookup')
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(_data: unknown): Promise<Driver> {
     throw new Error('Use driverRequestsService.submit for new applications')
   },

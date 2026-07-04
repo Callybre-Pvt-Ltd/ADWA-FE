@@ -48,7 +48,7 @@ export default function StepPersonal() {
         </FormField>
 
         <FormField label={f('motherName')} htmlFor="motherName" required error={errors.motherName?.message}>
-          <Input id="motherName" placeholder={f('motherName', "Mother's Full Name")} {...register('motherName')} />
+          <Input id="motherName" placeholder={f('motherName')} {...register('motherName')} />
         </FormField>
 
         <FormField label={f('gender')} required error={errors.gender?.message}>

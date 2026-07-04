@@ -36,13 +36,22 @@ export function IdCardGenerationPanel() {
     [],
   )
 
-  useEffect(() => {
-    if (snapshot) setForm(snapshotToForm(snapshot))
-  }, [snapshot])
+  const [prevSnapshot, setPrevSnapshot] = useState<unknown>(null)
+  const [prevCards, setPrevCards] = useState<DriverCard[] | undefined>(undefined)
 
-  useEffect(() => {
-    if (cards?.length && !selectedCardId) setSelectedCardId(cards[0].id)
-  }, [cards, selectedCardId])
+  if (snapshot !== prevSnapshot) {
+    setPrevSnapshot(snapshot)
+    if (snapshot) {
+      setForm(snapshotToForm(snapshot))
+    }
+  }
+
+  if (cards !== prevCards) {
+    setPrevCards(cards)
+    if (cards?.length && !selectedCardId) {
+      setSelectedCardId(cards[0].id)
+    }
+  }
 
   useEffect(() => {
     if (!selectedCard?.id) return

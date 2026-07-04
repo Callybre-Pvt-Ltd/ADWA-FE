@@ -1,5 +1,5 @@
-import { apiClient, unwrapPaginated, unwrapResponse } from './client'
-import { buildQueryParams, extractError, toCamelCase } from './mappers'
+import { apiClient, unwrapResponse } from './client'
+import { extractError, toCamelCase } from './mappers'
 import type { APIResponse } from '@/types/api.types'
 import type { District, CreateDistrictDto } from '@/types/district.types'
 
