@@ -15,7 +15,7 @@ const EXPERIENCE_OPTIONS = Array.from({ length: 41 }, (_, i) => i)
 
 export default function StepDriverDetails() {
   const { t } = useTranslation('pages')
-  const f = (key: string) => t(`apply.fields.${key}`)
+  const f = (key: string, fallback?: string) => t(`apply.fields.${key}`, fallback ?? key)
   const s = (key: string) => t(`apply.sections.${key}`)
 
   const { register, setValue, watch, formState: { errors } } = useFormContext<DriverRequestFormData>()
