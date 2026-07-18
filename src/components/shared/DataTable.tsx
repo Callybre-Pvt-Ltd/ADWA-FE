@@ -25,6 +25,7 @@ export interface DataTableProps<T> {
   className?: string
   testId?: string
   getRowKey: (row: T) => string
+  actions?: React.ReactNode
 }
 
 const PAGE_SIZE = 10
@@ -39,6 +40,7 @@ export function DataTable<T>({
   className,
   testId,
   getRowKey,
+  actions,
 }: DataTableProps<T>) {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
@@ -88,16 +90,21 @@ export function DataTable<T>({
 
   return (
     <div data-testid={testId} className={cn('space-y-4', className)}>
-      {searchable && (
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-          <Input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-            placeholder={searchPlaceholder === 'Search...' && isHi ? 'खोजें...' : searchPlaceholder}
-            className="pl-9"
-            aria-label="Search table"
-          />
+      {(searchable || actions) && (
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
+          {searchable && (
+            <div className="relative w-full sm:w-72 max-w-none sm:max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+              <Input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+                placeholder={searchPlaceholder === 'Search...' && isHi ? 'खोजें...' : searchPlaceholder}
+                className="pl-9"
+                aria-label="Search table"
+              />
+            </div>
+          )}
+          {actions && <div className="w-full sm:w-auto flex items-center gap-2">{actions}</div>}
         </div>
       )}
 

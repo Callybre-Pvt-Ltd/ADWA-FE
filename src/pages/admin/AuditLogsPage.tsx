@@ -74,22 +74,28 @@ export default function AuditLogsPage() {
       <PageHeader
         title={isHi ? 'ऑडिट लॉग' : 'Audit Logs'}
         subtitle={isHi ? 'सिस्टम गतिविधि और परिवर्तन इतिहास' : 'System activity and change history'}
-        action={
-          <Select value={actorType} onValueChange={setActorType}>
-            <SelectTrigger className="w-40"><SelectValue placeholder={isHi ? 'चुनें...' : 'Select...'} /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{isHi ? 'सभी कर्ता' : 'All Actors'}</SelectItem>
-              <SelectItem value="admin">{isHi ? 'एडमिन' : 'Admin'}</SelectItem>
-              <SelectItem value="district">{isHi ? 'जिला' : 'District'}</SelectItem>
-              <SelectItem value="system">{isHi ? 'सिस्टम' : 'System'}</SelectItem>
-            </SelectContent>
-          </Select>
-        }
       />
       {isLoading && <SkeletonTable />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
-        <DataTable data={data ?? []} columns={columns} getRowKey={(r) => r.id} searchable searchPlaceholder={isHi ? 'लॉग खोजें...' : 'Search logs...'} />
+        <DataTable
+          data={data ?? []}
+          columns={columns}
+          getRowKey={(r) => r.id}
+          searchable
+          searchPlaceholder={isHi ? 'लॉग खोजें...' : 'Search logs...'}
+          actions={
+            <Select value={actorType} onValueChange={setActorType} className="w-full sm:w-auto">
+              <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder={isHi ? 'चुनें...' : 'Select...'} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{isHi ? 'सभी कर्ता' : 'All Actors'}</SelectItem>
+                <SelectItem value="admin">{isHi ? 'एडमिन' : 'Admin'}</SelectItem>
+                <SelectItem value="district">{isHi ? 'जिला' : 'District'}</SelectItem>
+                <SelectItem value="system">{isHi ? 'सिस्टम' : 'System'}</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
       )}
     </div>
   )

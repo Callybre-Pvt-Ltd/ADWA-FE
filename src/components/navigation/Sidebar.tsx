@@ -10,10 +10,11 @@ interface SidebarProps {
   collapsed: boolean
   onToggle: () => void
   portalLabel: string
+  collapsedLabel?: string
   onSignOut?: () => void
 }
 
-export function Sidebar({ routes, collapsed, onToggle, portalLabel, onSignOut }: SidebarProps) {
+export function Sidebar({ routes, collapsed, onToggle, portalLabel, collapsedLabel, onSignOut }: SidebarProps) {
   const { t: tNav, i18n } = useTranslation('nav')
   const isHi = i18n.language === 'hi'
   const location = useLocation()
@@ -26,7 +27,7 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel, onSignOut }:
         collapsed ? 'w-14' : 'w-52',
       )}
     >
-      <div className="flex h-14 items-center justify-between border-b border-white/15 px-3">
+      <div className="flex h-[68px] items-center justify-between border-b border-white/15 px-3">
         {!collapsed ? (
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-xs font-black uppercase tracking-[0.2em] text-orange-400 truncate">
@@ -36,7 +37,7 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel, onSignOut }:
         ) : (
           <div className="flex justify-center w-full">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500/10 border border-orange-500/30 text-xs font-extrabold text-orange-400 shadow-sm shadow-orange-500/10">
-              {isHi ? 'ए' : 'A'}
+              {collapsedLabel || (isHi ? 'ए' : 'A')}
             </span>
           </div>
         )}

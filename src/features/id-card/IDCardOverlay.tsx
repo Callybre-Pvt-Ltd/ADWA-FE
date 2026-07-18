@@ -219,7 +219,7 @@ function FaceCanvas({ draw, label, canvasRef }: FaceCanvasProps) {
   }, [draw, canvasRef])
 
   return (
-    <div>
+    <div className="min-w-0">
       <p className="mb-1 text-center text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
         {label}
       </p>
@@ -351,7 +351,7 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
   }
 
   return (
-    <div className={cn('grid gap-4 sm:grid-cols-2', className)}>
+    <div className={cn('grid gap-4 sm:grid-cols-2 w-full min-w-0', className)}>
       <FaceCanvas label={t('dashboard.idCard.front')} draw={drawFrontCb} canvasRef={frontRef} />
       <FaceCanvas label={t('dashboard.idCard.back')}  draw={drawBackCb}  canvasRef={backRef} />
     </div>

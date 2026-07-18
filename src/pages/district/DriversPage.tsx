@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useDrivers, useDriverCards } from '@/hooks/useDrivers'
 import { cardsService } from '@/services'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -14,8 +15,19 @@ import { Button } from '@/components/ui/button'
 import { formatDate } from '@/utils/formatters'
 import type { Driver } from '@/types/driver.types'
 import { Download, Users } from 'lucide-react'
+import { nameTranslations } from '@/utils/translations'
+
+const statusMapEnToHi: Record<string, string> = {
+  'APPROVED': 'स्वीकृत',
+  'ID_CARD_GENERATED': 'आईडी कार्ड जनरेट हुआ',
+  'ACTIVE': 'सक्रिय',
+  'SUSPENDED': 'निलंबित',
+  'EXPIRED': 'समाप्त',
+}
 
 export default function DriversPage() {
+  const { i18n } = useTranslation()
+  const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useDrivers()
   const { data: cards } = useDriverCards()
   const [selected, setSelected] = useState<Driver | null>(null)
@@ -27,18 +39,23 @@ export default function DriversPage() {
     return map
   }, [cards])
 
+  const translateStatus = (s: string) => {
+    if (!isHi) return s.replace(/_/g, ' ')
+    return statusMapEnToHi[s] || s.replace(/_/g, ' ')
+  }
+
   const handleDownload = async (driverId: string) => {
     const cardId = cardByDriver.get(driverId)
     if (!cardId) {
-      toast.error('No ID card found for this driver')
+      toast.error(isHi ? 'इस ड्राइवर के लिए कोई आईडी कार्ड नहीं मिला' : 'No ID card found for this driver')
       return
     }
     setDownloading(true)
     try {
       await cardsService.downloadPdf(cardId)
-      toast.success('Card download started')
+      toast.success(isHi ? 'कार्ड डाउनलोड होना शुरू हो गया है' : 'Card download started')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Download failed')
+      toast.error(err instanceof Error ? err.message : (isHi ? 'डाउनलोड विफल रहा' : 'Download failed'))
     } finally {
       setDownloading(false)
     }
@@ -46,25 +63,28 @@ export default function DriversPage() {
 
   const columns: ColumnDef<Driver>[] = [
     {
-      key: 'name', header: 'Driver', sortable: true, sortValue: (r) => r.name,
+      key: 'name', header: isHi ? 'ड्राइवर' : 'Driver', sortable: true, sortValue: (r) => r.name,
       cell: (r) => (
         <div className="flex items-center gap-2">
           <AvatarWithInitials name={r.name} imageUrl={r.photoUrl} size="sm" />
-          {r.name}
+          <span>{isHi ? (nameTranslations[r.name] || r.name) : r.name}</span>
         </div>
       ),
     },
-    { key: 'mobile', header: 'Mobile', cell: (r) => r.mobile },
-    { key: 'member', header: 'Member No', cell: (r) => r.memberNumber ?? '—' },
-    { key: 'status', header: 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={r.status} /> },
-    { key: 'created', header: 'Registered', cell: (r) => formatDate(r.createdAt), sortable: true, sortValue: (r) => r.createdAt },
+    { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (r) => r.mobile },
+    { key: 'member', header: isHi ? 'सदस्य नंबर' : 'Member No', cell: (r) => r.memberNumber ?? '—' },
+    { key: 'status', header: isHi ? 'स्थिति' : 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={translateStatus(r.status)} /> },
+    { key: 'created', header: isHi ? 'पंजीकृत तिथि' : 'Registered', cell: (r) => formatDate(r.createdAt), sortable: true, sortValue: (r) => r.createdAt },
   ]
 
   const selectedCardId = selected ? cardByDriver.get(selected.id) : undefined
 
   return (
-    <div className="p-6">
-      <PageHeader title="Drivers" subtitle="All registered drivers in your district" />
+    <div className="w-full space-y-6 pb-6 animate-fade-in">
+      <PageHeader
+        title={isHi ? 'ड्राइवर' : 'Drivers'}
+        subtitle={isHi ? 'आपके जिले में सभी पंजीकृत ड्राइवर' : 'All registered drivers in your district'}
+      />
       {isLoading && <SkeletonTable />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
@@ -74,20 +94,20 @@ export default function DriversPage() {
           getRowKey={(r) => r.id}
           searchable
           onRowClick={setSelected}
-          emptyState={<EmptyState icon={Users} title="No drivers found" />}
+          emptyState={<EmptyState icon={Users} title={isHi ? 'कोई ड्राइवर नहीं मिला' : 'No drivers found'} />}
         />
       )}
       <AppDrawer
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.name ?? ''}
+        title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footer={selectedCardId ? (
           <Button
-            className="w-full"
+            className="w-full cursor-pointer"
             onClick={() => selected && handleDownload(selected.id)}
             disabled={downloading}
           >
-            <Download className="h-4 w-4" /> Download ID Card
+            <Download className="h-4 w-4" /> {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
           </Button>
         ) : undefined}
       >
@@ -96,20 +116,22 @@ export default function DriversPage() {
             <AvatarWithInitials name={selected.name} imageUrl={selected.photoUrl} size="lg" />
             <dl className="space-y-2 text-sm">
               {[
-                ['Member No', selected.memberNumber ?? '—'],
-                ['License', selected.licenseNumber],
-                ['Blood Group', selected.bloodGroup],
-                ['Status', selected.status],
-                ['Registered', formatDate(selected.createdAt)],
+                [isHi ? 'सदस्य नंबर' : 'Member No', selected.memberNumber ?? '—'],
+                [isHi ? 'लाइसेंस नंबर' : 'License', selected.licenseNumber],
+                [isHi ? 'रक्त समूह' : 'Blood Group', selected.bloodGroup],
+                [isHi ? 'स्थिति' : 'Status', translateStatus(selected.status)],
+                [isHi ? 'पंजीकृत तिथि' : 'Registered', formatDate(selected.createdAt)],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between">
+                <div key={k} className="flex justify-between border-b border-neutral-100 pb-1.5">
                   <dt className="text-neutral-500">{k}</dt>
-                  <dd className="font-medium">{v}</dd>
+                  <dd className="font-medium text-neutral-900">{v}</dd>
                 </div>
               ))}
             </dl>
             {!selectedCardId && (
-              <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3">No ID card generated yet.</p>
+              <p className="text-sm text-orange-700 bg-orange-50 rounded-lg p-3">
+                {isHi ? 'अभी तक कोई आईडी कार्ड जनरेट नहीं किया गया है।' : 'No ID card generated yet.'}
+              </p>
             )}
           </div>
         )}

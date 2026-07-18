@@ -118,12 +118,16 @@ export function AdminLayout() {
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
           portalLabel={tNav('portalAdmin')}
+          collapsedLabel={isHi ? 'ए' : 'A'}
           onSignOut={() => { logout(); navigate('/admin/login') }}
         />
 
         <div className="flex flex-1 flex-col min-w-0">
           {/* Topbar — full on mobile, slim on desktop */}
-          <div className="sticky top-0 z-30 flex flex-col">
+          <div
+            className="z-30 flex flex-col w-full shrink-0"
+            style={{ position: 'sticky', top: 0 }}
+          >
             <header className="flex items-center justify-between gap-3 bg-blue-900 text-white px-4 py-3 md:px-6 md:py-2.5 shadow-lg shadow-blue-900/10">
               {/* Left: brand mark */}
               <div className="flex items-center gap-2.5 min-w-0">
@@ -196,7 +200,6 @@ export function AdminLayout() {
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-900/40 border border-white/10 py-3.5 text-xs font-black text-blue-300 hover:bg-blue-900/60 transition-all"
                     >
-                      <span className="font-bold text-sm">←</span>
                       <span>{tNav('backToPublic')}</span>
                     </Link>
 

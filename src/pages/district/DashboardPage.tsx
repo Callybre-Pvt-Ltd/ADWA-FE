@@ -62,7 +62,7 @@ export default function DashboardPage() {
   const d = (key: string) => t(`dashboard.${key}`)
 
   return (
-    <div className="w-full max-w-4xl space-y-6 pb-6">
+    <div className="w-full space-y-6 pb-6 animate-fade-in">
 
       {/* ── Page header ── */}
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-card">

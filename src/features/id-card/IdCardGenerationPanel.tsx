@@ -132,17 +132,17 @@ export function IdCardGenerationPanel() {
       />
 
       {/* ── Print / Download (canvas-based, pixel-perfect) ── */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button
           variant="outline"
-          className="flex-1 gap-2"
+          className="flex-1 gap-2 cursor-pointer w-full"
           onClick={() => actionsRef.current?.print()}
         >
           <Printer size={15} /> {d('idCard.printCard')}
         </Button>
         <Button
           variant="outline"
-          className="flex-1 gap-2"
+          className="flex-1 gap-2 cursor-pointer w-full"
           onClick={() => actionsRef.current?.downloadFront()}
         >
           <Download size={15} /> {d('idCard.downloadPng')}
@@ -162,7 +162,7 @@ export function IdCardGenerationPanel() {
           />
         )}
         <Button
-          className="w-full"
+          className="w-full cursor-pointer"
           onClick={handleGenerate}
           disabled={!form || generate.isPending}
         >

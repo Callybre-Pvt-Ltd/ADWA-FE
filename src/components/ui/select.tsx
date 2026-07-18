@@ -33,9 +33,10 @@ interface SelectProps {
   onValueChange?: (v: string) => void
   disabled?: boolean
   children: React.ReactNode
+  className?: string
 }
 
-export function Select({ value, defaultValue, onValueChange, disabled = false, children }: SelectProps) {
+export function Select({ value, defaultValue, onValueChange, disabled = false, children, className }: SelectProps) {
   const [open, setOpen] = React.useState(false)
   const [selectedLabel, setSelectedLabel] = React.useState<React.ReactNode>(undefined)
   const triggerRef = React.useRef<HTMLButtonElement>(null)
@@ -79,7 +80,7 @@ export function Select({ value, defaultValue, onValueChange, disabled = false, c
         setSelectedLabel,
       }}
     >
-      <div data-select-root className="relative">
+      <div data-select-root className={cn('relative', className)}>
         {children}
       </div>
     </SelectContext.Provider>

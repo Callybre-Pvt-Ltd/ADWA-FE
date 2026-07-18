@@ -2,20 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsService } from '../services'
 import type { EventFilters, CreateEventDto } from '../types/event.types'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export const EVENTS_QUERY_KEY = ['events'] as const
 
 export function useEvents(filters?: EventFilters) {
+  const { i18n } = useTranslation()
   return useQuery({
-    queryKey: [...EVENTS_QUERY_KEY, filters],
+    queryKey: [...EVENTS_QUERY_KEY, i18n.language, filters],
     queryFn: () => eventsService.getAll(filters),
     staleTime: 1000 * 60 * 5,
   })
 }
 
 export function usePublicEvents(filters?: EventFilters) {
+  const { i18n } = useTranslation()
   return useQuery({
-    queryKey: [...EVENTS_QUERY_KEY, 'public', filters],
+    queryKey: [...EVENTS_QUERY_KEY, 'public', i18n.language, filters],
     queryFn: async () => {
       const events = await eventsService.getPublic()
       if (!filters?.status || filters.status === 'all') return events

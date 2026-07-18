@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Calendar, MapPin, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { formatDate } from '@/utils/formatters'
@@ -11,7 +12,17 @@ interface EventCardProps {
   className?: string
 }
 
+const translateStatus = (s: string, isHi: boolean) => {
+  if (!isHi) return s.charAt(0).toUpperCase() + s.slice(1)
+  if (s === 'upcoming') return 'आगामी'
+  if (s === 'past') return 'विगत'
+  if (s === 'cancelled') return 'रद्द'
+  return s
+}
+
 export default function EventCard({ event, onClick, className }: EventCardProps) {
+  const { i18n } = useTranslation('home')
+  const isHi = i18n.language === 'hi'
   const isUpcoming = event.status === 'upcoming'
 
   return (
@@ -20,7 +31,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
       transition={{ duration: 0.2 }}
       onClick={onClick}
       className={cn(
-        'group flex flex-col overflow-hidden rounded-2xl border-2 border-neutral-200 bg-white shadow-sm',
+        'group flex flex-col overflow-hidden rounded-2xl border-2 border-neutral-200 bg-white shadow-sm h-full',
         'transition-shadow duration-200 hover:shadow-lg hover:border-orange-200',
         onClick && 'cursor-pointer',
         className,
@@ -32,17 +43,17 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
           <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <div className="absolute bottom-3 left-3">
-            <StatusBadge variant={statusToVariant(event.status)} label={event.status} />
+            <StatusBadge variant={statusToVariant(event.status)} label={translateStatus(event.status, isHi)} />
           </div>
         </div>
       ) : (
         <div className={cn(
-          'h-44 flex items-center justify-center',
+          'h-44 flex items-center justify-center relative',
           isUpcoming ? 'bg-gradient-to-br from-blue-600 to-blue-800' : 'bg-gradient-to-br from-neutral-400 to-neutral-600',
         )}>
           <Calendar className="h-12 w-12 text-white/40" />
           <div className="absolute top-3 right-3">
-            <StatusBadge variant={statusToVariant(event.status)} label={event.status} />
+            <StatusBadge variant={statusToVariant(event.status)} label={translateStatus(event.status, isHi)} />
           </div>
         </div>
       )}
@@ -51,7 +62,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
       <div className="flex flex-1 flex-col p-5">
         {!event.imageUrl && (
           <div className="mb-2">
-            <StatusBadge variant={statusToVariant(event.status)} label={event.status} />
+            <StatusBadge variant={statusToVariant(event.status)} label={translateStatus(event.status, isHi)} />
           </div>
         )}
 
@@ -75,7 +86,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
 
         {onClick && (
           <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-orange-600 group-hover:gap-2 transition-all">
-            View details <ArrowRight className="h-4 w-4" />
+            {isHi ? 'विवरण देखें' : 'View details'} <ArrowRight className="h-4 w-4" />
           </div>
         )}
       </div>

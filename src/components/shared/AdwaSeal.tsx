@@ -24,7 +24,7 @@ export function AdwaSeal({ size = 'md', className }: AdwaSealProps) {
       <img
         src={logoImg}
         alt="ADWA Logo"
-        className="h-full w-full object-contain"
+        className="h-full w-full object-cover scale-[1.35]"
       />
     </div>
   )

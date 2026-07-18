@@ -91,28 +91,8 @@ export default function DriverManagementPage() {
       <PageHeader
         title={isHi ? 'ड्राइवर प्रबंधन' : 'Driver Management'}
         subtitle={isHi ? 'उन्नत फ़िल्टर के साथ राष्ट्रीय ड्राइवर डेटाबेस' : 'National driver database with advanced filters'}
-        action={<Button variant="outline" onClick={exportData} className="cursor-pointer"><Download className="h-4 w-4" /> {isHi ? 'एक्सपोर्ट' : 'Export'}</Button>}
+        action={<Button variant="outline" onClick={exportData} className="w-full sm:w-auto cursor-pointer"><Download className="h-4 w-4" /> {isHi ? 'एक्सपोर्ट' : 'Export'}</Button>}
       />
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
-          <SelectTrigger className="w-44"><SelectValue placeholder={isHi ? 'स्थिति' : 'Status'} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{isHi ? 'सभी स्थितियां' : 'All Statuses'}</SelectItem>
-            {DRIVER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{translateStatus(s)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={districtId} onValueChange={setDistrictId}>
-          <SelectTrigger className="w-44"><SelectValue placeholder={isHi ? 'जिला' : 'District'} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{isHi ? 'सभी जिले' : 'All Districts'}</SelectItem>
-            {(districts ?? []).map((d) => (
-              <SelectItem key={d.id} value={d.id}>{isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       {isLoading && <SkeletonTable />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
@@ -122,6 +102,28 @@ export default function DriverManagementPage() {
           getRowKey={(r) => r.id}
           searchable
           onRowClick={setSelected}
+          actions={
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)} className="w-full sm:w-auto">
+                <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'स्थिति' : 'Status'} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{isHi ? 'सभी स्थितियां' : 'All Statuses'}</SelectItem>
+                  {DRIVER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>{translateStatus(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={districtId} onValueChange={setDistrictId} className="w-full sm:w-auto">
+                <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'जिला' : 'District'} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{isHi ? 'सभी जिले' : 'All Districts'}</SelectItem>
+                  {(districts ?? []).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          }
         />
       )}
 

@@ -86,11 +86,11 @@ const COMMITTEE_MEMBERS = [
 function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   const sizeClass = { sm: 'h-20 w-20', md: 'h-24 w-24', lg: 'h-32 w-32', xl: 'h-40 w-40' }[size]
   return (
-    <div className={`${sizeClass} rounded-full overflow-hidden border-4 border-white shadow-lg bg-blue-100 shrink-0 mx-auto`}>
+    <div className={`${sizeClass} rounded-full overflow-hidden border-4 border-white shadow-lg bg-white shrink-0 mx-auto`}>
       <img
         src={src}
         alt={name}
-        className="w-full h-full object-cover object-top scale-[1.35] transition-transform duration-300 hover:scale-[1.45]"
+        className="w-full h-full object-cover object-top transition-transform duration-300 hover:scale-105"
         loading="lazy"
         onError={(e) => {
           const el = e.currentTarget
@@ -520,7 +520,6 @@ function DriverVoicesSection({ isHi }: { isHi: boolean }) {
         {/* Section header */}
         <motion.div {...fadeInUp} className="text-center mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/15 border border-orange-400/25 px-4 py-1.5 text-sm font-bold text-orange-300 mb-4">
-            <Heart className="h-3.5 w-3.5" />
             {isHi ? 'ड्राइवरों की आवाज़' : 'Voice of the Driver'}
           </span>
           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">

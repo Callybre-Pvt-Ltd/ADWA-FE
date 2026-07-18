@@ -11,10 +11,11 @@ export default function DriverRequestPage() {
     <div className="hero-gradient min-h-screen">
       <PageHero title={t('apply.title')} subtitle={t('apply.subtitle')} />
       <section className="section-padding pt-8">
-        <div className="container-wide max-w-5xl">
-          <MultiStepForm />
-
-          <RulesRegulationsPanel />
+        <div className="container-wide">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <MultiStepForm />
+            <RulesRegulationsPanel />
+          </div>
         </div>
       </section>
     </div>

@@ -83,7 +83,7 @@ export function IdCardFormFields({ values, onChange, disabled }: IdCardFormField
         }
 
         return (
-          <label key={key} className={cn('block text-sm', key === 'fullName' && 'sm:col-span-2')}>
+          <label key={key} className="block text-sm">
             <span className="text-neutral-500 text-xs font-semibold uppercase tracking-wide">{labelText}</span>
             <input
               type="text"
