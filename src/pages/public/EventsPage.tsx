@@ -60,8 +60,8 @@ export default function EventsPage() {
                 onClick={() => setFilter(value)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all duration-150 ${
                   filter === value
-                    ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
-                    : 'border-neutral-300 bg-white text-neutral-700 hover:border-blue-400 hover:text-blue-700'
+                    ? 'border-orange-600 bg-orange-600 text-white shadow-md shadow-orange-100'
+                    : 'border-neutral-300 bg-white text-neutral-700 hover:border-orange-400 hover:text-orange-600'
                 }`}
               >
                 <Icon className="h-4 w-4" />

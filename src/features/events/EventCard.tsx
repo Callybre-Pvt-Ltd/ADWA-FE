@@ -21,7 +21,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
       onClick={onClick}
       className={cn(
         'group flex flex-col overflow-hidden rounded-2xl border-2 border-neutral-200 bg-white shadow-sm',
-        'transition-shadow duration-200 hover:shadow-lg hover:border-blue-200',
+        'transition-shadow duration-200 hover:shadow-lg hover:border-orange-200',
         onClick && 'cursor-pointer',
         className,
       )}
@@ -55,7 +55,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
           </div>
         )}
 
-        <h3 className="text-base font-bold text-neutral-900 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+        <h3 className="text-base font-bold text-neutral-900 leading-snug line-clamp-2 group-hover:text-orange-600 transition-colors">
           {event.title}
         </h3>
         <p className="mt-2 text-sm text-neutral-500 leading-relaxed line-clamp-3 flex-1">
@@ -64,7 +64,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
 
         <div className="mt-4 flex flex-col gap-1.5 text-sm text-neutral-500 border-t border-neutral-100 pt-4">
           <span className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 shrink-0 text-blue-500" />
+            <Calendar className="h-4 w-4 shrink-0 text-orange-500" />
             {formatDate(event.date)}
           </span>
           <span className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export default function EventCard({ event, onClick, className }: EventCardProps)
         </div>
 
         {onClick && (
-          <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-blue-600 group-hover:gap-2 transition-all">
+          <div className="mt-4 flex items-center gap-1 text-sm font-semibold text-orange-600 group-hover:gap-2 transition-all">
             View details <ArrowRight className="h-4 w-4" />
           </div>
         )}

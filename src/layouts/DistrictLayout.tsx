@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { districtRoutes } from '@/routes/routes.data'
 import { Sidebar } from '@/components/navigation/Sidebar'
@@ -88,12 +88,6 @@ export function DistrictLayout() {
           <main className="flex-1 px-4 py-5 md:px-8 md:py-8">
             <Outlet />
           </main>
-
-          <div className="border-t border-neutral-100 px-4 py-2 pb-3 md:hidden">
-            <Link to="/" className="text-xs text-neutral-400 hover:text-neutral-600">
-              {t('dashboard.backToPublic')}
-            </Link>
-          </div>
         </div>
 
         <BottomNav routes={districtRoutes} />

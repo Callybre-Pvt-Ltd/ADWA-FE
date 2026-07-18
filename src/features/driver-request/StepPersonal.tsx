@@ -17,9 +17,10 @@ const MP_STATE = 'Madhya Pradesh'
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const
 
 export default function StepPersonal() {
-  const { t } = useTranslation('pages')
+  const { t, i18n } = useTranslation('pages')
   const f = (key: string) => t(`apply.fields.${key}`)
   const s = (key: string) => t(`apply.sections.${key}`)
+  const isHi = i18n.language === 'hi'
 
   const { register, setValue, watch, formState: { errors } } = useFormContext<DriverRequestFormData>()
   const districtId = watch('districtId')
@@ -48,7 +49,7 @@ export default function StepPersonal() {
         </FormField>
 
         <FormField label={f('motherName')} htmlFor="motherName" required error={errors.motherName?.message}>
-          <Input id="motherName" placeholder={f('motherName')} {...register('motherName')} />
+          <Input id="motherName" placeholder={f('motherNamePlaceholder')} {...register('motherName')} />
         </FormField>
 
         <FormField label={f('gender')} required error={errors.gender?.message}>
@@ -115,7 +116,7 @@ export default function StepPersonal() {
         )}
 
         <FormField label={f('state')}>
-          <Input value={MP_STATE} readOnly disabled className="bg-neutral-50 text-neutral-700" />
+          <Input value={isHi ? 'मध्य प्रदेश' : 'Madhya Pradesh'} readOnly disabled className="bg-neutral-50 text-neutral-700" />
         </FormField>
 
         <FormField label={f('village')} htmlFor="village" required error={errors.village?.message}>

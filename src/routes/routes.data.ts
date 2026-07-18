@@ -41,7 +41,7 @@ export const publicRoutes: RouteConfig[] = [
     icon: 'LayoutGrid',
     component: lazyPage(() => import('../pages/public/ServicesPage')),
     layout: 'public',
-    showInNav: false,
+    showInNav: true,
     showInSidebar: false,
     navOrder: 2,
     meta: { title: 'Services' },

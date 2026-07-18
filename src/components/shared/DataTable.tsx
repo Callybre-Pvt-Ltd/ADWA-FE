@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { Input } from '@/components/ui/input'
@@ -39,6 +40,8 @@ export function DataTable<T>({
   testId,
   getRowKey,
 }: DataTableProps<T>) {
+  const { i18n } = useTranslation()
+  const isHi = i18n.language === 'hi'
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -91,7 +94,7 @@ export function DataTable<T>({
           <Input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder === 'Search...' && isHi ? 'खोजें...' : searchPlaceholder}
             className="pl-9"
             aria-label="Search table"
           />
@@ -168,14 +171,16 @@ export function DataTable<T>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-small text-neutral-600">
-            Page {page + 1} of {totalPages} ({filtered.length} items)
+            {isHi 
+              ? `पृष्ठ ${page + 1} / ${totalPages} (कुल ${filtered.length} आइटम)`
+              : `Page ${page + 1} of ${totalPages} (${filtered.length} items)`}
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-              Previous
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="cursor-pointer">
+              {isHi ? 'पिछला' : 'Previous'}
             </Button>
-            <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
-              Next
+            <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)} className="cursor-pointer">
+              {isHi ? 'अगला' : 'Next'}
             </Button>
           </div>
         </div>

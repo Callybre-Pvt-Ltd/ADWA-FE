@@ -15,7 +15,7 @@ import { CONTACT_INFO } from '@/constants'
 import { PageHero } from '@/components/shared/PageHero'
 
 export default function ContactPage() {
-  const { t } = useTranslation('pages')
+  const { t, i18n } = useTranslation('pages')
   const [submitted, setSubmitted] = useState(false)
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -34,15 +34,26 @@ export default function ContactPage() {
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-xl font-bold text-neutral-900">{t('contact.infoTitle')}</h2>
             {[
-              { icon: Phone, label: t('contact.mainHelpline'), value: CONTACT_INFO.phone },
-              { icon: Mail, label: t('contact.emailSupport'), value: CONTACT_INFO.email },
-              { icon: MapPin, label: t('contact.officeAddress'), value: CONTACT_INFO.address },
-            ].map(({ icon: Icon, label, value }) => (
+              { icon: Phone, label: t('contact.mainHelpline'), value: CONTACT_INFO.phone, isLink: false },
+              { icon: Mail, label: t('contact.emailSupport'), value: CONTACT_INFO.email, isLink: false },
+              { icon: MapPin, label: t('contact.officeAddress'), value: i18n.language === 'hi' ? 'मकान नं. 199/1, करतार नगर, अमन अस्पताल के पास, भारत' : CONTACT_INFO.address, isLink: true },
+            ].map(({ icon: Icon, label, value, isLink }) => (
               <div key={label} className="flex gap-3 rounded-lg border border-neutral-200 p-4">
                 <Icon className="h-5 w-5 text-navy-700" />
                 <div>
                   <p className="text-xs text-neutral-500">{label}</p>
-                  <p className="text-sm font-medium text-neutral-900">{value}</p>
+                  {isLink ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-blue-700 hover:underline"
+                    >
+                      {value}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-medium text-neutral-900">{value}</p>
+                  )}
                 </div>
               </div>
             ))}

@@ -138,7 +138,7 @@ export default function MembersPage() {
               {m.mobile && (
                 <a
                   href={`tel:${m.mobile}`}
-                  className="mt-auto flex items-center gap-2 text-sm text-blue-700 font-semibold hover:text-blue-900 transition-colors"
+                  className="mt-auto flex items-center gap-2 text-sm text-orange-600 font-semibold hover:text-orange-700 transition-colors"
                 >
                   <Phone size={14} />
                   {m.mobile}
@@ -156,8 +156,8 @@ export default function MembersPage() {
             </p>
             <p className="text-blue-200 text-sm mt-1">
               {isHi
-                ? 'मकान नं. 08, भौरी, तह.–हुज़ूर, लिंजा–भोपाल – 462030'
-                : 'House No. 08, Bhauri, Teh.–Huzur, Linja–Bhopal – 462030'}
+                ? 'मकान नं. 08, भौरी, तह.–हुज़ूर, जिला–भोपाल – 462030'
+                : 'House No. 08, Bhauri, Teh.–Huzur, Dist.–Bhopal – 462030'}
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">

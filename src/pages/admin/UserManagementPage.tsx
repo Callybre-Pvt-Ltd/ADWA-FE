@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import {
   useUsers,
   useCreateUser,
@@ -22,6 +23,7 @@ import type { User } from '@/types/user.types'
 import { formControlClassName, formControlHeightClassName } from '@/utils/formStyles'
 import { cn } from '@/utils/cn'
 import { UserCog } from 'lucide-react'
+import { districtMapEnToHi, translateFullName } from '@/utils/translations'
 
 const schema = z.object({
   fullName: z.string().min(2),
@@ -35,6 +37,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function UserManagementPage() {
+  const { i18n } = useTranslation('dashboard')
+  const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useUsers()
   const { data: districts } = useDistricts()
   const createUser = useCreateUser()
@@ -81,7 +85,7 @@ export default function UserManagementPage() {
       })
     } else {
       if (!values.password) {
-        form.setError('password', { message: 'Password is required' })
+        form.setError('password', { message: isHi ? 'पासवर्ड आवश्यक है' : 'Password is required' })
         return
       }
       await createUser.mutateAsync({
@@ -96,32 +100,40 @@ export default function UserManagementPage() {
     setDrawerOpen(false)
   })
 
+  const translateStatus = (status: string) => {
+    if (!isHi) return status
+    return status === 'ACTIVE' ? 'सक्रिय' : 'अक्रिय'
+  }
+
   const columns: ColumnDef<User>[] = [
-    { key: 'name', header: 'Name', cell: (u) => u.fullName, sortable: true, sortValue: (u) => u.fullName },
-    { key: 'email', header: 'Email', cell: (u) => u.email },
-    { key: 'mobile', header: 'Mobile', cell: (u) => u.mobileNumber },
+    { key: 'name', header: isHi ? 'नाम' : 'Name', cell: (u) => translateFullName(u.fullName, isHi), sortable: true, sortValue: (u) => u.fullName },
+    { key: 'email', header: isHi ? 'ईमेल' : 'Email', cell: (u) => u.email },
+    { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (u) => u.mobileNumber },
     {
       key: 'district',
-      header: 'District',
-      cell: (u) => districts?.find((d) => d.id === u.districtId)?.name ?? '—',
+      header: isHi ? 'जिला' : 'District',
+      cell: (u) => {
+        const dName = districts?.find((d) => d.id === u.districtId)?.name ?? '—'
+        return isHi ? (districtMapEnToHi[dName] || dName) : dName
+      },
     },
     {
       key: 'status',
-      header: 'Status',
+      header: isHi ? 'स्थिति' : 'Status',
       cell: (u) => (
-        <StatusBadge variant={statusToVariant(u.status)} label={u.status} />
+        <StatusBadge variant={statusToVariant(u.status)} label={translateStatus(u.status)} />
       ),
     },
   ]
 
   return (
-    <div className="p-6">
+    <div className="w-full space-y-6 pb-6 animate-fade-in">
       <PageHeader
-        title="User Management"
-        subtitle="Manage district incharge accounts"
+        title={isHi ? 'उपयोगकर्ता प्रबंधन' : 'User Management'}
+        subtitle={isHi ? 'जिला प्रभारी खातों का प्रबंधन करें' : 'Manage district incharge accounts'}
         action={
-          <Button onClick={openCreate}>
-            <UserCog className="h-4 w-4" /> Add District Incharge
+          <Button onClick={openCreate} className="cursor-pointer">
+            <UserCog className="h-4 w-4" /> {isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge'}
           </Button>
         }
       />
@@ -139,68 +151,70 @@ export default function UserManagementPage() {
       <AppDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Edit District Incharge' : 'Add District Incharge'}
+        title={editing ? (isHi ? 'जिला प्रभारी संपादित करें' : 'Edit District Incharge') : (isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge')}
         footer={
           <div className="flex gap-2">
             {editing && editing.status === 'ACTIVE' && (
               <Button
                 variant="destructive"
-                className="flex-1"
+                className="flex-1 cursor-pointer"
                 onClick={() => {
                   void deactivateUser.mutateAsync(editing.id).then(() => setDrawerOpen(false))
                 }}
               >
-                Deactivate
+                {isHi ? 'निष्क्रिय करें' : 'Deactivate'}
               </Button>
             )}
-            <Button onClick={onSubmit} className="flex-1">
-              {editing ? 'Update' : 'Create'}
+            <Button onClick={onSubmit} className="flex-1 cursor-pointer">
+              {editing ? (isHi ? 'अपडेट करें' : 'Update') : (isHi ? 'बनाएं' : 'Create')}
             </Button>
           </div>
         }
       >
         <form className="space-y-4">
           <div>
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">{isHi ? 'पूरा नाम' : 'Full Name'}</Label>
             <Input id="fullName" {...form.register('fullName')} className="mt-1" />
           </div>
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{isHi ? 'ईमेल' : 'Email'}</Label>
             <Input id="email" type="email" {...form.register('email')} className="mt-1" />
           </div>
           <div>
-            <Label htmlFor="mobileNumber">Mobile</Label>
+            <Label htmlFor="mobileNumber">{isHi ? 'मोबाइल' : 'Mobile'}</Label>
             <Input id="mobileNumber" {...form.register('mobileNumber')} className="mt-1" />
           </div>
           {!editing && (
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{isHi ? 'पासवर्ड' : 'Password'}</Label>
               <Input id="password" type="password" {...form.register('password')} className="mt-1" />
             </div>
           )}
           <div>
-            <Label htmlFor="districtId">District</Label>
+            <Label htmlFor="districtId">{isHi ? 'जिला' : 'District'}</Label>
             <select
               id="districtId"
               {...form.register('districtId')}
               className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
             >
-              <option value="">Select district</option>
+              <option value="">{isHi ? 'जिला चुनें' : 'Select district'}</option>
               {(districts ?? []).map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}>
+                  {isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}
+                </option>
               ))}
             </select>
           </div>
           {editing && (
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{isHi ? 'स्थिति' : 'Status'}</Label>
               <select
                 id="status"
                 {...form.register('status')}
                 className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
               >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
+                <option value="ACTIVE">{isHi ? 'सक्रिय' : 'Active'}</option>
+                <option value="INACTIVE">{isHi ? 'अक्रिय' : 'Inactive'}</option>
               </select>
             </div>
           )}

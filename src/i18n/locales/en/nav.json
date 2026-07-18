@@ -40,5 +40,14 @@
   "backToPublic": "← Public site",
   "toggleSidebar": "Toggle sidebar",
   "portalAdmin": "Admin",
-  "portalDistrict": "District"
+  "portalDistrict": "District",
+  "title": "All Drivers Welfare Association",
+  "subtitle": "Registered Under Govt. of India",
+  "regNo": "Reg. No: ADWA/2019/INDIA",
+  "servingSince": "Serving Drivers Since 2019",
+  "whatsappHelp": "WhatsApp Help",
+  "districtLogin": "User Login",
+  "adminLogin": "Admin Login",
+  "language": "Language",
+  "callHelp": "Call Help"
 }

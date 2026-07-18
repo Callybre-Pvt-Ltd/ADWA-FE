@@ -1,9 +1,9 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { PublicNav } from '@/components/navigation/PublicNav'
-import { PublicBottomNav } from '@/components/navigation/PublicBottomNav'
 import { Footer } from '@/components/navigation/Footer'
 import { WhatsAppFab } from '@/components/shared/WhatsAppFab'
+import { CallFab } from '@/components/shared/CallFab'
 
 export function PublicLayout() {
   const location = useLocation()
@@ -13,14 +13,14 @@ export function PublicLayout() {
   }, [location.pathname])
 
   return (
-    <div className="flex min-h-screen flex-col pb-nav-mobile overflow-x-hidden">
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <PublicNav />
       <main className="flex-1">
         <Outlet />
       </main>
       <Footer />
-      <PublicBottomNav />
       <WhatsAppFab />
+      <CallFab />
     </div>
   )
 }

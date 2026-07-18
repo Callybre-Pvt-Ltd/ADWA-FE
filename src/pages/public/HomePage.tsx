@@ -12,6 +12,7 @@ import { SectionHeading } from '@/components/shared/SectionHeading'
 import { CountUp } from '@/components/shared/CountUp'
 import { AdwaSeal } from '@/components/shared/AdwaSeal'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/utils/cn'
 
 
 const DRIVER_VOICES = [
@@ -50,10 +51,10 @@ const DRIVER_VOICES = [
 ] as const
 
 const ORG_STATS = [
-  { id: '1', label: 'Registered Members', value: 1200000, suffix: '+' },
-  { id: '2', label: 'Districts Covered', value: 52, suffix: '' },
-  { id: '3', label: 'ID Cards Issued', value: 85000, suffix: '+' },
-  { id: '4', label: 'Years of Service', value: 7, suffix: '+' },
+  { id: '1', labelEn: 'Registered Members', labelHi: 'पंजीकृत सदस्य', value: 1200000, suffix: '+' },
+  { id: '2', labelEn: 'Districts Covered', labelHi: 'जिले कवर किए गए', value: 52, suffix: '' },
+  { id: '3', labelEn: 'ID Cards Issued', labelHi: 'जारी किए गए आईडी कार्ड', value: 85000, suffix: '+' },
+  { id: '4', labelEn: 'Years of Service', labelHi: 'सेवा के वर्ष', value: 7, suffix: '+' },
 ] as const
 
 const PATRON = {
@@ -89,7 +90,7 @@ function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; si
       <img
         src={src}
         alt={name}
-        className="w-full h-full object-cover object-top"
+        className="w-full h-full object-cover object-top scale-[1.35] transition-transform duration-300 hover:scale-[1.45]"
         loading="lazy"
         onError={(e) => {
           const el = e.currentTarget
@@ -129,9 +130,9 @@ export default function HomePage() {
         </video>
         {/* Dark overlay so text stays readable over video */}
         <div className="absolute inset-0 bg-blue-950/75 z-[1] pointer-events-none" aria-hidden="true" />
-        {/* Colour tint blobs on top of video */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-orange-400/10 blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none z-[2]" aria-hidden="true" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-blue-300/10 blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none z-[2]" aria-hidden="true" />
+        {/* Colour tint blobs on top of video — Saffron & Green from logo */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-orange-500/15 blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none z-[2]" aria-hidden="true" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-green-500/15 blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none z-[2]" aria-hidden="true" />
 
         <div className="container-wide relative z-10 section-padding pb-20 md:pb-28">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -151,30 +152,38 @@ export default function HomePage() {
               <div className="flex justify-center lg:justify-start items-center gap-4 mb-6">
                 <AdwaSeal size="lg" />
                 <div className="text-left">
-                  <p className="text-lg sm:text-xl font-black text-white leading-tight">All Drivers Welfare</p>
-                  <p className="text-lg sm:text-xl font-black text-orange-300 leading-tight">Association</p>
-                  <p className="text-xs text-white/50 mt-0.5">Reg. ADWA/2019/INDIA · M.P.</p>
+                  <p className="text-lg sm:text-xl font-black text-white leading-tight">
+                    {isHi ? 'ऑल ड्राइवर्स वेलफेयर' : 'All Drivers Welfare'}
+                  </p>
+                  <p className="text-lg sm:text-xl font-black text-orange-300 leading-tight">
+                    {isHi ? 'एसोसिएशन' : 'Association'}
+                  </p>
+                  <p className="text-xs text-white/50 mt-0.5">
+                    {isHi ? 'पंजीकरण क्रमांक: ADWA/2019/INDIA · म.प्र.' : 'Reg. ADWA/2019/INDIA · M.P.'}
+                  </p>
                 </div>
               </div>
 
               <p className="text-2xl font-bold text-orange-200 leading-snug mb-2">
-                ऑल ड्राईवर्स कल्याण संगठन
+                {isHi ? 'ऑल ड्राइवर्स कल्याण संगठन' : 'All Drivers Welfare Association'}
               </p>
               <p className="text-base text-blue-100/80 max-w-md mx-auto lg:mx-0 leading-relaxed">
-                A registered welfare association serving professional drivers across India — providing official identity, welfare support, and digital services since 2019.
+                {isHi
+                  ? 'एक पंजीकृत कल्याण संघ जो पूरे भारत में पेशेवर ड्राइवरों की सेवा कर रहा है - 2019 से आधिकारिक पहचान, कल्याण सहायता और डिजिटल सेवाएं प्रदान कर रहा है।'
+                  : 'A registered welfare association serving professional drivers across India — providing official identity, welfare support, and digital services since 2019.'}
               </p>
 
               {/* Org trust chips */}
               <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-2">
                 {[
-                  { icon: Award, label: 'Govt. Recognised' },
-                  { icon: Users, label: '12L+ Members' },
-                  { icon: MapPin, label: '28 States' },
-                  { icon: Building2, label: 'Since 2019' },
-                ].map(({ icon: Icon, label }) => (
-                  <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+                  { icon: Award, labelEn: 'Govt. Recognised', labelHi: 'सरकार मान्यता प्राप्त' },
+                  { icon: Users, labelEn: '12L+ Members', labelHi: '12L+ सदस्य' },
+                  { icon: MapPin, labelEn: '28 States', labelHi: '28 राज्य' },
+                  { icon: Building2, labelEn: 'Since 2019', labelHi: '2019 से स्थापित' },
+                ].map(({ icon: Icon, labelEn, labelHi }) => (
+                  <span key={labelEn} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
                     <Icon className="h-3.5 w-3.5 text-orange-300" aria-hidden="true" />
-                    {label}
+                    {isHi ? labelHi : labelEn}
                   </span>
                 ))}
               </div>
@@ -188,7 +197,7 @@ export default function HomePage() {
                 >
                   <Link to="/about">
                     <Building2 className="h-5 w-5" />
-                    About ADWA
+                    {isHi ? 'ADWA के बारे में' : 'About ADWA'}
                   </Link>
                 </Button>
               </div>
@@ -251,7 +260,7 @@ export default function HomePage() {
                     <p className="text-2xl md:text-4xl font-extrabold tabular-nums" style={{ color }}>
                       <CountUp end={s.value} suffix={s.suffix ?? ''} />
                     </p>
-                    <p className="mt-1 text-sm md:text-base font-bold text-neutral-700">{s.label}</p>
+                    <p className="mt-1 text-sm md:text-base font-bold text-neutral-700">{isHi ? s.labelHi : s.labelEn}</p>
                   </motion.div>
                 )
             })}
@@ -273,20 +282,24 @@ export default function HomePage() {
                 align="left"
               />
               <p className="mt-4 text-base text-neutral-600 leading-relaxed">
-                ADWA is dedicated to the welfare and empowerment of professional drivers across India. We provide official recognition, digital identity, and support systems that protect drivers and their families.
+                {isHi
+                  ? 'ADWA भारत भर में पेशेवर ड्राइवरों के कल्याण और सशक्तिकरण के लिए समर्पित है। हम आधिकारिक मान्यता, डिजिटल पहचान और सहायता प्रणाली प्रदान करते हैं जो ड्राइवरों और उनके परिवारों की रक्षा करते हैं।'
+                  : 'ADWA is dedicated to the welfare and empowerment of professional drivers across India. We provide official recognition, digital identity, and support systems that protect drivers and their families.'}
               </p>
               <p className="mt-3 text-base text-neutral-600 leading-relaxed">
-                From Madhya Pradesh and across 28 states, our members rely on ADWA for their professional identity, welfare benefits, and a unified voice in policy matters.
+                {isHi
+                  ? 'मध्य प्रदेश से लेकर 28 राज्यों तक, हमारे सदस्य पेशेवर पहचान, कल्याणकारी लाभों और नीतिगत मामलों में एक एकीकृत आवाज़ के लिए ADWA पर भरोसा करते हैं।'
+                  : 'From Madhya Pradesh and across 28 states, our members rely on ADWA for their professional identity, welfare benefits, and a unified voice in policy matters.'}
               </p>
               <div className="mt-6 grid grid-cols-3 gap-4">
                 {[
-                  { value: '2019', label: 'Founded' },
-                  { value: '28', label: 'States' },
-                  { value: '12L+', label: 'Members' },
-                ].map(({ value, label }) => (
-                  <div key={label} className="rounded-xl bg-blue-50 p-4 text-center">
-                    <p className="text-2xl font-black text-blue-700">{value}</p>
-                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">{label}</p>
+                  { value: '2019', labelEn: 'Founded', labelHi: 'स्थापना', cls: 'bg-orange-50 text-orange-600' },
+                  { value: '28', labelEn: 'States', labelHi: 'राज्य', cls: 'bg-blue-50 text-blue-700' },
+                  { value: '12L+', labelEn: 'Members', labelHi: 'सदस्य', cls: 'bg-green-50 text-green-700' },
+                ].map(({ value, labelEn, labelHi, cls }) => (
+                  <div key={labelEn} className={cn("rounded-xl p-4 text-center", cls)}>
+                    <p className="text-2xl font-black">{value}</p>
+                    <p className="text-xs font-semibold text-neutral-500 mt-0.5">{isHi ? labelHi : labelEn}</p>
                   </div>
                 ))}
               </div>
@@ -310,8 +323,8 @@ export default function HomePage() {
                     <Icon className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="font-bold text-neutral-900 text-sm">{titleEn}</p>
-                    <p className="text-xs text-neutral-500">{titleHi}</p>
+                    <p className="font-bold text-neutral-900 text-sm">{isHi ? titleHi : titleEn}</p>
+                    <p className="text-xs text-neutral-500">{isHi ? titleEn : titleHi}</p>
                   </div>
                 </motion.div>
               ))}
@@ -358,49 +371,67 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Tier 3 — VP, Gen Sec, Joint Sec, Treasurer */}
-          <motion.div {...fadeInUp} transition={{ delay: 0.14 }} className="mt-8 grid grid-cols-2 gap-3">
-            {SENIOR_MEMBERS.map((m, i) => (
-              <motion.div key={m.nameEn} {...fadeInUp} transition={{ delay: 0.18 + i * 0.05 }}
-                className="flex flex-col items-center bg-white rounded-2xl border border-blue-100 shadow-sm px-3 py-4 text-center"
-              >
-                <MemberPhoto src={m.photo} name={m.nameEn} size="md" />
-                <span className="mt-3 inline-block text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full leading-tight">
-                  {isHi ? m.roleHi : m.roleEn}
-                </span>
-                <p className="mt-1.5 text-xs font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
-                <p className="text-[10px] text-neutral-400">{isHi ? m.nameEn : m.nameHi}</p>
-                <a href={`tel:${m.mobile}`} className="mt-1.5 flex items-center gap-1 text-[10px] text-blue-700 font-semibold">
-                  <Phone size={10} /> {m.mobile}
-                </a>
-              </motion.div>
-            ))}
+          {/* Tier 3 — VP, Gen Sec, Joint Sec, Treasurer with logo-aligned color cycles */}
+          <motion.div {...fadeInUp} transition={{ delay: 0.14 }} className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {SENIOR_MEMBERS.map((m, i) => {
+              const seniorThemes = [
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50', phone: 'text-orange-600 bg-orange-50/50 hover:bg-orange-100 border-orange-100/30' },
+                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50', phone: 'text-green-700 bg-green-50/50 hover:bg-green-100 border-green-100/30' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+              ]
+              const theme = seniorThemes[i % seniorThemes.length]
+              return (
+                <motion.div key={m.nameEn} {...fadeInUp} transition={{ delay: 0.18 + i * 0.05 }}
+                  className={cn("flex flex-col items-center bg-white rounded-3xl border shadow-md p-6 text-center hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300", theme.border)}
+                >
+                  <MemberPhoto src={m.photo} name={m.nameEn} size="md" />
+                  <span className={cn("mt-4 inline-block text-xs font-bold px-3 py-1 rounded-full leading-tight border", theme.tag)}>
+                    {isHi ? m.roleHi : m.roleEn}
+                  </span>
+                  <p className="mt-3 text-sm font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">{isHi ? m.nameEn : m.nameHi}</p>
+                  <a href={`tel:${m.mobile}`} className={cn("mt-3 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors", theme.phone)}>
+                    <Phone size={12} className="shrink-0 text-blue-500" /> {m.mobile}
+                  </a>
+                </motion.div>
+              )
+            })}
           </motion.div>
 
           {/* Committee divider */}
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 h-px bg-neutral-200" />
-            <span className="text-xs font-semibold text-neutral-400 px-1">{isHi ? 'समिति' : 'Committee'}</span>
-            <div className="flex-1 h-px bg-neutral-200" />
+          <div className="my-10 flex items-center gap-4 max-w-6xl mx-auto">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-neutral-200" />
+            <span className="text-xs font-black uppercase tracking-wider text-neutral-400 px-2">{isHi ? 'विशेष समिति सदस्य' : 'Committee Members'}</span>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-neutral-200" />
           </div>
 
           {/* Tier 4 — Committee */}
-          <div className="grid grid-cols-2 gap-3">
-            {COMMITTEE_MEMBERS.map((m, i) => (
-              <motion.div key={m.nameEn} {...fadeInUp} transition={{ delay: 0.25 + i * 0.04 }}
-                className="flex flex-col items-center bg-white rounded-2xl border border-neutral-100 shadow-sm px-3 py-4 text-center"
-              >
-                <MemberPhoto src={m.photo} name={m.nameEn} size="sm" />
-                <span className="mt-2 inline-block text-[10px] font-bold bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full leading-tight">
-                  {isHi ? m.roleHi : m.roleEn}
-                </span>
-                <p className="mt-1 text-xs font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
-                <p className="text-[10px] text-neutral-400">{isHi ? m.nameEn : m.nameHi}</p>
-                <a href={`tel:${m.mobile}`} className="mt-1.5 flex items-center gap-1 text-[10px] text-blue-700 font-semibold">
-                  <Phone size={10} /> {m.mobile}
-                </a>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {COMMITTEE_MEMBERS.map((m, i) => {
+              const committeeThemes = [
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50', phone: 'text-orange-600 bg-orange-50/50 hover:bg-orange-100 border-orange-100/30' },
+                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50', phone: 'text-green-700 bg-green-50/50 hover:bg-green-100 border-green-100/30' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+              ]
+              const theme = committeeThemes[i % committeeThemes.length]
+              return (
+                <motion.div key={m.nameEn} {...fadeInUp} transition={{ delay: 0.25 + i * 0.04 }}
+                  className={cn("flex flex-col items-center bg-white rounded-3xl border shadow-md p-6 text-center hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300", theme.border)}
+                >
+                  <MemberPhoto src={m.photo} name={m.nameEn} size="md" />
+                  <span className={cn("mt-4 inline-block text-xs font-bold px-3 py-1 rounded-full leading-tight border", theme.tag)}>
+                    {isHi ? m.roleHi : m.roleEn}
+                  </span>
+                  <p className="mt-3 text-sm font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">{isHi ? m.nameEn : m.nameHi}</p>
+                  <a href={`tel:${m.mobile}`} className={cn("mt-3 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors", theme.phone)}>
+                    <Phone size={12} className="shrink-0 text-blue-500" /> {m.mobile}
+                  </a>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -433,10 +464,16 @@ export default function HomePage() {
         <div className="container-wide text-center relative z-10">
           <motion.div {...fadeInUp}>
             <AdwaSeal size="lg" className="mx-auto mb-4" />
-            <h2 className="text-lg font-extrabold text-white">All Drivers Welfare Association</h2>
-            <p className="text-sm font-bold text-orange-300 mt-0.5">ऑल ड्राईवर्स कल्याण संगठन, म.प्र.</p>
+            <h2 className="text-lg font-extrabold text-white">
+              {isHi ? 'ऑल ड्राइवर्स वेलफेयर एसोसिएशन' : 'All Drivers Welfare Association'}
+            </h2>
+            <p className="text-sm font-bold text-orange-300 mt-0.5">
+              {isHi ? 'ऑल ड्राईवर्स कल्याण संगठन, म.प्र.' : 'All Drivers Welfare Association, M.P.'}
+            </p>
             <p className="mt-3 text-xs text-blue-200/80 max-w-xs mx-auto leading-relaxed">
-              मकान नं. 08, भौरी, तह.–हुजूर, जिला–भोपाल – 462030
+              {isHi
+                ? 'मकान नं. 08, भौरी, तह.–हुजूर, जिला–भोपाल – 462030'
+                : 'H.No. 08, Bhauri, Tehsil-Huzur, District-Bhopal - 462030'}
             </p>
             <div className="mt-5 flex flex-col items-center gap-3">
               <a href="tel:9977282547" className="inline-flex items-center gap-2 text-white font-bold text-sm bg-white/10 border border-white/20 rounded-full px-5 py-2.5 backdrop-blur-sm">
@@ -446,7 +483,9 @@ export default function HomePage() {
                 <Mail className="h-4 w-4 text-blue-300" /> alldriverwelfareassociation.mp@gmail.com
               </a>
             </div>
-            <p className="mt-5 text-xs text-blue-300/50">Reg. No. 01/01/01/43116/26</p>
+            <p className="mt-5 text-xs text-blue-300/50">
+              {isHi ? 'पंजीकरण क्रमांक: 01/01/01/43116/26' : 'Reg. No. 01/01/01/43116/26'}
+            </p>
           </motion.div>
         </div>
       </section>
@@ -471,7 +510,7 @@ function DriverVoicesSection({ isHi }: { isHi: boolean }) {
       {/* Ambient texture */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-orange-500/8 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-blue-400/10 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-green-500/10 blur-3xl" />
         {/* Road lines — decorative */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         <div className="absolute bottom-3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />

@@ -66,8 +66,25 @@ const DISTRICT_ROWS: DistrictPerformanceRow[] = [
   { id: 'd7', district: 'Pune', state: 'Maharashtra', totalDrivers: 6104, newRegistrations: 278, activeMembers: 5612, pendingApplications: 52, revenueGenerated: 380000, revenueMax: 840000, officerStatus: 'active' },
 ]
 
+const monthMapEnToHi: Record<string, string> = {
+  'Jan': 'जन',
+  'Feb': 'फर',
+  'Mar': 'मार्च',
+  'Apr': 'अप्रैल',
+  'May': 'मई',
+  'Jun': 'जून',
+  'Jul': 'जुलाई',
+  'Aug': 'अगस्त',
+  'Sep': 'सित',
+  'Oct': 'अक्टू',
+  'Nov': 'नव',
+  'Dec': 'दिस'
+}
+
+import { districtMapEnToHi, stateMapEnToHi } from '@/utils/translations'
+
 export default function GlobalDashboardPage() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
   const stats = useAdminDashboard()
   const activities = useActivities()
 
@@ -95,8 +112,23 @@ export default function GlobalDashboardPage() {
 
   const d = (key: string) => t(`dashboard.${key}`)
 
+  const isHi = i18n.language === 'hi'
+  const regTrend = REG_TREND.map(pt => ({
+    ...pt,
+    month: isHi ? (monthMapEnToHi[pt.month] || pt.month) : pt.month
+  }))
+  const revTrend = REV_TREND.map(pt => ({
+    ...pt,
+    month: isHi ? (monthMapEnToHi[pt.month] || pt.month) : pt.month
+  }))
+  const districtRows = DISTRICT_ROWS.map(row => ({
+    ...row,
+    district: isHi ? (districtMapEnToHi[row.district] || row.district) : row.district,
+    state: isHi ? (stateMapEnToHi[row.state] || row.state) : row.state
+  }))
+
   return (
-    <div className="w-full max-w-5xl space-y-6 pb-6">
+    <div className="w-full space-y-6 pb-6">
 
       {/* ── Page header ── */}
       <div className="flex flex-col gap-3 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -213,7 +245,7 @@ export default function GlobalDashboardPage() {
               </div>
             </div>
             <div className="p-4">
-              <RegistrationTrendChart data={REG_TREND} nameRegistrations={d('registrations')} nameApprovals={d('approvals')} />
+              <RegistrationTrendChart data={regTrend} nameRegistrations={d('registrations')} nameApprovals={d('approvals')} />
             </div>
           </div>
 
@@ -251,7 +283,7 @@ export default function GlobalDashboardPage() {
         />
         <div className="mt-3">
           <DistrictTable
-            rows={DISTRICT_ROWS}
+            rows={districtRows}
             loading={loading}
             searchPlaceholder={d('searchDistricts')}
             colDistrict={d('district')}
@@ -335,7 +367,7 @@ export default function GlobalDashboardPage() {
               </p>
             </div>
             <div className="p-4">
-              <RevenueTrendChart data={REV_TREND} nameRevenue={d('revenue')} />
+              <RevenueTrendChart data={revTrend} nameRevenue={d('revenue')} />
             </div>
           </div>
 
@@ -437,12 +469,6 @@ export default function GlobalDashboardPage() {
           </DashboardSection>
         </div>
       </section>
-
-      <p className="hidden pt-2 text-xs text-neutral-300 md:block">
-        <Link to="/" className="transition hover:text-neutral-500 hover:underline underline-offset-2">
-          {d('backToPublic')}
-        </Link>
-      </p>
     </div>
   )
 }

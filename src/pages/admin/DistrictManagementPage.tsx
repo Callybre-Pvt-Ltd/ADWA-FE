@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { useDistricts, useCreateDistrict, useUpdateDistrict } from '@/hooks/useDistricts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
@@ -15,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { District } from '@/types/district.types'
 import { MapPin } from 'lucide-react'
+import { districtMapEnToHi } from '@/utils/translations'
 
 const schema = z.object({
   name: z.string().min(2),
@@ -25,6 +27,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function DistrictManagementPage() {
+  const { i18n } = useTranslation('dashboard')
+  const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useDistricts()
   const createDistrict = useCreateDistrict()
   const updateDistrict = useUpdateDistrict()
@@ -57,15 +61,27 @@ export default function DistrictManagementPage() {
     setDrawerOpen(false)
   })
 
+  const translateStatus = (status: string) => {
+    if (!isHi) return status
+    return status === 'active' ? 'सक्रिय' : 'अक्रिय'
+  }
+
   const columns: ColumnDef<District>[] = [
-    { key: 'name', header: 'District', cell: (d) => d.name, sortable: true, sortValue: (d) => d.name },
-    { key: 'code', header: 'Code', cell: (d) => d.code },
-    { key: 'status', header: 'Status', cell: (d) => <StatusBadge variant={statusToVariant(d.status)} label={d.status} /> },
+    { key: 'name', header: isHi ? 'जिला' : 'District', cell: (d) => isHi ? (districtMapEnToHi[d.name] || d.name) : d.name, sortable: true, sortValue: (d) => d.name },
+    { key: 'code', header: isHi ? 'कोड' : 'Code', cell: (d) => d.code },
+    { key: 'status', header: isHi ? 'स्थिति' : 'Status', cell: (d) => <StatusBadge variant={statusToVariant(d.status)} label={translateStatus(d.status)} /> },
   ]
 
   return (
-    <div className="p-6">
-      <PageHeader title="District Management" action={<Button onClick={openCreate}><MapPin className="h-4 w-4" /> Add District</Button>} />
+    <div className="w-full space-y-6 pb-6 animate-fade-in">
+      <PageHeader
+        title={isHi ? 'जिला प्रबंधन' : 'District Management'}
+        action={
+          <Button onClick={openCreate} className="cursor-pointer">
+            <MapPin className="h-4 w-4" /> {isHi ? 'जिला जोड़ें' : 'Add District'}
+          </Button>
+        }
+      />
       {isLoading && <SkeletonTable />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
@@ -74,34 +90,34 @@ export default function DistrictManagementPage() {
       <AppDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title={editing ? 'Edit District' : 'Add District'}
+        title={editing ? (isHi ? 'जिला संपादित करें' : 'Edit District') : (isHi ? 'जिला जोड़ें' : 'Add District')}
         footer={
-          <Button onClick={onSubmit} className="w-full" disabled={createDistrict.isPending || updateDistrict.isPending}>
-            {editing ? 'Update' : 'Create'}
+          <Button onClick={onSubmit} className="w-full cursor-pointer" disabled={createDistrict.isPending || updateDistrict.isPending}>
+            {editing ? (isHi ? 'अपडेट करें' : 'Update') : (isHi ? 'बनाएं' : 'Create')}
           </Button>
         }
       >
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{isHi ? 'नाम' : 'Name'}</Label>
             <Input id="name" {...form.register('name')} className="mt-1" />
             {form.formState.errors.name && <p className="text-sm text-red-600 mt-1">{form.formState.errors.name.message}</p>}
           </div>
           <div>
-            <Label htmlFor="code">Code</Label>
-            <Input id="code" {...form.register('code')} className="mt-1" placeholder="e.g. bhopal" />
+            <Label htmlFor="code">{isHi ? 'कोड' : 'Code'}</Label>
+            <Input id="code" {...form.register('code')} className="mt-1" placeholder={isHi ? 'उदा. bhopal' : 'e.g. bhopal'} />
             {form.formState.errors.code && <p className="text-sm text-red-600 mt-1">{form.formState.errors.code.message}</p>}
           </div>
           <div>
-            <Label>Status</Label>
+            <Label>{isHi ? 'स्थिति' : 'Status'}</Label>
             <Select
               value={form.watch('status')}
               onValueChange={v => form.setValue('status', v as 'active' | 'inactive')}
             >
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">{isHi ? 'सक्रिय' : 'Active'}</SelectItem>
+                <SelectItem value="inactive">{isHi ? 'अक्रिय' : 'Inactive'}</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -114,15 +114,6 @@ export default function StepReview({ goToStep, declared, setDeclared }: StepRevi
           <ReviewRow label={f('vehicleNumber', 'Vehicle Number')} value={data.vehicleNumber} />
           <ReviewRow label={f('experience')} value={`${data.experienceYears} years`} />
         </ReviewSection>
-
-        <ReviewSection icon={<FileCheck size={18} />} title={t('apply.documentUpload')} onEdit={() => goToStep(2)}>
-          <DocumentRow label={t('apply.docs.photo')} uploaded={Boolean(data.driverPhoto)} />
-          <DocumentRow label={t('apply.docs.aadhaarFront')} uploaded={Boolean(data.aadhaarFront)} />
-          <DocumentRow label={t('apply.docs.aadhaarBack')} uploaded={Boolean(data.aadhaarBack)} />
-          <DocumentRow label={t('apply.docs.licenseFront')} uploaded={Boolean(data.licenseFront)} />
-          <DocumentRow label={t('apply.docs.licenseBack')} uploaded={Boolean(data.licenseBack)} />
-          <DocumentRow label={t('apply.docs.vehicleRc', 'Vehicle RC')} uploaded={Boolean(data.vehicleRc)} />
-        </ReviewSection>
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">

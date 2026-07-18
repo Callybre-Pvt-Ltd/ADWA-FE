@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowUpRight, TrendingDown, TrendingUp, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -283,6 +284,7 @@ export function RevenueTrendChart({ data, nameRevenue = 'Revenue' }: { data: { m
         <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
         <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0', boxShadow: '0 4px 12px 0 rgb(0 0 0 / 0.08)' }} formatter={(v: any) => [formatCurrency(Number(v)), nameRevenue]} />
         <Line type="monotone" dataKey="amount" stroke="#1D4ED8" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#1D4ED8' }} />
       </LineChart>
@@ -304,13 +306,32 @@ export function AppStatusDoughnut({ pending, approved, rejected, cardGenerated, 
     { name: labelRejected, value: rejected },
     { name: labelCard, value: cardGenerated },
   ]
+  const activeSlicesCount = data.filter(d => d.value > 0).length
+  const paddingAngle = activeSlicesCount > 1 ? 3 : 0
+
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
-        <Pie data={data} cx="50%" cy="45%" innerRadius={48} outerRadius={72} paddingAngle={3} dataKey="value">
-          {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
+      <PieChart style={{ outline: 'none' }}>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="45%"
+          innerRadius={48}
+          outerRadius={72}
+          paddingAngle={paddingAngle}
+          dataKey="value"
+          style={{ outline: 'none' }}
+        >
+          {data.map((_, i) => (
+            <Cell
+              key={i}
+              fill={DONUT_COLORS[i % DONUT_COLORS.length]}
+              style={{ outline: 'none' }}
+            />
+          ))}
         </Pie>
         <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0' }} formatter={(v: any) => [Number(v).toLocaleString('en-IN'), '']} />
       </PieChart>
     </ResponsiveContainer>
@@ -379,7 +400,42 @@ const feedDotColor: Record<ActivityItem['type'], string> = {
   info: 'bg-blue-500',
 }
 
+const actionMap: Record<string, string> = {
+  'CREATE': 'बनाया गया',
+  'UPDATE': 'अपडेट किया गया',
+  'APPROVE': 'स्वीकृत किया गया',
+  'REJECT': 'अस्वीकृत किया गया',
+  'DELETE': 'हटाया गया',
+  'FORWARD': 'अग्रेषित किया गया',
+  'VERIFY': 'सत्यापित किया गया',
+  'GENERATE': 'जनरेट किया गया'
+}
+
+const entityMap: Record<string, string> = {
+  'DRIVER_REQUEST': 'ड्राइवर अनुरोध',
+  'PAYMENT': 'भुगतान',
+  'ID_CARD': 'आईडी कार्ड',
+  'DISTRICT': 'जिला',
+  'USER': 'उपयोगकर्ता',
+  'EVENT': 'कार्यक्रम',
+  'NOTIFICATION': 'अधिसूचना'
+}
+
 export function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean }) {
+  const { i18n } = useTranslation()
+  const isHi = i18n.language === 'hi'
+
+  const translateMessage = (msg: string) => {
+    if (!isHi) return msg
+    const parts = msg.split(' · ')
+    if (parts.length === 2) {
+      const action = actionMap[parts[0]] || parts[0]
+      const entity = entityMap[parts[1]] || parts[1]
+      return `${entity} को ${action}`
+    }
+    return msg
+  }
+
   return (
     <li className="flex gap-3">
       <div className="flex flex-col items-center">
@@ -387,7 +443,7 @@ export function FeedItem({ item, isLast }: { item: ActivityItem; isLast: boolean
         {!isLast && <div className="mt-1 w-px flex-1 bg-neutral-100" />}
       </div>
       <div className={cn('pb-4', isLast && 'pb-0')}>
-        <p className="text-sm text-neutral-700 leading-snug">{item.message}</p>
+        <p className="text-sm text-neutral-700 leading-snug">{translateMessage(item.message)}</p>
         <time className="mt-0.5 block text-xs text-neutral-400">{formatDateTime(item.timestamp)}</time>
       </div>
     </li>

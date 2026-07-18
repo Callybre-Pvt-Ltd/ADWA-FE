@@ -15,7 +15,7 @@ export function BottomNav({ routes }: BottomNavProps) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-neutral-200 bg-white safe-area-pb"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t-2 border-neutral-200 bg-white safe-area-pb shadow-[0_-4px_12px_rgba(0,0,0,0.08)]"
       aria-label="Bottom navigation"
     >
       <div className="flex items-stretch justify-around">
@@ -27,12 +27,14 @@ export function BottomNav({ routes }: BottomNavProps) {
               key={route.key}
               to={route.path}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] uppercase tracking-wide',
-                active ? 'text-neutral-900' : 'text-neutral-400',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-h-[56px] min-w-0 px-1 transition-colors',
+                active ? 'text-orange-600 bg-orange-50 font-extrabold' : 'text-neutral-600 hover:text-orange-500',
               )}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              <span className="truncate max-w-[56px]">{t(route.label.replace('nav.', ''))}</span>
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className="text-xs font-bold truncate w-full text-center">
+                {t(route.label.replace('nav.', ''))}
+              </span>
             </Link>
           )
         })}

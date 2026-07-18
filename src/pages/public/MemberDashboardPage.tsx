@@ -22,13 +22,13 @@ export default function MemberDashboardPage() {
                 <Link
                   key={route.key}
                   to={path}
-                  className="surface-card flex items-center gap-4 p-5 group"
+                  className="surface-card flex items-center gap-4 p-5 group transition-all duration-200 hover:shadow-md hover:border-orange-200"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-royal-100 text-royal-700">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-neutral-900">{t(route.label.replace('nav.', ''))}</p>
+                    <p className="font-bold text-neutral-900 group-hover:text-orange-600 transition-colors">{t(route.label.replace('nav.', ''))}</p>
                     <p className="text-xs text-neutral-500 truncate">{route.meta?.title}</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-orange-500 shrink-0" />

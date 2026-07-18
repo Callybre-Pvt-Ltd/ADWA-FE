@@ -1,21 +1,52 @@
+const MONTH_MAP: Record<string, string> = {
+  'Jan': 'जनवरी', 'Feb': 'फरवरी', 'Mar': 'मार्च', 'Apr': 'अप्रैल',
+  'May': 'मई', 'Jun': 'जून', 'Jul': 'जुलाई', 'Aug': 'अगस्त',
+  'Sep': 'सितंबर', 'Oct': 'अक्टूबर', 'Nov': 'नवंबर', 'Dec': 'दिसंबर',
+  'January': 'जनवरी', 'February': 'फरवरी', 'March': 'मार्च', 'April': 'अप्रैल',
+  'June': 'जून', 'July': 'जुलाई', 'August': 'अगस्त',
+  'September': 'सितंबर', 'October': 'अक्टूबर', 'November': 'नवंबर', 'December': 'दिसंबर'
+}
+
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  let result = date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  const isHi = typeof window !== 'undefined' && (
+    window.localStorage.getItem('i18nextLng') === 'hi' ||
+    window.localStorage.getItem('i18nextLng')?.startsWith('hi') ||
+    document.documentElement.lang === 'hi'
+  )
+  if (isHi) {
+    for (const [en, hi] of Object.entries(MONTH_MAP)) {
+      result = result.replace(en, hi)
+    }
+  }
+  return result
 }
 
 export function formatDateTime(dateStr: string): string {
   const date = new Date(dateStr)
-  return date.toLocaleString('en-IN', {
+  let result = date.toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
+  const isHi = typeof window !== 'undefined' && (
+    window.localStorage.getItem('i18nextLng') === 'hi' ||
+    window.localStorage.getItem('i18nextLng')?.startsWith('hi') ||
+    document.documentElement.lang === 'hi'
+  )
+  if (isHi) {
+    for (const [en, hi] of Object.entries(MONTH_MAP)) {
+      result = result.replace(en, hi)
+    }
+  }
+  return result
 }
 
 export function formatCurrency(amount: number): string {

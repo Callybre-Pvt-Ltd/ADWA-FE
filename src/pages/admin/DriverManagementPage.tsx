@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useDrivers, useSuspendDriver, useActivateDriver, useDriverActiveCard } from '@/hooks/useDrivers'
 import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { useDistricts } from '@/hooks/useDistricts'
@@ -22,7 +23,19 @@ const DRIVER_STATUSES: DriverStatus[] = [
   'APPROVED', 'ID_CARD_GENERATED', 'ACTIVE', 'SUSPENDED', 'EXPIRED',
 ]
 
+import { districtMapEnToHi, nameTranslations } from '@/utils/translations'
+
+const statusMapEnToHi: Record<string, string> = {
+  'APPROVED': 'स्वीकृत',
+  'ID_CARD_GENERATED': 'आईडी कार्ड जनरेट हुआ',
+  'ACTIVE': 'सक्रिय',
+  'SUSPENDED': 'निलंबित',
+  'EXPIRED': 'समाप्त',
+}
+
 export default function DriverManagementPage() {
+  const { i18n } = useTranslation('dashboard')
+  const isHi = i18n.language === 'hi'
   const [status, setStatus] = useState<DriverStatus | 'all'>('all')
   const [districtId, setDistrictId] = useState<string>('all')
   const [selected, setSelected] = useState<Driver | null>(null)
@@ -38,17 +51,22 @@ export default function DriverManagementPage() {
   const activate = useActivateDriver()
   const { data: activeCard } = useDriverActiveCard(selected?.id ?? null)
 
+  const translateStatus = (s: string) => {
+    if (!isHi) return s.replace(/_/g, ' ')
+    return statusMapEnToHi[s] || s.replace(/_/g, ' ')
+  }
+
   const columns: ColumnDef<Driver>[] = [
-    { key: 'name', header: 'Name', cell: (r) => r.name, sortable: true, sortValue: (r) => r.name },
-    { key: 'mobile', header: 'Mobile', cell: (r) => r.mobile },
-    { key: 'member', header: 'Member No', cell: (r) => r.memberNumber ?? '—' },
-    { key: 'license', header: 'License', cell: (r) => r.licenseNumber },
-    { key: 'status', header: 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={r.status} /> },
-    { key: 'created', header: 'Registered', cell: (r) => formatDate(r.createdAt) },
+    { key: 'name', header: isHi ? 'नाम' : 'Name', cell: (r) => isHi ? (nameTranslations[r.name] || r.name) : r.name, sortable: true, sortValue: (r) => r.name },
+    { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (r) => r.mobile },
+    { key: 'member', header: isHi ? 'सदस्य नंबर' : 'Member No', cell: (r) => r.memberNumber ?? '—' },
+    { key: 'license', header: isHi ? 'लाइसेंस' : 'License', cell: (r) => r.licenseNumber },
+    { key: 'status', header: isHi ? 'स्थिति' : 'Status', cell: (r) => <StatusBadge variant={statusToVariant(r.status)} label={translateStatus(r.status)} /> },
+    { key: 'created', header: isHi ? 'पंजीकृत तिथि' : 'Registered', cell: (r) => formatDate(r.createdAt) },
   ]
 
   const exportData = () => {
-    toast.success(`Exported ${data?.length ?? 0} driver records`)
+    toast.success(isHi ? `${data?.length ?? 0} ड्राइवर रिकॉर्ड निर्यात किए गए` : `Exported ${data?.length ?? 0} driver records`)
   }
 
   const handleSuspend = async () => {
@@ -69,28 +87,28 @@ export default function DriverManagementPage() {
   const canActivate = selected?.status === 'SUSPENDED'
 
   return (
-    <div className="p-6">
+    <div className="w-full space-y-6 pb-6 animate-fade-in">
       <PageHeader
-        title="Driver Management"
-        subtitle="National driver database with advanced filters"
-        action={<Button variant="outline" onClick={exportData}><Download className="h-4 w-4" /> Export</Button>}
+        title={isHi ? 'ड्राइवर प्रबंधन' : 'Driver Management'}
+        subtitle={isHi ? 'उन्नत फ़िल्टर के साथ राष्ट्रीय ड्राइवर डेटाबेस' : 'National driver database with advanced filters'}
+        action={<Button variant="outline" onClick={exportData} className="cursor-pointer"><Download className="h-4 w-4" /> {isHi ? 'एक्सपोर्ट' : 'Export'}</Button>}
       />
       <div className="mb-4 flex flex-wrap gap-3">
         <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder={isHi ? 'स्थिति' : 'Status'} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">{isHi ? 'सभी स्थितियां' : 'All Statuses'}</SelectItem>
             {DRIVER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
+              <SelectItem key={s} value={s}>{translateStatus(s)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={districtId} onValueChange={setDistrictId}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="District" /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder={isHi ? 'जिला' : 'District'} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Districts</SelectItem>
+            <SelectItem value="all">{isHi ? 'सभी जिले' : 'All Districts'}</SelectItem>
             {(districts ?? []).map((d) => (
-              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+              <SelectItem key={d.id} value={d.id}>{isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -110,17 +128,17 @@ export default function DriverManagementPage() {
       <AppDrawer
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.name ?? ''}
+        title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footer={(canSuspend || canActivate) && (
           <div className="flex gap-2">
             {canSuspend && (
-              <Button variant="destructive" className="flex-1" onClick={() => setSuspendOpen(true)}>
-                Suspend
+              <Button variant="destructive" className="flex-1 cursor-pointer" onClick={() => setSuspendOpen(true)}>
+                {isHi ? 'निलंबित करें' : 'Suspend'}
               </Button>
             )}
             {canActivate && (
-              <Button className="flex-1" onClick={handleActivate} disabled={activate.isPending}>
-                Activate
+              <Button className="flex-1 cursor-pointer" onClick={handleActivate} disabled={activate.isPending}>
+                {isHi ? 'सक्रिय करें' : 'Activate'}
               </Button>
             )}
           </div>
@@ -130,15 +148,15 @@ export default function DriverManagementPage() {
           <div className="space-y-4">
             <dl className="space-y-2 text-sm">
               {[
-                ['Member No', selected.memberNumber ?? '—'],
-                ['Mobile', selected.mobile],
-                ['License', selected.licenseNumber],
-                ['Status', selected.status],
-                ['Registered', formatDate(selected.createdAt)],
+                [isHi ? 'सदस्य नंबर' : 'Member No', selected.memberNumber ?? '—'],
+                [isHi ? 'मोबाइल' : 'Mobile', selected.mobile],
+                [isHi ? 'लाइसेंस' : 'License', selected.licenseNumber],
+                [isHi ? 'स्थिति' : 'Status', translateStatus(selected.status)],
+                [isHi ? 'पंजीकृत तिथि' : 'Registered', formatDate(selected.createdAt)],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between">
+                <div key={k} className="flex justify-between border-b border-neutral-100 pb-1.5">
                   <dt className="text-neutral-500">{k}</dt>
-                  <dd className="font-medium">{v}</dd>
+                  <dd className="font-medium text-neutral-900">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -156,28 +174,28 @@ export default function DriverManagementPage() {
       <AppModal
         open={suspendOpen}
         onClose={() => setSuspendOpen(false)}
-        title="Suspend Driver"
-        description={`Suspend ${selected?.name}?`}
+        title={isHi ? 'ड्राइवर को निलंबित करें' : 'Suspend Driver'}
+        description={isHi ? `क्या आप ${selected?.name} को निलंबित करना चाहते हैं?` : `Suspend ${selected?.name}?`}
         footer={
           <Button
             variant="destructive"
-            className="w-full"
+            className="w-full cursor-pointer"
             onClick={handleSuspend}
             disabled={suspendReason.length < 3 || suspend.isPending}
           >
-            {suspend.isPending ? 'Suspending...' : 'Confirm Suspend'}
+            {suspend.isPending ? (isHi ? 'निलंबित किया जा रहा है...' : 'Suspending...') : (isHi ? 'निलंबन की पुष्टि करें' : 'Confirm Suspend')}
           </Button>
         }
       >
         <div>
-          <Label htmlFor="suspendReason">Reason *</Label>
+          <Label htmlFor="suspendReason">{isHi ? 'कारण *' : 'Reason *'}</Label>
           <Textarea
             id="suspendReason"
             value={suspendReason}
             onChange={e => setSuspendReason(e.target.value)}
             rows={3}
             className="mt-1"
-            placeholder="Reason for suspension..."
+            placeholder={isHi ? 'निलंबन का कारण दर्ज करें...' : 'Reason for suspension...'}
           />
         </div>
       </AppModal>

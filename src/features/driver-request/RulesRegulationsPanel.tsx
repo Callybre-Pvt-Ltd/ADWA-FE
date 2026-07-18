@@ -4,7 +4,7 @@ import { AlertTriangle, Shield, FileText, RefreshCw, Lock } from 'lucide-react'
 
 function RuleList({ items }: { items: string[] }) {
   return (
-    <ol className="mt-4 list-decimal space-y-3 pl-6 text-base leading-relaxed text-neutral-800 marker:font-bold marker:text-royal-700">
+    <ol className="list-decimal space-y-3 pl-5 text-base leading-relaxed text-neutral-800 marker:font-bold marker:text-royal-700 text-justify">
       {items.map((rule, i) => (
         <li key={i}>{rule}</li>
       ))}
@@ -36,14 +36,14 @@ function RuleCard({
 
   return (
     <div className={`rounded-xl border p-5 md:p-6 ${styles[variant]}`}>
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3 mb-4">
         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconStyles[variant]}`}>
           <Icon className="h-5 w-5" />
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-bold text-neutral-900">{title}</h3>
-          {children}
-        </div>
+        <h3 className="text-lg font-bold text-neutral-900">{title}</h3>
+      </div>
+      <div className="min-w-0">
+        {children}
       </div>
     </div>
   )
@@ -79,26 +79,6 @@ export function RulesRegulationsPanel() {
             <RuleList items={membership} />
           </RuleCard>
 
-          <RuleCard icon={FileText} title={t('rules.documentsTitle')}>
-            <div className="mt-4 overflow-x-auto rounded-xl border-2 border-neutral-200">
-              <table className="w-full text-left text-base">
-                <thead className="bg-neutral-100">
-                  <tr>
-                    <th className="px-5 py-4 font-bold text-neutral-900">{t('rules.docColDocument')}</th>
-                    <th className="px-5 py-4 font-bold text-neutral-900">{t('rules.docColSpec')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-200">
-                  {docs.map((doc) => (
-                    <tr key={doc.item} className="bg-white">
-                      <td className="px-5 py-4 font-semibold text-neutral-900">{doc.item}</td>
-                      <td className="px-5 py-4 text-neutral-700">{doc.spec}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </RuleCard>
 
           <RuleCard icon={RefreshCw} title={t('rules.renewalTitle')}>
             <RuleList items={renewal} />

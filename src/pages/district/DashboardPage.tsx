@@ -65,21 +65,33 @@ export default function DashboardPage() {
     <div className="w-full max-w-4xl space-y-6 pb-6">
 
       {/* ── Page header ── */}
-      <div className="flex flex-col gap-3 border-b border-neutral-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-base font-bold tracking-tight text-neutral-900 sm:text-lg">
-            {d('districtDashboard')}
-          </h1>
-          <p className="mt-0.5 text-xs text-neutral-400">
-            {d('districtSubtitle')} · {d('updatedNow')}
-          </p>
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-card">
+        {/* Signature: thin tricolor rule, echoing the logo's concentric rings — used once, here only */}
+        <div className="flag-stripe" aria-hidden="true" />
+        <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            {/* Small chakra-ring mark, ties back to the logo without repeating it wholesale */}
+            <svg width="30" height="30" viewBox="0 0 30 30" className="hidden shrink-0 sm:block" aria-hidden="true">
+              <circle cx="15" cy="15" r="13" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-500" />
+              <circle cx="15" cy="15" r="9" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600" />
+              <circle cx="15" cy="15" r="3" fill="currentColor" className="text-blue-800" />
+            </svg>
+            <div>
+              <h1 className="text-base font-bold tracking-tight text-neutral-900 sm:text-lg">
+                {d('districtDashboard')}
+              </h1>
+              <p className="mt-0.5 text-xs text-neutral-400">
+                {d('districtSubtitle')} · {d('updatedNow')}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/district/requests"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-orange-600 active:scale-95"
+          >
+            {d('reviewApplications')}
+          </Link>
         </div>
-        <Link
-          to="/district/requests"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:scale-95 hover:bg-blue-700 text-center"
-        >
-          {d('reviewApplications')}
-        </Link>
       </div>
 
       {/* ── Row 1: KPIs — 1 col mobile, 2 col sm, 4 col xl ── */}
@@ -90,7 +102,7 @@ export default function DashboardPage() {
             label={d('totalRegisteredDrivers')}
             value={totalDrivers.toLocaleString('en-IN')}
             icon={Users}
-            iconClass="bg-blue-50 text-blue-600"
+            iconClass="bg-blue-50 text-blue-800"
             change={{ pct: 4.8, direction: 'up', label: d('vsLastMonth') }}
             sparkline={[52, 55, 58, 60, 63, 67]}
             sparkColor="#1D4ED8"
@@ -100,10 +112,10 @@ export default function DashboardPage() {
             label={d('pendingApplications')}
             value={pendingRequests.toLocaleString('en-IN')}
             icon={FileText}
-            iconClass="bg-amber-50 text-amber-600"
+            iconClass="bg-orange-50 text-orange-600"
             sub={
               pendingRequests > 100 ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700">
                   {d('actionNeeded')}
                 </span>
               ) : (
@@ -116,10 +128,10 @@ export default function DashboardPage() {
             label={d('generatedIdCards')}
             value={idsGenerated.toLocaleString('en-IN')}
             icon={CreditCard}
-            iconClass="bg-indigo-50 text-indigo-600"
+            iconClass="bg-blue-100 text-blue-700"
             sub={`${idsPending.toLocaleString('en-IN')} ${d('pendingGeneration')}`}
             sparkline={[40, 45, 50, 55, 58, 62]}
-            sparkColor="#6366F1"
+            sparkColor="#1D4ED8"
             loading={loading}
           />
           <KpiCard
@@ -141,7 +153,7 @@ export default function DashboardPage() {
           action={{ label: d('viewAllDrivers'), to: '/district/drivers' }}
         />
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[1fr_260px]">
-          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-card">
             <div className="border-b border-neutral-100 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {d('monthlyRegistrations')}
@@ -159,7 +171,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-card">
             <div className="border-b border-neutral-100 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {d('applicationStatus')}
@@ -224,7 +236,7 @@ export default function DashboardPage() {
       <section>
         <SectionRow title={d('membershipAndActions')} />
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[1fr_240px]">
-          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-card">
             <div className="border-b border-neutral-100 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {d('membershipDistribution')}
@@ -244,7 +256,7 @@ export default function DashboardPage() {
                 label={d('membersPendingRenewal')}
                 count={membersPendingRenewal}
                 pct={totalDrivers ? (membersPendingRenewal / totalDrivers) * 100 : 0}
-                color="#D97706"
+                color="#F97316"
               />
               <MembershipBar
                 label={d('membersExpired')}
@@ -261,7 +273,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-card">
             <div className="border-b border-neutral-100 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {d('quickActions')}
@@ -321,12 +333,6 @@ export default function DashboardPage() {
           </DashboardSection>
         </div>
       </section>
-
-      <p className="hidden pt-2 text-xs text-neutral-300 md:block">
-        <Link to="/" className="transition hover:text-neutral-500 hover:underline underline-offset-2">
-          {d('backToPublic')}
-        </Link>
-      </p>
     </div>
   )
 }

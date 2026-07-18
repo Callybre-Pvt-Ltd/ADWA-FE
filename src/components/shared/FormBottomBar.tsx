@@ -16,25 +16,28 @@ export function FormBottomBar({ onBack, onNext, nextLabel, showBack, isLoading, 
   const { t } = useTranslation('common')
   const backLabel = t('buttons.back')
   return (
-    <div className="flex items-center justify-between pt-6 mt-6 border-t-2 border-neutral-100">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-6 mt-6 border-t-2 border-neutral-100">
       {showBack ? (
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 px-5 h-12 rounded-xl border-2 border-neutral-200 text-neutral-700 font-semibold hover:border-neutral-400 transition-colors"
+          className="flex items-center justify-center gap-2 px-5 h-12 rounded-xl border-2 border-neutral-200 text-neutral-700 font-semibold hover:border-neutral-400 transition-colors order-2 sm:order-none w-full sm:w-auto"
         >
           <ChevronLeft size={18} /> {backLabel}
         </button>
-      ) : <div />}
+      ) : (
+        !showBack && <div className="hidden sm:block" />
+      )}
 
       <button
         type="button"
         onClick={onNext}
         disabled={isLoading || disabled}
         className={cn(
-          'flex items-center gap-2 px-8 h-12 rounded-xl text-white font-bold transition-all',
+          'flex items-center justify-center gap-2 px-8 h-12 rounded-xl text-white font-bold transition-all w-full sm:w-auto',
           isSubmit ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700',
-          'disabled:opacity-50 disabled:cursor-not-allowed'
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          showBack ? 'order-1 sm:order-none' : 'sm:ml-auto'
         )}
       >
         {isLoading ? (

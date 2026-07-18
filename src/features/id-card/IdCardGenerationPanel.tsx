@@ -13,9 +13,11 @@ import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features
 import { useCards, useGenerateIdCard, useCardSnapshot } from '@/hooks/useCards'
 import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { IdCard } from 'lucide-react'
+import { nameTranslations } from '@/utils/translations'
 
 export function IdCardGenerationPanel() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
+  const isHi = i18n.language === 'hi'
   const d = (key: string) => t(`dashboard.${key}`)
   const { data: cards, isLoading, isError, refetch } = useCards()
   const [selectedCardId, setSelectedCardId] = useState('')
@@ -105,13 +107,18 @@ export function IdCardGenerationPanel() {
           <SelectValue placeholder={d('idCard.selectDriver')} />
         </SelectTrigger>
         <SelectContent>
-          {cards.map((c: DriverCard) => (
-            <SelectItem key={c.id} value={c.id}>
-              {form && c.id === selectedCard?.id && form.fullName
-                ? `${form.fullName} (${c.cardNumber})`
-                : c.cardNumber}
-            </SelectItem>
-          ))}
+          {cards.map((c: DriverCard) => {
+            const rawName = form && c.id === selectedCard?.id && form.fullName
+              ? form.fullName
+              : c.cardNumber
+            const displayName = isHi && nameTranslations[rawName] ? nameTranslations[rawName] : rawName
+
+            return (
+              <SelectItem key={c.id} value={c.id}>
+                {displayName === c.cardNumber ? c.cardNumber : `${displayName} (${c.cardNumber})`}
+              </SelectItem>
+            )
+          })}
         </SelectContent>
       </Select>
 

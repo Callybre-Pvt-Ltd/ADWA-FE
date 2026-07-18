@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { FileText, RefreshCw, CheckCircle, CreditCard, Download, Heart, ArrowRight } from 'lucide-react'
-import { PageHero } from '@/components/shared/PageHero'
 import { Button } from '@/components/ui/button'
 
 const SERVICE_LINKS = [
@@ -17,8 +16,7 @@ export default function ServicesPage() {
   const { t } = useTranslation(['pages', 'home'])
 
   return (
-    <div className="bg-white">
-      <PageHero title={t('pages:services.title')} subtitle={t('pages:services.subtitle')} />
+    <div className="bg-white pt-6">
       <section className="section-padding hero-gradient">
         <div className="container-wide">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -36,8 +34,10 @@ export default function ServicesPage() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button asChild variant="outline">
-              <Link to="/dashboard">{t('nav:memberDashboard')} <ArrowRight className="h-4 w-4" /></Link>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/dashboard" className="w-full flex items-center justify-center gap-2">
+                {t('nav:memberDashboard')} <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

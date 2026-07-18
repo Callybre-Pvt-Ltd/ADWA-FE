@@ -139,6 +139,8 @@
       "fullNamePlaceholder": "जैसा आधार कार्ड पर है",
       "fatherName": "पिता का पूरा नाम",
       "fatherNamePlaceholder": "पिता का नाम",
+      "motherName": "माता का पूरा नाम",
+      "motherNamePlaceholder": "माता का नाम",
       "dateOfBirth": "जन्म तिथि",
       "gender": "लिंग",
       "genderSelect": "लिंग चुनें",

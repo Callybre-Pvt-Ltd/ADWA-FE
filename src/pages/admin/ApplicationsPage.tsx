@@ -23,8 +23,21 @@ import { formatDate } from '@/utils/formatters'
 import type { DriverRequest } from '@/types/driver.types'
 import { ClipboardList } from 'lucide-react'
 
+import { districtMapEnToHi, nameTranslations } from '@/utils/translations'
+
+const translateStatusHi = (status: string) => {
+  switch (status) {
+    case 'FORWARDED_TO_ADMIN': return 'अग्रेषित'
+    case 'APPROVED': return 'स्वीकृत'
+    case 'REJECTED': return 'अस्वीकृत'
+    case 'PAYMENT_PENDING': return 'भुगतान लंबित'
+    default: return status.replace(/_/g, ' ')
+  }
+}
+
 export default function ApplicationsPage() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
+  const isHi = i18n.language === 'hi'
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [rejectReason, setRejectReason] = useState('')
@@ -40,19 +53,19 @@ export default function ApplicationsPage() {
   const reject = useRejectApplication()
 
   const columns: ColumnDef<DriverRequest>[] = [
-    { key: 'ref', header: 'Reference', cell: (r) => r.referenceNumber ?? r.id.slice(0, 8), sortable: true, sortValue: (r) => r.referenceNumber ?? r.id },
-    { key: 'name', header: 'Name', cell: (r) => r.name, sortable: true, sortValue: (r) => r.name },
-    { key: 'district', header: 'District', cell: (r) => r.district },
-    { key: 'mobile', header: 'Mobile', cell: (r) => r.mobile },
-    { key: 'status', header: 'Status', cell: (r) => (
+    { key: 'ref', header: t('apps.colRef'), cell: (r) => r.referenceNumber ?? r.id.slice(0, 8), sortable: true, sortValue: (r) => r.referenceNumber ?? r.id },
+    { key: 'name', header: t('apps.colName'), cell: (r) => isHi ? (nameTranslations[r.name] || r.name) : r.name, sortable: true, sortValue: (r) => r.name },
+    { key: 'district', header: t('apps.colDistrict'), cell: (r) => isHi ? (districtMapEnToHi[r.district] || r.district) : r.district },
+    { key: 'mobile', header: t('apps.colMobile'), cell: (r) => r.mobile },
+    { key: 'status', header: t('apps.colStatus'), cell: (r) => (
       <div className="flex flex-col gap-1">
-        <StatusBadge variant={statusToVariant(r.status)} label={r.status.replace(/_/g, ' ')} />
+        <StatusBadge variant={statusToVariant(r.status)} label={isHi ? translateStatusHi(r.status) : r.status.replace(/_/g, ' ')} />
         {r.registrationConflict && (
-          <span className="text-[10px] font-medium text-red-600">Duplicate — cannot approve</span>
+          <span className="text-[10px] font-medium text-red-600">{t('apps.duplicateText')}</span>
         )}
       </div>
     ) },
-    { key: 'date', header: 'Forwarded', cell: (r) => formatDate(r.submittedAt), sortable: true, sortValue: (r) => r.submittedAt },
+    { key: 'date', header: t('apps.colForwarded'), cell: (r) => formatDate(r.submittedAt), sortable: true, sortValue: (r) => r.submittedAt },
   ]
 
   const closeDrawer = () => {
@@ -100,10 +113,10 @@ export default function ApplicationsPage() {
   const hasConflict = Boolean(selected?.registrationConflict)
 
   return (
-    <div className="p-6">
+    <div className="w-full space-y-6 pb-6">
       <PageHeader
-        title="Forwarded Applications"
-        subtitle="Review applications forwarded by district incharges"
+        title={t('apps.title')}
+        subtitle={t('apps.subtitle')}
       />
       {isLoading && <SkeletonTable />}
       {isError && <ErrorState onRetry={() => refetch()} />}
@@ -114,37 +127,36 @@ export default function ApplicationsPage() {
           getRowKey={(r) => r.id}
           searchable
           onRowClick={(r) => setSelectedId(r.id)}
-          emptyState={<EmptyState icon={ClipboardList} title="No forwarded applications" description="Applications appear here after the district office forwards them with payment proof." />}
+          emptyState={<EmptyState icon={ClipboardList} title={t('apps.emptyTitle')} description={t('apps.emptyDesc')} />}
         />
       )}
       <AppDrawer
         open={!!selectedId}
         onClose={closeDrawer}
-        title={selected?.name ?? 'Application'}
+        title={selected?.name ?? t('dashboard.loading')}
         description={selected?.referenceNumber ? `Ref: ${selected.referenceNumber}` : undefined}
         footer={selected && !detailLoading && !approvedQr && (
           <div className="space-y-3">
             {!canAct && !hasConflict && (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                 {selected.status === 'APPROVED'
-                  ? 'This application is already approved.'
-                  : `This application cannot be approved (status: ${selected.status.replace(/_/g, ' ')}).`}
+                  ? t('apps.alreadyApproved')
+                  : t('apps.cannotApprove', { status: isHi ? translateStatusHi(selected.status) : selected.status.replace(/_/g, ' ') })}
               </p>
             )}
             {canAct && hasConflict && (
               <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                This application duplicates an existing driver or another active application.
-                Reject it — approval will always fail.
+                {t('apps.duplicateWarning')}
               </p>
             )}
             {canAct && confirmAction === 'reject' && (
               <div>
-                <Label htmlFor="reject-reason">Rejection reason</Label>
+                <Label htmlFor="reject-reason">{t('apps.rejectReason')}</Label>
                 <Input
                   id="reject-reason"
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Reason for rejection"
+                  placeholder={t('apps.rejectReasonPlaceholder')}
                   className="mt-1"
                 />
               </div>
@@ -153,14 +165,14 @@ export default function ApplicationsPage() {
               <div className="flex gap-2">
                 {confirmAction ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>Cancel</Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>{t('apps.cancel')}</Button>
                     <Button
                       variant={confirmAction === 'reject' ? 'destructive' : 'default'}
                       className="flex-1"
                       onClick={handleConfirm}
                       disabled={isPending || (confirmAction === 'reject' && rejectReason.trim().length < 3) || (confirmAction === 'approve' && hasConflict)}
                     >
-                      {isPending ? 'Processing...' : confirmAction === 'approve' ? t('dashboard.approve') : t('dashboard.reject')}
+                      {isPending ? t('apps.processing') : confirmAction === 'approve' ? t('dashboard.approve') : t('dashboard.reject')}
                     </Button>
                   </>
                 ) : (
@@ -181,7 +193,7 @@ export default function ApplicationsPage() {
         {approvedQr && (
           <div className="space-y-4">
             <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              Application approved. Download or print the QR code for the driver&apos;s ID card.
+              {t('apps.approvedSuccess')}
             </p>
             <DriverQrPanel
               cardId={approvedQr.cardId}
@@ -189,15 +201,15 @@ export default function ApplicationsPage() {
               verificationCode={approvedQr.verificationCode}
               driverName={approvedQr.driverName}
             />
-            <Button className="w-full" onClick={closeDrawer}>Done</Button>
+            <Button className="w-full" onClick={closeDrawer}>{t('apps.done')}</Button>
           </div>
         )}
-        {!approvedQr && detailLoading && <p className="text-sm text-neutral-500">Loading application...</p>}
+        {!approvedQr && detailLoading && <p className="text-sm text-neutral-500">{t('apps.loading')}</p>}
         {!approvedQr && selected && !detailLoading && (
           <div className="space-y-4">
             <StatusBadge
               variant={statusToVariant(selected.status)}
-              label={selected.status.replace(/_/g, ' ')}
+              label={isHi ? translateStatusHi(selected.status) : selected.status.replace(/_/g, ' ')}
             />
             <DriverRequestDetailView request={selected} />
           </div>

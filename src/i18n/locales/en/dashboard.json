@@ -144,6 +144,27 @@
     "idCard.generating": "Generating…",
     "idCard.front": "Front",
     "idCard.back": "Back",
-    "idCard.idGenerated": "ID card PDF generated"
+    "idCard.idGenerated": "ID card PDF generated",
+    "apps.title": "Forwarded Applications",
+    "apps.subtitle": "Review applications forwarded by district incharges",
+    "apps.colRef": "Reference",
+    "apps.colName": "Name",
+    "apps.colDistrict": "District",
+    "apps.colMobile": "Mobile",
+    "apps.colStatus": "Status",
+    "apps.colForwarded": "Forwarded",
+    "apps.emptyTitle": "No forwarded applications",
+    "apps.emptyDesc": "Applications appear here after the district office forwards them with payment proof.",
+    "apps.alreadyApproved": "This application is already approved.",
+    "apps.cannotApprove": "This application cannot be approved (status: {{status}}).",
+    "apps.duplicateWarning": "This application duplicates an existing driver or another active application. Reject it — approval will always fail.",
+    "apps.rejectReason": "Rejection reason",
+    "apps.rejectReasonPlaceholder": "Reason for rejection",
+    "apps.cancel": "Cancel",
+    "apps.processing": "Processing...",
+    "apps.approvedSuccess": "Application approved. Download or print the QR code for the driver's ID card.",
+    "apps.loading": "Loading application...",
+    "apps.done": "Done",
+    "apps.duplicateText": "Duplicate — cannot approve"
   }
 }
