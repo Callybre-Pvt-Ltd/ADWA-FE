@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { User, MapPin, IdCard, FileCheck, Pencil } from 'lucide-react'
+import { User, MapPin, IdCard, Pencil } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
 import { usePublicDistricts } from '@/hooks/useDistricts'
 import type { DriverRequestFormData } from '@/utils/validators'
@@ -40,22 +40,6 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
     <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-4 px-5 py-3">
       <dt className="text-sm text-neutral-500 shrink-0">{label}</dt>
       <dd className="text-sm font-semibold text-neutral-900 sm:text-right break-words">{value || '—'}</dd>
-    </div>
-  )
-}
-
-function DocumentRow({ label, uploaded }: { label: string; uploaded: boolean }) {
-  const { t } = useTranslation('pages')
-  return (
-    <div className="flex items-center justify-between px-5 py-3">
-      <span className="text-sm text-neutral-600">{label}</span>
-      {uploaded ? (
-        <span className="text-sm font-semibold text-green-600 flex items-center gap-1">
-          <span>✓</span> {t('apply.docs.uploaded')}
-        </span>
-      ) : (
-        <span className="text-sm text-neutral-400">—</span>
-      )}
     </div>
   )
 }

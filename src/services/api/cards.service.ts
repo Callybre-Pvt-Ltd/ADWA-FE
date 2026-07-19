@@ -34,6 +34,8 @@ export type CardSnapshot = {
   dateOfBirth?: string | null
   generatedAt?: string | null
   hasPdf: boolean
+  photoUrl?: string | null
+  hasPhoto: boolean
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,7 +142,8 @@ export const cardsService = {
   async getSnapshot(id: string): Promise<CardSnapshot> {
     try {
       const { data } = await apiClient.get<APIResponse<Record<string, unknown>>>(`/cards/${id}/snapshot`)
-      return toCamelCase<CardSnapshot>(unwrapResponse(data))
+      const snapshot = toCamelCase<CardSnapshot>(unwrapResponse(data))
+      return { ...snapshot, photoUrl: resolveStorageUrl(snapshot.photoUrl) }
     } catch (error) {
       throw await extractError(error)
     }
@@ -163,7 +166,8 @@ export const cardsService = {
         `/cards/${id}/generate`,
         payload,
       )
-      return toCamelCase<CardSnapshot>(unwrapResponse(data))
+      const snapshot = toCamelCase<CardSnapshot>(unwrapResponse(data))
+      return { ...snapshot, photoUrl: resolveStorageUrl(snapshot.photoUrl) }
     } catch (error) {
       throw await extractError(error)
     }
@@ -182,6 +186,22 @@ export const cardsService = {
     try {
       const { data } = await apiClient.post<APIResponse<ApiCard>>(`/cards/${id}/revoke`, { reason })
       return mapCard(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async uploadPhoto(id: string, file: File): Promise<CardSnapshot> {
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      const { data } = await apiClient.post<APIResponse<Record<string, unknown>>>(
+        `/cards/${id}/photo`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+      const snapshot = toCamelCase<CardSnapshot>(unwrapResponse(data))
+      return { ...snapshot, photoUrl: resolveStorageUrl(snapshot.photoUrl) }
     } catch (error) {
       throw await extractError(error)
     }

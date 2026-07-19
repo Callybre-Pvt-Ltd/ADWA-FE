@@ -27,10 +27,10 @@ export default function PaymentWorkflowCard({ payment, className }: PaymentWorkf
       </div>
       {payment.collectedAt && (
         <p className="mt-3 text-sm text-neutral-600">
-          Collected on {formatDate(payment.collectedAt)} by {payment.collectedBy ?? 'District Office'}
+          Collected on {formatDate(payment.collectedAt)} by {payment.district ? `${payment.district} District Office` : 'District Office'}
         </p>
       )}
-      {payment.status === 'waiting_confirmation' && (
+      {(payment.status === 'collected' || payment.status === 'waiting_confirmation') && (
         <Button className="mt-4 w-full sm:w-auto" onClick={confirm} disabled={updatePayment.isPending}>
           {updatePayment.isPending ? 'Confirming...' : 'Confirm Payment'}
         </Button>

@@ -35,7 +35,7 @@ const requestStatusMapEnToHi: Record<string, string> = {
 }
 
 export default function RequestsPage() {
-  const { t, i18n } = useTranslation('dashboard')
+  const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
   const [status, setStatus] = useState<string>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)

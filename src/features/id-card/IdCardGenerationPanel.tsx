@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Printer, Download } from 'lucide-react'
+import { Printer, Download, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -10,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { IDCardOverlay } from '@/features/id-card/IDCardOverlay'
 import { IdCardFormFields } from '@/features/id-card/IdCardFormFields'
 import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features/id-card/idCardForm'
-import { useCards, useGenerateIdCard, useCardSnapshot } from '@/hooks/useCards'
+import { useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto } from '@/hooks/useCards'
 import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { IdCard } from 'lucide-react'
 import { nameTranslations } from '@/utils/translations'
@@ -25,6 +27,8 @@ export function IdCardGenerationPanel() {
 
   const { data: snapshot, isLoading: snapshotLoading } = useCardSnapshot(selectedCard?.id ?? null)
   const generate = useGenerateIdCard()
+  const uploadPhoto = useUploadCardPhoto()
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState<IdCardFormValues | null>(null)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
@@ -126,6 +130,7 @@ export function IdCardGenerationPanel() {
       <IDCardOverlay
         values={form ?? emptyForm}
         card={selectedCard}
+        photoUrl={snapshot?.photoUrl}
         qrUrl={qrUrl}
         loading={snapshotLoading}
         onActionsReady={handleActionsReady}
@@ -161,10 +166,47 @@ export function IdCardGenerationPanel() {
             disabled={generate.isPending}
           />
         )}
+        {!snapshotLoading && snapshot && !snapshot.hasPhoto && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="mb-2 text-sm font-medium text-amber-800">
+              Driver photo is required to generate the ID card PDF.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="card-photo" className="text-sm text-amber-700">
+                Upload driver photo <span className="text-red-500">*</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="card-photo"
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="flex-1"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file && selectedCard) {
+                      uploadPhoto.mutate({ cardId: selectedCard.id, file })
+                    }
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={uploadPhoto.isPending}
+                >
+                  <Upload size={14} />
+                  {uploadPhoto.isPending ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         <Button
           className="w-full cursor-pointer"
           onClick={handleGenerate}
-          disabled={!form || generate.isPending}
+          disabled={!form || generate.isPending || !snapshot?.hasPhoto}
         >
           {generate.isPending ? d('idCard.generating') : d('idCard.generatePdf')}
         </Button>

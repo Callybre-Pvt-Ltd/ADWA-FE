@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { FileText } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import MultiStepForm from '@/features/driver-request/MultiStepForm'
 import { RulesRegulationsPanel } from '@/features/driver-request/RulesRegulationsPanel'

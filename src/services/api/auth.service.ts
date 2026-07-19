@@ -7,7 +7,9 @@ import {
 } from './client'
 import type { APIResponse } from '@/types/api.types'
 import type { AuthRole, AuthUser } from '@/types/auth.types'
+import type { User } from '@/types/user.types'
 import { decodeJwtPayload } from '@/utils/jwt'
+import { toCamelCase } from './mappers'
 
 type TokenPair = {
   access_token: string
@@ -101,6 +103,46 @@ export const authService = {
       new_password: newPassword,
     })
     unwrapResponse(data)
+  },
+
+  async getMe(): Promise<User> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await apiClient.get<APIResponse<any>>('/auth/me')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const item = toCamelCase<any>(unwrapResponse(data))
+    return {
+      id: item.id,
+      fullName: item.fullName,
+      email: item.email,
+      mobileNumber: item.mobileNumber,
+      role: item.role,
+      status: item.status,
+      districtId: item.districtId ?? null,
+      lastLoginAt: item.lastLoginAt ?? null,
+      createdAt: item.createdAt,
+    }
+  },
+
+  async updateMe(payload: { fullName?: string; email?: string; mobileNumber?: string }): Promise<User> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await apiClient.patch<APIResponse<any>>('/auth/me', {
+      ...(payload.fullName && { full_name: payload.fullName }),
+      ...(payload.email && { email: payload.email }),
+      ...(payload.mobileNumber && { mobile_number: payload.mobileNumber }),
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const item = toCamelCase<any>(unwrapResponse(data))
+    return {
+      id: item.id,
+      fullName: item.fullName,
+      email: item.email,
+      mobileNumber: item.mobileNumber,
+      role: item.role,
+      status: item.status,
+      districtId: item.districtId ?? null,
+      lastLoginAt: item.lastLoginAt ?? null,
+      createdAt: item.createdAt,
+    }
   },
 
   restoreUser(): AuthUser | null {

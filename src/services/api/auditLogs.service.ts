@@ -8,10 +8,15 @@ type ApiAuditLog = Record<string, any>
 
 function mapAuditLog(raw: ApiAuditLog): AuditLog {
   const item = toCamelCase<ApiAuditLog>(raw)
+  const actor = item.actor as ApiAuditLog | undefined
+  const actorRole = (actor?.role as string | undefined)?.toLowerCase() ?? 'system'
+  const actorType = actorRole === 'super_admin' ? 'admin'
+    : actorRole === 'district_incharge' ? 'district'
+    : 'system'
   return {
     id: item.id,
-    actor: item.actorId ?? 'system',
-    actorType: 'system',
+    actor: actor?.fullName ?? (item.actorId ? item.actorId : 'System'),
+    actorType,
     action: item.action,
     entity: item.resourceType,
     entityId: item.resourceId,

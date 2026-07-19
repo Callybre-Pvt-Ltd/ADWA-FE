@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,6 +28,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function DistrictManagementPage() {
+  "use no memo";
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useDistricts()

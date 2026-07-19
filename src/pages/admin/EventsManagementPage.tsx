@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEvents, useDeleteEvent } from '@/hooks/useEvents'
+import { useEvents, useDeleteEvent, usePublishEvent } from '@/hooks/useEvents'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -17,6 +17,7 @@ export default function EventsManagementPage() {
   const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useEvents()
   const deleteEvent = useDeleteEvent()
+  const publishEvent = usePublishEvent()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
@@ -37,9 +38,19 @@ export default function EventsManagementPage() {
         {data?.map((e) => (
           <div key={e.id} className="relative">
             <EventCard event={e} />
-            <Button variant="destructive" size="sm" className="absolute right-2 top-2 cursor-pointer" onClick={() => setDeleteId(e.id)}>
-              {isHi ? 'हटाएं' : 'Delete'}
-            </Button>
+            <div className="absolute right-2 top-2 flex gap-1">
+              {e.status === 'draft' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => publishEvent.mutate(e.id)}
+                  disabled={publishEvent.isPending}
+                >
+                  Publish
+                </Button>
+              )}
+              <Button variant="destructive" size="sm" onClick={() => setDeleteId(e.id)}>Delete</Button>
+            </div>
           </div>
         ))}
       </div>

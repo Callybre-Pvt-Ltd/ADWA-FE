@@ -51,3 +51,15 @@ export function useDeleteEvent() {
     onError: (err: Error) => toast.error(`Failed: ${err.message}`),
   })
 }
+
+export function usePublishEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => eventsService.publish(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EVENTS_QUERY_KEY })
+      toast.success('Event published')
+    },
+    onError: (err: Error) => toast.error(`Failed to publish: ${err.message}`),
+  })
+}

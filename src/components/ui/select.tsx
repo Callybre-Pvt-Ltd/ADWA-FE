@@ -163,7 +163,7 @@ export function SelectItem({ value, children, className }: SelectItemProps) {
   // Register label whenever this item is the selected one
   React.useEffect(() => {
     if (isSelected) setSelectedLabel(children)
-  }, [isSelected, children])
+  }, [isSelected, children, setSelectedLabel])
 
   return (
     <button

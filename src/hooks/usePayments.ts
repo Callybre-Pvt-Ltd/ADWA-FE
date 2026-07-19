@@ -32,3 +32,16 @@ export function useUpdatePayment() {
     onError: (err: Error) => toast.error(`Failed: ${err.message}`),
   })
 }
+
+export function useCollectPayment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ driverCardId, amount, file }: { driverCardId: string; amount: number; file: File }) =>
+      paymentsService.collect(driverCardId, amount, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: PAYMENTS_QUERY_KEY })
+      toast.success('Payment recorded successfully')
+    },
+    onError: (err: Error) => toast.error(`Failed: ${err.message}`),
+  })
+}

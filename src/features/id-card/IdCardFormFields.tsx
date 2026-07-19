@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { cn } from '@/utils/cn'
 import { districtMapEnToHi, nameTranslations } from '@/utils/translations'
 
 type IdCardFormFieldsProps = {

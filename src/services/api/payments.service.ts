@@ -14,17 +14,19 @@ function mapPaymentStatus(status: string): PaymentStatus {
 
 function mapPayment(raw: ApiPayment): Payment {
   const item = toCamelCase<ApiPayment>(raw)
+  const card = item.driverCard as ApiPayment | undefined
+  const driver = card?.driver as ApiPayment | undefined
   return {
     id: item.id,
     driverId: item.driverCardId ?? '',
-    driverName: '',
-    district: '',
+    driverName: card?.fullNameSnapshot ?? driver?.fullName ?? '',
+    district: driver?.district?.name ?? '',
     amount: Number(item.amount ?? 0),
     status: mapPaymentStatus(item.status),
     collectedAt: item.collectedAt ?? undefined,
     confirmedAt: item.confirmedAt ?? undefined,
     collectedBy: item.collectedBy ?? undefined,
-    referenceNumber: item.id,
+    referenceNumber: card?.cardNumber ?? item.id,
     createdAt: item.createdAt,
   }
 }

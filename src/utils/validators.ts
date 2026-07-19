@@ -86,7 +86,6 @@ export const profileFormSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   mobile: z.string().regex(mobileRegex),
-  designation: z.string().min(2),
 })
 
 export type DriverPersonalFormData = z.infer<typeof driverPersonalSchema>

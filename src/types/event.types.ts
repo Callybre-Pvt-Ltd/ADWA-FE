@@ -5,7 +5,7 @@ export type Event = {
   date: string
   location: string
   imageUrl?: string
-  status: 'upcoming' | 'past' | 'cancelled'
+  status: 'upcoming' | 'past' | 'cancelled' | 'draft'
   createdAt: string
   slug?: string
   backendStatus?: string

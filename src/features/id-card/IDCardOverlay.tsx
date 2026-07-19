@@ -1,16 +1,16 @@
 /**
  * IDCardOverlay — Canvas-based renderer.
  *
- * The template JPEG is 1600×1235px landscape:
+ * The template is a 1600×1168px landscape print image (see cardGeometry.ts):
  *   Left  half (x 0–800)   = Back face
  *   Right half (x 800–1600) = Front face
  *
  * We draw each face onto its own <canvas> by:
- *   1. drawImage the full 1600×1235 JPEG shifted so the correct half fills the canvas
+ *   1. drawImage the full template shifted so the correct half fills the canvas
  *   2. drawImage the driver photo into the photo box
  *   3. fillText each info row at exact pixel coordinates
  *
- * All coordinates below are measured in the 800×1235 face coordinate space.
+ * Coordinates below are in face-local space (faceWidth × canvas.height).
  * Canvas is rendered at native resolution then CSS-scaled to fit the container.
  */
 
@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/utils/cn'
 import type { IdCardFormValues } from './idCardForm'
 import type { DriverCard } from '@/services/api/cards.service'
+import { CARD_GEOMETRY } from './cardGeometry'
 
 const TEMPLATE_PATH = '/id_card/id_card.png'
 
@@ -50,18 +51,42 @@ function loadUrl(url: string): Promise<HTMLImageElement> {
   })
 }
 
+// The backend renders card text with Roboto (assets/fonts/Roboto-Regular.ttf).
+// The canvas uses the same family so previews match the generated PDF; we must
+// wait for the webfont before drawing or the canvas silently falls back.
+async function ensureCardFonts(): Promise<void> {
+  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
+  if (!fonts) return
+  try {
+    await Promise.all([
+      fonts.load(`700 ${FRONT.fontSize}px Roboto`),
+      fonts.load(`700 ${BACK.fontSize}px Roboto`),
+    ])
+  } catch { /* font load failed — canvas falls back to sans-serif */ }
+}
+
 // ─── Canvas dimensions ────────────────────────────────────────────────────────
+// Driven by the shared geometry so the canvas matches the real template
+// (each face is faceWidth × canvas.height of the full print image).
 
-const FULL_H = 1235
-const FACE_W = 800   // each half
-const FACE_H = FULL_H
+const FACE_W = CARD_GEOMETRY.faceWidth
+const FACE_H = CARD_GEOMETRY.canvas.height
 
-// ─── Front face coordinates (in 800×1235 space) ──────────────────────────────
+// ─── Front face coordinates (in face-local space) ────────────────────────────
 // Template already prints labels + colon dots — we only draw the VALUES.
 // valueX: start of value text (just after the colon area)
-// Each row y: text baseline, measured from top of the 800×1235 front face crop.
+// Each row y: text baseline, measured from top of the front face crop.
+//
+// The photo box is derived from the shared geometry (full-image space) so it
+// stays pixel-aligned with the backend Pillow renderer. The front face is the
+// right half of the template, so face-local x = full-image x − faceWidth.
 const FRONT = {
-  photo: { x: 290, y: 218, w: 210, h: 265 },
+  photo: {
+    x: CARD_GEOMETRY.photo.x - CARD_GEOMETRY.faceWidth,
+    y: CARD_GEOMETRY.photo.y,
+    w: CARD_GEOMETRY.photo.width,
+    h: CARD_GEOMETRY.photo.height,
+  },
 
   valueX: 375,  // x where value text starts (right of the dotted colon line)
 
@@ -79,19 +104,40 @@ const FRONT = {
   ] as { key: keyof IdCardFormValues; y: number }[],
 
   fontSize: 30,
-  fontFamily: 'Arial, sans-serif',
+  fontFamily: 'Roboto, sans-serif',
   valueColor: '#111827',
 }
 
-// ─── Back face coordinates (in 800×1235 space) ───────────────────────────────
+// ─── Back face coordinates (face-local space) ────────────────────────────────
+// NOTE: The backend renderer uses a different source template (Simran-front.png),
+// so backend layout.py erase coordinates do NOT apply here.  These erase boxes
+// are calibrated for id_card.png used by the frontend canvas.
+//
+// Each erase box intentionally spans from the start of the value area all the
+// way to the right edge of the face so it covers every placeholder digit in
+// the template regardless of how many there are (card-no has 12, expiry has 13).
 const BACK = {
-  cardNoValueX:    300,  cardNoY:    545, cardNoColor: '#393186',
-  issueDateValueX: 300,  issueDateY: 631, issueDateColor: '#2C642E',
-  expiryValueX:    302,  expiryY:    715, expiryColor: '#E63C23',
+  rows: [
+    {
+      // erase covers the full value area so no template zeros bleed through
+      erase:  { x: 290, y: 513, w: 510, h: 44 },
+      textX:  300, textY: 545, color: '#393186',
+      key: 'cardNumber' as const,
+    },
+    {
+      erase:  { x: 290, y: 599, w: 510, h: 44 },
+      textX:  300, textY: 631, color: '#2C642E',
+      key: 'issueDate' as const,
+    },
+    {
+      erase:  { x: 290, y: 683, w: 510, h: 44 },
+      textX:  300, textY: 715, color: '#E63C23',
+      key: 'expiryDate' as const,
+    },
+  ],
 
   fontSize: 30,
-  fontFamily: 'Arial Black, Arial, sans-serif',
-  valueColor: '#111827',
+  fontFamily: 'Roboto, sans-serif',
 }
 
 // ─── Draw front face ──────────────────────────────────────────────────────────
@@ -107,26 +153,19 @@ async function drawFront(
   canvas.width = FACE_W
   canvas.height = FACE_H
 
-  const tpl = await loadTemplate()
+  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
 
   // Draw right half of template
   ctx.drawImage(tpl, FACE_W, 0, FACE_W, FACE_H, 0, 0, FACE_W, FACE_H)
 
-  // Driver photo
+  // Driver photo — stretch to the exact box to match the backend Pillow renderer.
   if (photoUrl) {
     try {
       const photo = await loadUrl(photoUrl)
       const { x, y, w, h } = FRONT.photo
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(x, y, w, h)
-      ctx.clip()
-      // cover-fit
-      const scale = Math.max(w / photo.width, h / photo.height)
-      const sw = photo.width * scale
-      const sh = photo.height * scale
-      ctx.drawImage(photo, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh)
-      ctx.restore()
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(x, y, w, h)
+      ctx.drawImage(photo, x, y, w, h)
     } catch { /* photo load failed — show template placeholder */ }
   }
 
@@ -173,7 +212,7 @@ async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | und
   canvas.width = FACE_W
   canvas.height = FACE_H
 
-  const tpl = await loadTemplate()
+  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
 
   // Draw left half of template
   ctx.drawImage(tpl, 0, 0, FACE_W, FACE_H, 0, 0, FACE_W, FACE_H)
@@ -181,25 +220,20 @@ async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | und
   ctx.font = `700 ${BACK.fontSize}px ${BACK.fontFamily}`
   ctx.textAlign = 'left'
 
-  const cardNumber = card?.cardNumber ?? ''
-  const issueDate = fmtDate(card?.issuedAt)
-  const expiryDate = fmtDate(card?.expiresAt)
+  const values: Record<string, string> = {
+    cardNumber: card?.cardNumber ?? '',
+    issueDate:  fmtDate(card?.issuedAt),
+    expiryDate: fmtDate(card?.expiresAt),
+  }
 
-  const bgH = BACK.fontSize + 8
-  const PAD = 10
-
-  const rows = [
-    { text: cardNumber, x: BACK.cardNoValueX,    y: BACK.cardNoY,    color: BACK.cardNoColor,    extraW: 0 },
-    { text: issueDate,  x: BACK.issueDateValueX, y: BACK.issueDateY, color: BACK.issueDateColor, extraW: 60 },
-    { text: expiryDate, x: BACK.expiryValueX,    y: BACK.expiryY,    color: BACK.expiryColor,    extraW: 60 },
-  ]
-
-  for (const row of rows) {
-    const textW = ctx.measureText(row.text).width
+  for (const row of BACK.rows) {
+    const { erase, textX, textY, color, key } = row
+    // Fill the full erase area with white so all template placeholder digits are covered
     ctx.fillStyle = '#FFFFFF'
-    ctx.fillRect(row.x, row.y - BACK.fontSize, textW + PAD * 2 + row.extraW, bgH)
-    ctx.fillStyle = row.color
-    ctx.fillText(row.text, row.x + PAD, row.y)
+    ctx.fillRect(erase.x, erase.y, erase.w, erase.h)
+    // Draw the value text
+    ctx.fillStyle = color
+    ctx.fillText(values[key], textX, textY)
   }
 }
 
@@ -334,7 +368,6 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
       },
       downloadBack: () => {},
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onActionsReady, values.fullName])
 
   if (loading) {

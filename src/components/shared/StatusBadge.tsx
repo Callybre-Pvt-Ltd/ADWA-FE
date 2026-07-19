@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { cn } from '@/utils/cn'
 
 export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'primary'
@@ -71,6 +72,10 @@ export function statusToVariant(status: string): BadgeVariant {
     id_card_generated: 'success',
     suspended: 'danger',
     revoked: 'danger',
+    draft: 'neutral',
+    upcoming: 'info',
+    past: 'neutral',
+    cancelled: 'danger',
   }
   return map[normalized] ?? 'neutral'
 }

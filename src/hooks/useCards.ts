@@ -42,3 +42,16 @@ export function useDownloadCard() {
     onError: (err: Error) => toast.error(`Download failed: ${err.message}`),
   })
 }
+
+export function useUploadCardPhoto() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ cardId, file }: { cardId: string; file: File }) =>
+      cardsService.uploadPhoto(cardId, file),
+    onSuccess: (_data, { cardId }) => {
+      qc.invalidateQueries({ queryKey: [...CARDS_QUERY_KEY, 'snapshot', cardId] })
+      toast.success('Photo uploaded successfully')
+    },
+    onError: (err: Error) => toast.error(`Photo upload failed: ${err.message}`),
+  })
+}

@@ -6,8 +6,9 @@ import {
   CreditCard,
   IndianRupee,
 } from 'lucide-react'
+import type { ActivityItem } from '@/types/common.types'
 import { useDistrictDashboard } from '@/hooks/useDashboard'
-import { useMonthlyRegistrations, useActivities } from '@/hooks/useTeam'
+import { useMonthlyRegistrations } from '@/hooks/useTeam'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { formatCurrency } from '@/utils/formatters'
 import {
@@ -35,7 +36,8 @@ export default function DashboardPage() {
   const { t } = useTranslation('dashboard')
   const stats = useDistrictDashboard()
   const chart = useMonthlyRegistrations()
-  const activities = useActivities()
+  // District incharge does not have access to audit logs; activity feed shows empty.
+  const activities = { data: [] as ActivityItem[], isLoading: false }
 
   if (stats.isError) return <ErrorState onRetry={() => stats.refetch()} />
 

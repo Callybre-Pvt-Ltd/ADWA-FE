@@ -12,7 +12,8 @@ function mapEvent(raw: ApiEvent): Event {
   const startDate = item.startDate ?? item.createdAt
   const isPast = startDate ? new Date(startDate) < new Date() : false
   let status: Event['status'] = 'upcoming'
-  if (item.status === 'ARCHIVED' || item.status === 'DRAFT') status = 'cancelled'
+  if (item.status === 'ARCHIVED') status = 'cancelled'
+  else if (item.status === 'DRAFT') status = 'draft'
   else if (isPast) status = 'past'
 
   return {

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FormProvider, useForm } from 'react-hook-form'
+import { FormProvider, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, ArrowRight, User, Car, Upload, ClipboardCheck } from 'lucide-react'
+import { CheckCircle, ArrowRight, User, Car, ClipboardCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSubmitDriverRequest } from '@/hooks/useDriverRequests'
 import {
@@ -42,7 +42,7 @@ export default function MultiStepForm() {
   const form = useForm<DriverRequestFormData>({
     resolver: zodResolver(
       driverPersonalSchema.merge(driverDetailsSchema),
-    ) as any,
+    ) as Resolver<DriverRequestFormData>,
     mode: 'onChange',
     defaultValues: {
       email: '',

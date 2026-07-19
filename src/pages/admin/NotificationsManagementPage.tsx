@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -13,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/utils/formatters'
-import { Bell, Megaphone, Users, Clock, AlertTriangle, FileText, Send, Info } from 'lucide-react'
+import { Bell, Megaphone, Users, Clock, AlertTriangle, FileText, Send } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/utils/cn'
 
@@ -40,6 +41,7 @@ const audienceMapHi: Record<string, string> = {
 }
 
 export default function NotificationsManagementPage() {
+  "use no memo";
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useNotifications()

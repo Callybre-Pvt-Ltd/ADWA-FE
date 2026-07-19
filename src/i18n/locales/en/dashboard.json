@@ -165,6 +165,7 @@
     "apps.approvedSuccess": "Application approved. Download or print the QR code for the driver's ID card.",
     "apps.loading": "Loading application...",
     "apps.done": "Done",
-    "apps.duplicateText": "Duplicate — cannot approve"
+    "apps.duplicateText": "Duplicate — cannot approve",
+    "idCard.photoRequired": "Driver photo is required. It is captured when the application is approved."
   }
 }
