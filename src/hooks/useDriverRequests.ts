@@ -54,6 +54,14 @@ export function useTrackApplication(ref: string, mobile: string, enabled: boolea
   })
 }
 
+export function useRecoverReference() {
+  return useMutation({
+    mutationFn: ({ mobile, dob }: { mobile: string; dob: string }) =>
+      driverRequestsService.recoverReference(mobile, dob),
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
 export function useForwardApplication() {
   const qc = useQueryClient()
   return useMutation({
@@ -64,8 +72,8 @@ export function useForwardApplication() {
       diNotes,
     }: {
       id: string
-      verificationRemarks: string
-      paymentProof: File
+      verificationRemarks?: string
+      paymentProof?: File
       diNotes?: string
     }) => driverRequestsService.forward(id, verificationRemarks, paymentProof, diNotes),
     onSuccess: () => {

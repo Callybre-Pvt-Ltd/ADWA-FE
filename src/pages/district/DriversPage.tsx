@@ -45,6 +45,7 @@ export default function DriversPage() {
   }
 
   const handleDownload = async (driverId: string) => {
+    if (downloading) return
     const cardId = cardByDriver.get(driverId)
     if (!cardId) {
       toast.error(isHi ? 'इस ड्राइवर के लिए कोई आईडी कार्ड नहीं मिला' : 'No ID card found for this driver')
@@ -100,12 +101,14 @@ export default function DriversPage() {
       <AppDrawer
         open={!!selected}
         onClose={() => setSelected(null)}
+        loading={downloading}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footer={selectedCardId ? (
           <Button
             className="w-full cursor-pointer"
             onClick={() => selected && handleDownload(selected.id)}
-            disabled={downloading}
+            loading={downloading}
+            loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
           >
             <Download className="h-4 w-4" /> {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
           </Button>

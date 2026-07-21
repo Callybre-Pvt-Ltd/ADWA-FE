@@ -53,7 +53,7 @@ export default function StepUploads() {
   return (
     <FormSection title={t('apply.documentUpload')} singleCol>
       <p className="text-xs text-neutral-600 bg-amber-50 border-2 border-amber-200 rounded-2xl px-4 py-3">
-        {docs('noteText')} {t('apply.docs.optionalNote', '(All documents are optional for now — you can upload later.)')}
+        {docs('noteText')}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -63,7 +63,6 @@ export default function StepUploads() {
             label={docs(labelKey)}
             hint={hintKey ? docs(hintKey) : undefined}
             accept="image/*,.pdf"
-            maxSizeMB={field === 'driverPhoto' ? 1 : 2}
             preview={previews[field]}
             onFileSelect={fileFieldValue(field)}
             onFileRemove={() => handleRemoveFile(field)}

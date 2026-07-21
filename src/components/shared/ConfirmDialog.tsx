@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Loader2 } from 'lucide-react'
 
 export interface ConfirmDialogProps {
   open: boolean
@@ -35,7 +36,12 @@ export function ConfirmDialog({
   testId,
 }: ConfirmDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!loading) onOpenChange(nextOpen)
+      }}
+    >
       <AlertDialogContent data-testid={testId}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -49,8 +55,10 @@ export function ConfirmDialog({
               onConfirm()
             }}
             disabled={loading}
+            aria-busy={loading || undefined}
             className={variant === 'destructive' ? 'bg-danger hover:bg-red-800' : undefined}
           >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
             {loading ? 'Processing...' : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

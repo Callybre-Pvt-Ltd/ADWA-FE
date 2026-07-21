@@ -7,7 +7,7 @@ const ITEMS = [
   { path: '/', label: 'Home', hindi: 'होम', icon: Home },
   { path: '/apply', label: 'Apply', hindi: 'आवेदन', icon: FileText },
   { path: '/status', label: 'Track', hindi: 'ट्रैक', icon: Search },
-  { path: '/verify/ADWA-CARD-001', label: 'Verify', hindi: 'जांच', icon: QrCode },
+  { path: '/verify', label: 'Verify', hindi: 'जांच', icon: QrCode },
   { path: '/support', label: 'Help', hindi: 'सहायता', icon: Headphones },
 ] as const
 

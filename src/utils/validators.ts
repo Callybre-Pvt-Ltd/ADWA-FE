@@ -64,15 +64,16 @@ export const driverDetailsSchema = z.object({
     .max(60, msg('Experience value is too high', 'अनुभव बहुत अधिक है')),
 })
 
-const optionalFile = z.instanceof(File).optional()
+const requiredFile = (en: string, hi: string) =>
+  z.instanceof(File, msg(en, hi))
 
 export const documentUploadSchema = z.object({
-  driverPhoto: optionalFile,
-  aadhaarFront: optionalFile,
-  aadhaarBack: optionalFile,
-  licenseFront: optionalFile,
-  licenseBack: optionalFile,
-  vehicleRc: optionalFile,
+  driverPhoto: requiredFile('Upload your photo', 'अपनी फोटो अपलोड करें'),
+  aadhaarFront: requiredFile('Upload Aadhaar card front', 'आधार कार्ड (आगे) अपलोड करें'),
+  aadhaarBack: requiredFile('Upload Aadhaar card back', 'आधार कार्ड (पीछे) अपलोड करें'),
+  licenseFront: requiredFile('Upload driving licence front', 'ड्राइविंग लाइसेंस (आगे) अपलोड करें'),
+  licenseBack: requiredFile('Upload driving licence back', 'ड्राइविंग लाइसेंस (पीछे) अपलोड करें'),
+  vehicleRc: requiredFile('Upload vehicle RC', 'वाहन RC अपलोड करें'),
 })
 
 export const contactFormSchema = z.object({

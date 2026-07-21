@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 export interface FileUploadZoneProps {
   label: string
   accept: string
-  maxSizeMB: number
+  maxSizeMB?: number
   onFileSelect: (file: File) => void
   onFileRemove?: () => void
   preview?: string
@@ -36,7 +36,7 @@ export function FileUploadZone({
   const handleFile = useCallback(
     (file: File) => {
       setLocalError(null)
-      if (file.size > maxSizeMB * 1024 * 1024) {
+      if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
         setLocalError(`File must be under ${maxSizeMB}MB`)
         return
       }
@@ -120,7 +120,7 @@ export function FileUploadZone({
               <Upload className="h-6 w-6" />
             </div>
             <p className="text-base font-semibold text-neutral-800 text-center">Tap to upload file</p>
-            <p className="text-sm text-neutral-600 mt-1">Max {maxSizeMB}MB</p>
+            {maxSizeMB && <p className="text-sm text-neutral-600 mt-1">Max {maxSizeMB}MB</p>}
           </>
         )}
         {fileName && !preview && (

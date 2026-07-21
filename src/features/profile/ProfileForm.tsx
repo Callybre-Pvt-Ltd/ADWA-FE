@@ -95,8 +95,13 @@ export default function ProfileForm({ defaultValues }: ProfileFormProps) {
           <p className="mt-1 text-sm text-red-600">{errors.mobile.message}</p>
         )}
       </div>
-      <Button type="submit" disabled={!isDirty || updateMutation.isPending}>
-        {updateMutation.isPending ? "Saving..." : "Save Profile"}
+      <Button
+        type="submit"
+        disabled={!isDirty}
+        loading={updateMutation.isPending}
+        loadingText="Saving…"
+      >
+        Save Profile
       </Button>
     </form>
   );

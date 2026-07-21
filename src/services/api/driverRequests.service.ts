@@ -5,6 +5,7 @@ import type { APIResponse } from '@/types/api.types'
 import type {
   DriverFilters,
   DriverRequest,
+  RecoveredApplication,
   RequestStatus,
   TrackApplicationResult,
 } from '@/types/driver.types'
@@ -80,6 +81,17 @@ export const driverRequestsService = {
     }
   },
 
+  async recoverReference(mobile: string, dob: string): Promise<RecoveredApplication[]> {
+    try {
+      const { data } = await apiClient.get<APIResponse<ApiDriverRequest[]>>(
+        `/driver-requests/recover-reference${buildQueryParams({ mobile, dob })}`,
+      )
+      return unwrapResponse(data).map((item) => toCamelCase<RecoveredApplication>(item))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
   async list(filters?: DriverFilters): Promise<DriverRequest[]> {
     try {
       const params: Record<string, string | number | undefined> = {
@@ -124,14 +136,14 @@ export const driverRequestsService = {
 
   async forward(
     id: string,
-    verificationRemarks: string,
-    paymentProof: File,
+    verificationRemarks?: string,
+    paymentProof?: File,
     diNotes?: string,
   ): Promise<DriverRequest> {
     try {
       const formData = new FormData()
-      formData.append('verification_remarks', verificationRemarks)
-      formData.append('payment_proof', paymentProof)
+      if (verificationRemarks) formData.append('verification_remarks', verificationRemarks)
+      if (paymentProof) formData.append('payment_proof', paymentProof)
       if (diNotes) formData.append('di_notes', diNotes)
 
       const { data } = await apiClient.post<APIResponse<ApiDriverRequest>>(

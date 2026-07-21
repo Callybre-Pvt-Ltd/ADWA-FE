@@ -79,7 +79,7 @@ export function IdCardGenerationPanel() {
   }
 
   const handleGenerate = () => {
-    if (!selectedCard || !form) return
+    if (generate.isPending || !selectedCard || !form) return
     generate.mutate(
       { cardId: selectedCard.id, payload: formToPayload(form) },
       { onSuccess: () => { toast.success(d('idCard.idGenerated')); void refetch() } },
@@ -142,6 +142,8 @@ export function IdCardGenerationPanel() {
           variant="outline"
           className="flex-1 gap-2 cursor-pointer w-full"
           onClick={() => actionsRef.current?.print()}
+          loading={snapshotLoading}
+          loadingText={d('idCard.generating')}
         >
           <Printer size={15} /> {d('idCard.printCard')}
         </Button>
@@ -149,6 +151,8 @@ export function IdCardGenerationPanel() {
           variant="outline"
           className="flex-1 gap-2 cursor-pointer w-full"
           onClick={() => actionsRef.current?.downloadFront()}
+          loading={snapshotLoading}
+          loadingText={d('idCard.generating')}
         >
           <Download size={15} /> {d('idCard.downloadPng')}
         </Button>
@@ -182,6 +186,7 @@ export function IdCardGenerationPanel() {
                   type="file"
                   accept="image/*"
                   className="flex-1"
+                  disabled={uploadPhoto.isPending}
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file && selectedCard) {
@@ -194,10 +199,11 @@ export function IdCardGenerationPanel() {
                   size="sm"
                   className="gap-1"
                   onClick={() => photoInputRef.current?.click()}
-                  disabled={uploadPhoto.isPending}
+                  loading={uploadPhoto.isPending}
+                  loadingText="Uploading…"
                 >
                   <Upload size={14} />
-                  {uploadPhoto.isPending ? 'Uploading...' : 'Upload'}
+                  Upload
                 </Button>
               </div>
             </div>
@@ -206,9 +212,11 @@ export function IdCardGenerationPanel() {
         <Button
           className="w-full cursor-pointer"
           onClick={handleGenerate}
-          disabled={!form || generate.isPending || !snapshot?.hasPhoto}
+          loading={generate.isPending}
+          loadingText={d('idCard.generating')}
+          disabled={!form || !snapshot?.hasPhoto}
         >
-          {generate.isPending ? d('idCard.generating') : d('idCard.generatePdf')}
+          {d('idCard.generatePdf')}
         </Button>
       </div>
     </div>

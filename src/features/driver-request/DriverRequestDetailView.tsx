@@ -40,6 +40,7 @@ const labelTranslations: Record<string, { en: string; hi: string }> = {
   'State': { en: 'State', hi: 'राज्य' },
   'Pincode': { en: 'Pincode', hi: 'पिनकोड' },
   'Full address': { en: 'Full address', hi: 'पूरा पता' },
+  'Aadhaar number': { en: 'Aadhaar number', hi: 'आधार नंबर' },
   'License number': { en: 'License number', hi: 'लाइसेंस नंबर' },
   'License issue date': { en: 'License issue date', hi: 'लाइसेंस जारी करने की तिथि' },
   'License expiry date': { en: 'License expiry date', hi: 'लाइसेंस समाप्ति तिथि' },
@@ -187,6 +188,7 @@ function buildAddressRows(r: DriverRequest): DetailRow[] {
 
 function buildProfessionalRows(r: DriverRequest): DetailRow[] {
   return [
+    { label: 'Aadhaar number', value: r.aadharNumber },
     { label: 'License number', value: r.licenseNumber },
     {
       label: 'License issue date',

@@ -11,7 +11,6 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
 import { AppDrawer } from '@/components/shared/AppDrawer'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SkeletonTable } from '@/components/shared/SkeletonTable'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -43,7 +42,6 @@ export default function RequestsPage() {
   const [forwardOpen, setForwardOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [verificationRemarks, setVerificationRemarks] = useState('')
-  const [diNotes, setDiNotes] = useState('')
   const [paymentProof, setPaymentProof] = useState<File | null>(null)
 
   const filters = status === 'all' ? undefined : { status: status as RequestStatus }
@@ -73,23 +71,26 @@ export default function RequestsPage() {
   }
 
   const handleForward = () => {
-    if (!selected || !paymentProof || !verificationRemarks || selected.registrationConflict) return
+    if (forwardApp.isPending || !selected || selected.registrationConflict) return
     forwardApp.mutate(
-      { id: selected.id, verificationRemarks, paymentProof, diNotes: diNotes || undefined },
+      {
+        id: selected.id,
+        verificationRemarks: verificationRemarks.trim() || undefined,
+        paymentProof: paymentProof ?? undefined,
+      },
       {
         onSuccess: () => {
           setForwardOpen(false)
           setSelectedId(null)
           setPaymentProof(null)
           setVerificationRemarks('')
-          setDiNotes('')
         },
       },
     )
   }
 
   const handleReject = () => {
-    if (!selected || !rejectReason) return
+    if (rejectApp.isPending || !selected || !rejectReason) return
     rejectApp.mutate(
       { id: selected.id, reason: rejectReason },
       {
@@ -135,6 +136,7 @@ export default function RequestsPage() {
       <AppDrawer
         open={!!selectedId}
         onClose={closeDrawer}
+        loading={forwardApp.isPending || rejectApp.isPending}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         description={selected?.referenceNumber}
         footer={selected?.status === 'PENDING_DISTRICT_REVIEW' && !detailLoading && (
@@ -165,27 +167,19 @@ export default function RequestsPage() {
         )}
       </AppDrawer>
 
-      <ConfirmDialog
-        open={rejectOpen}
-        onOpenChange={setRejectOpen}
-        title={isHi ? 'आवेदन अस्वीकार करें?' : 'Reject Application?'}
-        description={rejectReason || (isHi ? 'अस्वीकृति का कारण प्रदान करें और पुष्टि करें।' : 'Provide a reason in the drawer and confirm.')}
-        confirmLabel={isHi ? 'अस्वीकार करें' : 'Reject'}
-        variant="destructive"
-        onConfirm={handleReject}
-        loading={rejectApp.isPending}
-      />
-
       {forwardOpen && selected && (
         <AppDrawer
           open={forwardOpen}
           onClose={() => setForwardOpen(false)}
+          loading={forwardApp.isPending}
           title={isHi ? 'एडमिन को अग्रेषित करें' : 'Forward to Admin'}
           footer={
             <Button
               className="w-full cursor-pointer"
               onClick={handleForward}
-              disabled={forwardApp.isPending || !paymentProof || !verificationRemarks || Boolean(selected?.registrationConflict)}
+              loading={forwardApp.isPending}
+              loadingText={isHi ? 'अग्रेषित हो रहा है…' : 'Forwarding…'}
+              disabled={Boolean(selected?.registrationConflict)}
             >
               {isHi ? 'अग्रेषित करें' : 'Forward'}
             </Button>
@@ -193,15 +187,15 @@ export default function RequestsPage() {
         >
           <div className="space-y-3">
             <div>
-              <Label>{isHi ? 'सत्यापन टिप्पणियां' : 'Verification remarks'}</Label>
-              <Textarea value={verificationRemarks} onChange={(e) => setVerificationRemarks(e.target.value)} />
+              <Label>{isHi ? 'नोट्स (वैकल्पिक)' : 'Notes (optional)'}</Label>
+              <Textarea
+                value={verificationRemarks}
+                onChange={(e) => setVerificationRemarks(e.target.value)}
+                placeholder={isHi ? 'एडमिन के लिए कोई टिप्पणी…' : 'Any remarks for the admin…'}
+              />
             </div>
             <div>
-              <Label>{isHi ? 'डीआई नोट्स (वैकल्पिक)' : 'DI notes (optional)'}</Label>
-              <Textarea value={diNotes} onChange={(e) => setDiNotes(e.target.value)} />
-            </div>
-            <div>
-              <Label>{isHi ? 'भुगतान स्क्रीनशॉट' : 'Payment screenshot'}</Label>
+              <Label>{isHi ? 'भुगतान स्क्रीनशॉट (वैकल्पिक)' : 'Payment screenshot (optional)'}</Label>
               <Input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)} />
             </div>
           </div>
@@ -212,13 +206,16 @@ export default function RequestsPage() {
         <AppDrawer
           open={rejectOpen}
           onClose={() => setRejectOpen(false)}
+          loading={rejectApp.isPending}
           title={isHi ? 'आवेदन अस्वीकार करें' : 'Reject Application'}
           footer={
             <Button
               variant="destructive"
               className="w-full cursor-pointer"
               onClick={handleReject}
-              disabled={rejectApp.isPending || !rejectReason}
+              loading={rejectApp.isPending}
+              loadingText={isHi ? 'अस्वीकार हो रहा है…' : 'Rejecting…'}
+              disabled={!rejectReason}
             >
               {isHi ? 'अस्वीकार करें' : 'Reject'}
             </Button>

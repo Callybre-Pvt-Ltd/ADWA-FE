@@ -111,7 +111,7 @@ export default function DistrictLoginPage() {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/district/dashboard'
+  const from = (location.state as { from?: string } | null)?.from ?? '/district/requests'
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(getLoginSchema(isHi)),
@@ -128,7 +128,7 @@ export default function DistrictLoginPage() {
   })
 
   if (isAuthenticated('district')) {
-    return <Navigate to="/district/dashboard" replace />
+    return <Navigate to="/district/requests" replace />
   }
 
   return (
@@ -188,8 +188,13 @@ export default function DistrictLoginPage() {
                 {errors.password && <p className="mt-1 text-xs text-red-500 font-semibold">{errors.password.message}</p>}
               </div>
 
-              <Button type="submit" className="w-full h-11 text-sm font-bold bg-blue-900 hover:bg-blue-800 transition-colors cursor-pointer" disabled={mutation.isPending}>
-                {mutation.isPending ? (isHi ? 'साइन इन किया जा रहा है...' : 'Signing in...') : (isHi ? 'साइन इन करें' : 'Sign in')}
+              <Button
+                type="submit"
+                className="w-full h-11 text-sm font-bold bg-blue-900 hover:bg-blue-800 transition-colors cursor-pointer"
+                loading={mutation.isPending}
+                loadingText={isHi ? 'साइन इन किया जा रहा है...' : 'Signing in...'}
+              >
+                {isHi ? 'साइन इन करें' : 'Sign in'}
               </Button>
             </form>
           </motion.div>

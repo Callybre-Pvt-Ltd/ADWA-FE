@@ -76,7 +76,7 @@ export default function ApplicationsPage() {
   }
 
   const handleConfirm = () => {
-    if (!selected || !confirmAction) return
+    if (isPending || !selected || !confirmAction) return
     if (confirmAction === 'approve') {
       approve.mutate(selected.id, {
         onSuccess: (result) => {
@@ -133,6 +133,7 @@ export default function ApplicationsPage() {
       <AppDrawer
         open={!!selectedId}
         onClose={closeDrawer}
+        loading={isPending}
         title={selected?.name ?? t('dashboard.loading')}
         description={selected?.referenceNumber ? `Ref: ${selected.referenceNumber}` : undefined}
         footer={selected && !detailLoading && !approvedQr && (
@@ -165,14 +166,16 @@ export default function ApplicationsPage() {
               <div className="flex gap-2">
                 {confirmAction ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>{t('apps.cancel')}</Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)} disabled={isPending}>{t('apps.cancel')}</Button>
                     <Button
                       variant={confirmAction === 'reject' ? 'destructive' : 'default'}
                       className="flex-1"
                       onClick={handleConfirm}
-                      disabled={isPending || (confirmAction === 'reject' && rejectReason.trim().length < 3) || (confirmAction === 'approve' && hasConflict)}
+                      loading={isPending}
+                      loadingText={t('apps.processing')}
+                      disabled={(confirmAction === 'reject' && rejectReason.trim().length < 3) || (confirmAction === 'approve' && hasConflict)}
                     >
-                      {isPending ? t('apps.processing') : confirmAction === 'approve' ? t('dashboard.approve') : t('dashboard.reject')}
+                      {confirmAction === 'approve' ? t('dashboard.approve') : t('dashboard.reject')}
                     </Button>
                   </>
                 ) : (

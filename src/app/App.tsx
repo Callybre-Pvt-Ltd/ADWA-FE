@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
 import { AuthProvider } from '@/context/AuthContext'
@@ -57,25 +57,31 @@ const router = createBrowserRouter([
   },
   {
     element: <DistrictLayout />,
-    children: districtRoutes.map((route) => ({
-      path: route.path,
-      element: (
-        <Suspense fallback={<PageLoader />}>
-          <route.component />
-        </Suspense>
-      ),
-    })),
+    children: [
+      { path: '/district/dashboard', element: <Navigate to="/district/requests" replace /> },
+      ...districtRoutes.map((route) => ({
+        path: route.path,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <route.component />
+          </Suspense>
+        ),
+      })),
+    ],
   },
   {
     element: <AdminLayout />,
-    children: adminRoutes.map((route) => ({
-      path: route.path,
-      element: (
-        <Suspense fallback={<PageLoader />}>
-          <route.component />
-        </Suspense>
-      ),
-    })),
+    children: [
+      { path: '/admin/dashboard', element: <Navigate to="/admin/applications" replace /> },
+      ...adminRoutes.map((route) => ({
+        path: route.path,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <route.component />
+          </Suspense>
+        ),
+      })),
+    ],
   },
 ])
 

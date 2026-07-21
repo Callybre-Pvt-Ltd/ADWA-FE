@@ -12,7 +12,7 @@ import { PageHero } from '@/components/shared/PageHero'
 import { Bell } from 'lucide-react'
 
 export default function NotificationsPage() {
-  const { data, isLoading, isError, refetch } = useNotifications()
+  const { data, isLoading, isFetching, isError, refetch } = useNotifications()
   const markRead = useMarkNotificationRead()
   const [tab, setTab] = useState('all')
 
@@ -35,7 +35,7 @@ export default function NotificationsPage() {
             </TabsList>
             <TabsContent value={tab} className="mt-6">
               {isLoading && <SkeletonCard />}
-              {isError && <ErrorState onRetry={() => refetch()} />}
+              {isError && <ErrorState onRetry={() => refetch()} loading={isFetching} />}
               {!isLoading && !isError && !filtered?.length && <EmptyState icon={Bell} title="No notifications" />}
               <div className="space-y-3">
                 {filtered?.map((n) => (
@@ -50,7 +50,14 @@ export default function NotificationsPage() {
                         <p className="mt-2 text-xs text-neutral-500">{formatDate(n.createdAt)}</p>
                       </div>
                       {!n.read && (
-                        <Button size="sm" variant="outline" onClick={() => markRead.mutate(n.id)} disabled={markRead.isPending}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => markRead.mutate(n.id)}
+                          loading={markRead.isPending && markRead.variables === n.id}
+                          loadingText="Marking…"
+                          disabled={markRead.isPending}
+                        >
                           Mark read
                         </Button>
                       )}

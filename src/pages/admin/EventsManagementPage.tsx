@@ -43,7 +43,11 @@ export default function EventsManagementPage() {
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => publishEvent.mutate(e.id)}
+                  onClick={() => {
+                    if (!publishEvent.isPending) publishEvent.mutate(e.id)
+                  }}
+                  loading={publishEvent.isPending && publishEvent.variables === e.id}
+                  loadingText="Publishing…"
                   disabled={publishEvent.isPending}
                 >
                   Publish

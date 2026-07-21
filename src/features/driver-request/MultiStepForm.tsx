@@ -4,11 +4,11 @@ import { FormProvider, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, ArrowRight, User, Car, ClipboardCheck } from 'lucide-react'
+import { CheckCircle, ArrowRight, User, Car, Images, ClipboardCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSubmitDriverRequest } from '@/hooks/useDriverRequests'
 import {
-  driverPersonalSchema, driverDetailsSchema,
+  driverPersonalSchema, driverDetailsSchema, documentUploadSchema,
   type DriverRequestFormData,
 } from '@/utils/validators'
 import { fadeInUp } from '@/utils/animations'
@@ -16,19 +16,22 @@ import { ApplicationStepper, type StepConfig } from './ApplicationStepper'
 import { FormBottomBar } from '@/components/shared/FormBottomBar'
 import StepPersonal from './StepPersonal'
 import StepDriverDetails from './StepDriverDetails'
+import StepUploads from './StepUploads'
 import StepReview from './StepReview'
 import { cn } from '@/utils/cn'
 
 const FORM_STEPS: StepConfig[] = [
   { id: 1, labelHi: 'व्यक्तिगत जानकारी', labelEn: 'Personal Info',    icon: User },
   { id: 2, labelHi: 'व्यावसायिक जानकारी', labelEn: 'Driver Details', icon: Car },
-  { id: 3, labelHi: 'समीक्षा करें',       labelEn: 'Review',          icon: ClipboardCheck },
+  { id: 3, labelHi: 'फोटो और दस्तावेज़',  labelEn: 'Images & Documents', icon: Images },
+  { id: 4, labelHi: 'समीक्षा करें',       labelEn: 'Review',          icon: ClipboardCheck },
 ]
 
 const schemas = [
   driverPersonalSchema,
   driverDetailsSchema,
-  driverPersonalSchema.merge(driverDetailsSchema),
+  documentUploadSchema,
+  driverPersonalSchema.merge(driverDetailsSchema).merge(documentUploadSchema),
 ]
 
 export default function MultiStepForm() {
@@ -41,7 +44,7 @@ export default function MultiStepForm() {
 
   const form = useForm<DriverRequestFormData>({
     resolver: zodResolver(
-      driverPersonalSchema.merge(driverDetailsSchema),
+      driverPersonalSchema.merge(driverDetailsSchema).merge(documentUploadSchema),
     ) as Resolver<DriverRequestFormData>,
     mode: 'onChange',
     defaultValues: {
@@ -64,8 +67,12 @@ export default function MultiStepForm() {
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const submit = form.handleSubmit(async (data) => {
-    const result = await submitRequest.mutateAsync(data)
-    setReferenceNumber(result.referenceNumber ?? result.id)
+    try {
+      const result = await submitRequest.mutateAsync(data)
+      setReferenceNumber(result.referenceNumber ?? result.id)
+    } catch {
+      // The mutation hook displays the API error toast.
+    }
   })
 
   const isLastStep = step === FORM_STEPS.length - 1
@@ -159,7 +166,15 @@ export default function MultiStepForm() {
               >
                 {step === 0 && <StepPersonal />}
                 {step === 1 && <StepDriverDetails />}
-                {step === 2 && <StepReview goToStep={setStep} declared={declared} setDeclared={setDeclared} />}
+                {step === 2 && <StepUploads />}
+                {step === 3 && (
+                  <StepReview
+                    goToStep={setStep}
+                    declared={declared}
+                    setDeclared={setDeclared}
+                    submitting={submitRequest.isPending}
+                  />
+                )}
               </motion.div>
             </AnimatePresence>
 

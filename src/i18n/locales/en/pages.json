@@ -201,16 +201,16 @@
       "selectDistrictFirst": "Select district first"
     },
     "docs": {
-      "noteText": "All documents must be in JPG/PNG format, under 300KB each. Ensure documents are clear and fully visible.",
+      "noteText": "All documents are required. Upload clear JPG/PNG photos or scans — ensure each document is fully visible.",
       "uploaded": "Uploaded",
       "clickUpload": "Click to upload",
       "photo": "Passport Size Photo",
-      "photoSize": "Size: 1.48in × 1.85in, Under 300KB",
+      "photoSize": "Size: 1.48in × 1.85in",
       "signature": "Signature",
-      "signatureSize": "Size: 2cm × 4.5cm, Under 300KB",
+      "signatureSize": "Size: 2cm × 4.5cm",
       "aadhaarFront": "Aadhaar Card Front",
       "aadhaarBack": "Aadhaar Card Back",
-      "docSize": "Size: 8.5cm × 5.4cm, Under 300KB",
+      "docSize": "Size: 8.5cm × 5.4cm",
       "licenseFront": "Driving Licence Front",
       "licenseBack": "Driving Licence Back",
       "vehicleRc": "Vehicle RC"
@@ -256,6 +256,15 @@
     "applicant": "Applicant",
     "notFoundTitle": "Record Not Found",
     "notFoundMsg": "No application found with the provided reference number. Please verify and try again.",
+    "recover": {
+      "link": "Forgot your reference number?",
+      "title": "Recover your reference number",
+      "description": "Enter the mobile number and date of birth you used in your application. We will find your reference number for you.",
+      "submit": "Find my reference number",
+      "noResults": "No application matches this mobile number and date of birth. Please check the details or contact your district office.",
+      "resultsTitle": "Applications found:",
+      "useThis": "Track this application"
+    },
     "stepCountLabel": "Step {{current}} of {{total}} completed",
     "steps": {
       "submitted": "Application Submitted",
@@ -366,27 +375,27 @@
     "docs": [
       {
         "item": "Passport Size Photo",
-        "spec": "JPG/PNG, 1.48in × 1.85in, under 300KB"
+        "spec": "JPG/PNG, 1.48in × 1.85in"
       },
       {
         "item": "Signature",
-        "spec": "JPG/PNG, 2cm × 4.5cm, under 300KB"
+        "spec": "JPG/PNG, 2cm × 4.5cm"
       },
       {
         "item": "Aadhaar Card (Front)",
-        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+        "spec": "JPG/PNG, 8.5cm × 5.4cm"
       },
       {
         "item": "Aadhaar Card (Back)",
-        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+        "spec": "JPG/PNG, 8.5cm × 5.4cm"
       },
       {
         "item": "Driving License (Front)",
-        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+        "spec": "JPG/PNG, 8.5cm × 5.4cm"
       },
       {
         "item": "Driving License (Back)",
-        "spec": "JPG/PNG, 8.5cm × 5.4cm, under 300KB"
+        "spec": "JPG/PNG, 8.5cm × 5.4cm"
       }
     ],
     "renewal": [
@@ -452,6 +461,62 @@
     "refPlaceholder": "e.g. ADWA-2025-ABC123",
     "amount": "Amount (INR)",
     "payNow": "Proceed to Payment"
+  },
+  "verify": {
+    "title": "Verify Membership Card",
+    "subtitle": "Confirm that a driver holds a valid ADWA membership card.",
+    "subtitleResult": "Official ADWA membership verification result.",
+    "formTitle": "Enter verification code",
+    "formDescription": "Scan the QR on the ID card, or paste the verification link or code below.",
+    "codeLabel": "Verification link or code",
+    "codePlaceholder": "Paste link or code here",
+    "submit": "Verify card",
+    "error": "We could not verify this code. Please try again.",
+    "result": {
+      "officialBadge": "Official ADWA verification",
+      "driverPhoto": "Driver photo",
+      "memberNo": "Member No. {{number}}",
+      "districtLine": "{{district}} District",
+      "notFoundTitle": "Card not found",
+      "notFoundMessage": "This QR code or verification link is not linked to any ADWA membership card. Please check the code and try again.",
+      "verifyAnother": "Verify another card",
+      "footerNote": "This is an official verification from All Drivers Welfare Association. For disputes, contact your district office.",
+      "status": {
+        "VALID": "Verified member",
+        "EXPIRED": "Membership expired",
+        "REVOKED": "Card suspended",
+        "NOT_FOUND": "Not found"
+      },
+      "message": {
+        "VALID": "This driver is a verified, active member of ADWA.",
+        "EXPIRED": "This membership card has expired and is no longer valid.",
+        "EXPIRED_ON": "This membership card expired on {{date}} and is no longer valid.",
+        "REVOKED": "This membership card has been suspended or revoked by ADWA.",
+        "NOT_FOUND": "No membership record matches this verification code."
+      },
+      "groups": {
+        "membership": "Membership details",
+        "driving": "Driving details",
+        "personal": "Personal details"
+      },
+      "fields": {
+        "cardNumber": "Card number",
+        "issueDate": "Issue date",
+        "validUntil": "Valid until",
+        "designation": "Designation",
+        "license": "License number",
+        "vehicle": "Vehicle number",
+        "vehicleType": "Vehicle type",
+        "fatherOrSpouse": "Father / spouse",
+        "dateOfBirth": "Date of birth",
+        "bloodGroup": "Blood group",
+        "mobile": "Mobile",
+        "email": "Email",
+        "city": "City / village",
+        "tehsil": "Tehsil / PS",
+        "state": "State"
+      }
+    }
   },
   "memberDashboard": {
     "subtitle": "About, rules, team, events and more — all in one place."

@@ -10,10 +10,10 @@ interface IDCardActionsProps {
 export default function IDCardActions({ onPrint, onDownload, loading }: IDCardActionsProps) {
   return (
     <div className="flex flex-wrap gap-3">
-      <Button variant="outline" onClick={onPrint} disabled={loading}>
+      <Button variant="outline" onClick={onPrint} loading={loading} loadingText="Preparing…">
         <Printer className="h-4 w-4" /> Print
       </Button>
-      <Button onClick={onDownload} disabled={loading}>
+      <Button onClick={onDownload} loading={loading} loadingText="Preparing…">
         <Download className="h-4 w-4" /> Download
       </Button>
     </div>

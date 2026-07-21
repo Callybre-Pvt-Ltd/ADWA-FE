@@ -21,7 +21,8 @@ export function FormBottomBar({ onBack, onNext, nextLabel, showBack, isLoading, 
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center justify-center gap-2 px-5 h-12 rounded-xl border-2 border-neutral-200 text-neutral-700 font-semibold hover:border-neutral-400 transition-colors order-2 sm:order-none w-full sm:w-auto"
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 px-5 h-12 rounded-xl border-2 border-neutral-200 text-neutral-700 font-semibold hover:border-neutral-400 transition-colors order-2 sm:order-none w-full sm:w-auto disabled:pointer-events-none disabled:opacity-50"
         >
           <ChevronLeft size={18} /> {backLabel}
         </button>
@@ -33,6 +34,7 @@ export function FormBottomBar({ onBack, onNext, nextLabel, showBack, isLoading, 
         type="button"
         onClick={onNext}
         disabled={isLoading || disabled}
+        aria-busy={isLoading || undefined}
         className={cn(
           'flex items-center justify-center gap-2 px-8 h-12 rounded-xl text-white font-bold transition-all w-full sm:w-auto',
           isSubmit ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700',
@@ -41,7 +43,10 @@ export function FormBottomBar({ onBack, onNext, nextLabel, showBack, isLoading, 
         )}
       >
         {isLoading ? (
-          <Loader2 size={18} className="animate-spin" />
+          <>
+            <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+            {nextLabel}
+          </>
         ) : (
           <>
             {nextLabel}

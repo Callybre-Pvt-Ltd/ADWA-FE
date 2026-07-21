@@ -30,6 +30,7 @@ export function useMarkNotificationRead() {
   return useMutation({
     mutationFn: (id: string) => notificationsService.markRead(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY }),
+    onError: (err: Error) => toast.error(`Could not mark notification as read: ${err.message}`),
   })
 }
 

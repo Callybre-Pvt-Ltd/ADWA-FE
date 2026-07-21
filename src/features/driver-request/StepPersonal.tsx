@@ -11,6 +11,7 @@ import { usePublicDistricts } from '@/hooks/useDistricts'
 import type { DriverRequestFormData } from '@/utils/validators'
 import { FormField, FormSection } from './FormField'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
+import { Button } from '@/components/ui/button'
 
 const MP_STATE = 'Madhya Pradesh'
 
@@ -24,7 +25,7 @@ export default function StepPersonal() {
 
   const { register, setValue, watch, formState: { errors } } = useFormContext<DriverRequestFormData>()
   const districtId = watch('districtId')
-  const { data: districts, isLoading } = usePublicDistricts()
+  const { data: districts, isLoading, isFetching, isError, refetch } = usePublicDistricts()
 
   useEffect(() => {
     setValue('state', MP_STATE, { shouldValidate: true })
@@ -102,6 +103,23 @@ export default function StepPersonal() {
       <FormSection icon={<MapPin size={16} />} title={t('apply.addressDetails')}>
         {isLoading ? (
           <SkeletonCard />
+        ) : isError ? (
+          <div className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
+            <p className="text-sm font-semibold text-red-800">
+              {isHi ? 'जिलों की सूची लोड नहीं हो सकी।' : 'Could not load the district list.'}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => refetch()}
+              loading={isFetching}
+              loadingText={isHi ? 'फिर कोशिश हो रही है…' : 'Trying again…'}
+            >
+              {isHi ? 'फिर कोशिश करें' : 'Try again'}
+            </Button>
+          </div>
         ) : (
           <FormField label={f('district')} required error={errors.districtId?.message}>
             <DistrictSearchSelect

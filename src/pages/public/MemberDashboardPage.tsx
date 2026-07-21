@@ -17,11 +17,10 @@ export default function MemberDashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {links.map((route) => {
               const Icon = getIcon(route.icon)
-              const path = route.key === 'verify' ? '/verify/ADWA-CARD-001' : route.path
               return (
                 <Link
                   key={route.key}
-                  to={path}
+                  to={route.path.replace('/:id?', '')}
                   className="surface-card flex items-center gap-4 p-5 group transition-all duration-200 hover:shadow-md hover:border-orange-200"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-royal-100 text-royal-700">

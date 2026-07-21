@@ -13,7 +13,9 @@ interface PaymentWorkflowCardProps {
 export default function PaymentWorkflowCard({ payment, className }: PaymentWorkflowCardProps) {
   const updatePayment = useUpdatePayment()
 
-  const confirm = () => updatePayment.mutate({ id: payment.id, status: 'confirmed' })
+  const confirm = () => {
+    if (!updatePayment.isPending) updatePayment.mutate({ id: payment.id, status: 'confirmed' })
+  }
 
   return (
     <div className={cn('rounded-lg border border-neutral-200 bg-white p-4', className)}>
@@ -31,8 +33,13 @@ export default function PaymentWorkflowCard({ payment, className }: PaymentWorkf
         </p>
       )}
       {(payment.status === 'collected' || payment.status === 'waiting_confirmation') && (
-        <Button className="mt-4 w-full sm:w-auto" onClick={confirm} disabled={updatePayment.isPending}>
-          {updatePayment.isPending ? 'Confirming...' : 'Confirm Payment'}
+        <Button
+          className="mt-4 w-full sm:w-auto"
+          onClick={confirm}
+          loading={updatePayment.isPending}
+          loadingText="Confirming…"
+        >
+          Confirm Payment
         </Button>
       )}
     </div>

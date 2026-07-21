@@ -39,7 +39,7 @@ export function mapDriverRequest(raw: ApiDriverRequest): DriverRequest {
     districtId: item.districtId,
     thana: item.tehsil ?? '',
     bloodGroup: item.bloodGroup ?? '',
-    aadharNumber: '',
+    aadharNumber: item.aadhaarNumber ?? '',
     licenseNumber: item.licenseNumber ?? '',
     licenseIssueDate: item.licenseIssueDate ?? undefined,
     licenseType: item.vehicleType ?? '',

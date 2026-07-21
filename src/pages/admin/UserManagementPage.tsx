@@ -46,6 +46,7 @@ export default function UserManagementPage() {
   const deactivateUser = useDeactivateUser()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
+  const saving = createUser.isPending || updateUser.isPending || deactivateUser.isPending
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -71,6 +72,7 @@ export default function UserManagementPage() {
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
+    if (saving) return
     if (editing) {
       await updateUser.mutateAsync({
         id: editing.id,
@@ -151,6 +153,7 @@ export default function UserManagementPage() {
       <AppDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        loading={saving}
         title={editing ? (isHi ? 'जिला प्रभारी संपादित करें' : 'Edit District Incharge') : (isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge')}
         footer={
           <div className="flex gap-2">
@@ -158,20 +161,28 @@ export default function UserManagementPage() {
               <Button
                 variant="destructive"
                 className="flex-1 cursor-pointer"
-                onClick={() => {
-                  void deactivateUser.mutateAsync(editing.id).then(() => setDrawerOpen(false))
-                }}
+                loading={deactivateUser.isPending}
+                loadingText={isHi ? 'निष्क्रिय हो रहा है…' : 'Deactivating…'}
+                disabled={saving}
+                onClick={() => deactivateUser.mutate(editing.id, { onSuccess: () => setDrawerOpen(false) })}
               >
                 {isHi ? 'निष्क्रिय करें' : 'Deactivate'}
               </Button>
             )}
-            <Button onClick={onSubmit} className="flex-1 cursor-pointer">
+            <Button
+              onClick={onSubmit}
+              className="flex-1 cursor-pointer"
+              loading={createUser.isPending || updateUser.isPending}
+              loadingText={isHi ? 'सहेजा जा रहा है…' : 'Saving…'}
+              disabled={saving}
+            >
               {editing ? (isHi ? 'अपडेट करें' : 'Update') : (isHi ? 'बनाएं' : 'Create')}
             </Button>
           </div>
         }
       >
         <form className="space-y-4">
+          <fieldset disabled={saving} className="space-y-4">
           <div>
             <Label htmlFor="fullName">{isHi ? 'पूरा नाम' : 'Full Name'}</Label>
             <Input id="fullName" {...form.register('fullName')} className="mt-1" />
@@ -218,6 +229,7 @@ export default function UserManagementPage() {
               </select>
             </div>
           )}
+          </fieldset>
         </form>
       </AppDrawer>
     </div>

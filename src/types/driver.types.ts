@@ -169,6 +169,14 @@ export type ApplicationStatusHistory = {
   createdAt: string
 }
 
+export type RecoveredApplication = {
+  referenceNumber: string
+  fullName: string
+  status: RequestStatus
+  districtName: string | null
+  createdAt: string
+}
+
 export type TrackApplicationResult = {
   referenceNumber: string
   fullName: string

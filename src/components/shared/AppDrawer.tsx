@@ -16,6 +16,7 @@ export interface AppDrawerProps {
   size?: 'sm' | 'md' | 'lg' | 'full'
   className?: string
   testId?: string
+  loading?: boolean
 }
 
 const sizeClasses = {
@@ -36,8 +37,12 @@ export function AppDrawer({
   size = 'md',
   className,
   testId,
+  loading,
 }: AppDrawerProps) {
   const isBottom = side === 'bottom'
+  const requestClose = () => {
+    if (!loading) onClose()
+  }
 
   return (
     <AnimatePresence>
@@ -48,13 +53,14 @@ export function AppDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-neutral-900/50"
-            onClick={onClose}
+            onClick={requestClose}
             aria-hidden="true"
           />
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-label={title}
+            aria-busy={loading || undefined}
             data-testid={testId}
             {...slideInRight}
             className={cn(
@@ -79,7 +85,7 @@ export function AppDrawer({
                   <p className="mt-1 text-small text-neutral-600">{description}</p>
                 )}
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close drawer">
+              <Button variant="ghost" size="icon" onClick={requestClose} disabled={loading} aria-label="Close drawer">
                 <X className="h-5 w-5" />
               </Button>
             </div>

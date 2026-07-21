@@ -134,6 +134,7 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
+                <fieldset disabled={mutation.isPending} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-xs font-black text-neutral-600 uppercase tracking-wider">{t('contact.name')}</Label>
                   <div className="relative">
@@ -202,12 +203,14 @@ export default function ContactPage() {
 
                 <Button 
                   type="submit" 
-                  disabled={mutation.isPending} 
+                  loading={mutation.isPending}
+                  loadingText={isHi ? 'संदेश भेजा जा रहा है...' : 'Sending Message...'}
                   className="w-full rounded-xl bg-blue-950 hover:bg-blue-900 py-3 text-sm font-black text-white transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 mt-4"
                 >
                   <Send className="h-4 w-4" />
-                  {mutation.isPending ? (isHi ? 'संदेश भेजा जा रहा है...' : 'Sending Message...') : t('contact.send')}
+                  {t('contact.send')}
                 </Button>
+                </fieldset>
               </form>
             )}
           </div>

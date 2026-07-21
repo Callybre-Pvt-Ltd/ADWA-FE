@@ -52,7 +52,7 @@ export default function PaymentsPage() {
   };
 
   const handleCollect = () => {
-    if (!selectedCardId || !amount || !receiptFile) return;
+    if (collectPayment.isPending || !selectedCardId || !amount || !receiptFile) return;
     collectPayment.mutate(
       {
         driverCardId: selectedCardId,
@@ -128,14 +128,17 @@ export default function PaymentsPage() {
           setDrawerOpen(false);
           resetForm();
         }}
+        loading={collectPayment.isPending}
         title="Record Payment Collection"
         footer={
           <Button
             className="w-full"
             onClick={handleCollect}
-            disabled={!canSubmit || collectPayment.isPending}
+            loading={collectPayment.isPending}
+            loadingText="Recording…"
+            disabled={!canSubmit}
           >
-            {collectPayment.isPending ? "Recording..." : "Record Payment"}
+            Record Payment
           </Button>
         }
       >

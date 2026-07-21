@@ -222,7 +222,7 @@ export const publicRoutes: RouteConfig[] = [
   },
   {
     key: 'verify',
-    path: '/verify/:id',
+    path: '/verify/:id?',
     label: 'nav.verify',
     icon: 'QrCode',
     component: lazyPage(() => import('../pages/public/QRVerifyPage')),
@@ -259,17 +259,6 @@ export function getSecondaryPublicRoutes(): RouteConfig[] {
 }
 
 export const districtRoutes: RouteConfig[] = [
-  {
-    key: 'district-dashboard',
-    path: '/district/dashboard',
-    label: 'nav.districtDashboard',
-    icon: 'LayoutDashboard',
-    component: lazyPage(() => import('../pages/district/DashboardPage')),
-    layout: 'district',
-    showInNav: true,
-    showInSidebar: true,
-    meta: { title: 'District Dashboard', requiresRole: 'district' },
-  },
   {
     key: 'district-requests',
     path: '/district/requests',
@@ -339,17 +328,6 @@ export const districtRoutes: RouteConfig[] = [
 ]
 
 export const adminRoutes: RouteConfig[] = [
-  {
-    key: 'admin-dashboard',
-    path: '/admin/dashboard',
-    label: 'nav.adminDashboard',
-    icon: 'LayoutDashboard',
-    component: lazyPage(() => import('../pages/admin/GlobalDashboardPage')),
-    layout: 'admin',
-    showInNav: true,
-    showInSidebar: true,
-    meta: { title: 'Admin Dashboard', requiresRole: 'admin' },
-  },
   {
     key: 'admin-applications',
     path: '/admin/applications',
@@ -426,28 +404,6 @@ export const adminRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: true,
     meta: { title: 'Events Management', requiresRole: 'admin' },
-  },
-  {
-    key: 'admin-notifications',
-    path: '/admin/notifications',
-    label: 'nav.adminNotifications',
-    icon: 'Bell',
-    component: lazyPage(() => import('../pages/admin/NotificationsManagementPage')),
-    layout: 'admin',
-    showInNav: false,
-    showInSidebar: true,
-    meta: { title: 'Notifications Management', requiresRole: 'admin' },
-  },
-  {
-    key: 'admin-audit',
-    path: '/admin/audit',
-    label: 'nav.adminAudit',
-    icon: 'ScrollText',
-    component: lazyPage(() => import('../pages/admin/AuditLogsPage')),
-    layout: 'admin',
-    showInNav: false,
-    showInSidebar: true,
-    meta: { title: 'Audit Logs', requiresRole: 'admin' },
   },
   {
     key: 'admin-profile',

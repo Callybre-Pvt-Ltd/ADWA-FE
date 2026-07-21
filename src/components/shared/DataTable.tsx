@@ -86,7 +86,12 @@ export function DataTable<T>({
     }
   }
 
-  if (!filtered.length && emptyState) return <>{emptyState}</>
+  const isEmpty = filtered.length === 0
+  const emptyContent = emptyState ?? (
+    <p className="py-8 text-center text-sm text-neutral-500">
+      {isHi ? 'कोई डेटा नहीं मिला' : 'No data found'}
+    </p>
+  )
 
   return (
     <div data-testid={testId} className={cn('space-y-4', className)}>
@@ -134,6 +139,13 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
+            {isEmpty && (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-6">
+                  {emptyContent}
+                </td>
+              </tr>
+            )}
             {paged.map((row) => (
               <tr
                 key={getRowKey(row)}
@@ -156,6 +168,9 @@ export function DataTable<T>({
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
+        {isEmpty && (
+          <div className="rounded-lg border border-neutral-200 p-4">{emptyContent}</div>
+        )}
         {paged.map((row) => (
           <div
             key={getRowKey(row)}

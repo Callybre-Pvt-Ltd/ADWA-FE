@@ -70,7 +70,7 @@ export default function DriverManagementPage() {
   }
 
   const handleSuspend = async () => {
-    if (!selected || suspendReason.length < 3) return
+    if (suspend.isPending || !selected || suspendReason.length < 3) return
     await suspend.mutateAsync({ id: selected.id, reason: suspendReason })
     setSuspendOpen(false)
     setSelected(null)
@@ -78,7 +78,7 @@ export default function DriverManagementPage() {
   }
 
   const handleActivate = async () => {
-    if (!selected) return
+    if (activate.isPending || !selected) return
     await activate.mutateAsync(selected.id)
     setSelected(null)
   }
@@ -130,6 +130,7 @@ export default function DriverManagementPage() {
       <AppDrawer
         open={!!selected}
         onClose={() => setSelected(null)}
+        loading={activate.isPending || suspend.isPending}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footer={(canSuspend || canActivate) && (
           <div className="flex gap-2">
@@ -139,7 +140,12 @@ export default function DriverManagementPage() {
               </Button>
             )}
             {canActivate && (
-              <Button className="flex-1 cursor-pointer" onClick={handleActivate} disabled={activate.isPending}>
+              <Button
+                className="flex-1 cursor-pointer"
+                onClick={handleActivate}
+                loading={activate.isPending}
+                loadingText={isHi ? 'सक्रिय हो रहा है…' : 'Activating…'}
+              >
                 {isHi ? 'सक्रिय करें' : 'Activate'}
               </Button>
             )}
@@ -176,6 +182,7 @@ export default function DriverManagementPage() {
       <AppModal
         open={suspendOpen}
         onClose={() => setSuspendOpen(false)}
+        loading={suspend.isPending}
         title={isHi ? 'ड्राइवर को निलंबित करें' : 'Suspend Driver'}
         description={isHi ? `क्या आप ${selected?.name} को निलंबित करना चाहते हैं?` : `Suspend ${selected?.name}?`}
         footer={
@@ -183,9 +190,11 @@ export default function DriverManagementPage() {
             variant="destructive"
             className="w-full cursor-pointer"
             onClick={handleSuspend}
-            disabled={suspendReason.length < 3 || suspend.isPending}
+            loading={suspend.isPending}
+            loadingText={isHi ? 'निलंबित किया जा रहा है…' : 'Suspending…'}
+            disabled={suspendReason.length < 3}
           >
-            {suspend.isPending ? (isHi ? 'निलंबित किया जा रहा है...' : 'Suspending...') : (isHi ? 'निलंबन की पुष्टि करें' : 'Confirm Suspend')}
+            {isHi ? 'निलंबन की पुष्टि करें' : 'Confirm Suspend'}
           </Button>
         }
       >
@@ -195,6 +204,7 @@ export default function DriverManagementPage() {
             id="suspendReason"
             value={suspendReason}
             onChange={e => setSuspendReason(e.target.value)}
+            disabled={suspend.isPending}
             rows={3}
             className="mt-1"
             placeholder={isHi ? 'निलंबन का कारण दर्ज करें...' : 'Reason for suspension...'}

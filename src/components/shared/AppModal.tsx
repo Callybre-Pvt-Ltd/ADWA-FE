@@ -18,6 +18,7 @@ export interface AppModalProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   testId?: string
+  loading?: boolean
 }
 
 const sizeClasses = {
@@ -36,12 +37,19 @@ export function AppModal({
   size = 'md',
   className,
   testId,
+  loading,
 }: AppModalProps) {
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && !loading && onClose()}>
       <DialogContent
         data-testid={testId}
-        className={cn(sizeClasses[size], 'hidden md:grid', className)}
+        aria-busy={loading || undefined}
+        className={cn(
+          sizeClasses[size],
+          'hidden md:grid',
+          loading && '[&>button]:pointer-events-none [&>button]:opacity-30',
+          className,
+        )}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

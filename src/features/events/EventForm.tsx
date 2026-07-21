@@ -69,8 +69,13 @@ export default function EventForm({ onSuccess }: EventFormProps) {
         <Label htmlFor="imageUrl">Image URL (optional)</Label>
         <Input id="imageUrl" {...register('imageUrl')} className="mt-1" />
       </div>
-      <Button type="submit" disabled={createEvent.isPending} className="w-full">
-        {createEvent.isPending ? 'Creating...' : 'Create Event'}
+      <Button
+        type="submit"
+        loading={createEvent.isPending}
+        loadingText="Creating…"
+        className="w-full"
+      >
+        Create Event
       </Button>
     </form>
   )

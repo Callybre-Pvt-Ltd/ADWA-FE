@@ -36,6 +36,7 @@ export default function DistrictManagementPage() {
   const updateDistrict = useUpdateDistrict()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<District | null>(null)
+  const saving = createDistrict.isPending || updateDistrict.isPending
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -55,6 +56,7 @@ export default function DistrictManagementPage() {
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
+    if (saving) return
     if (editing) {
       await updateDistrict.mutateAsync({ id: editing.id, data: values })
     } else {
@@ -92,14 +94,21 @@ export default function DistrictManagementPage() {
       <AppDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        loading={saving}
         title={editing ? (isHi ? 'जिला संपादित करें' : 'Edit District') : (isHi ? 'जिला जोड़ें' : 'Add District')}
         footer={
-          <Button onClick={onSubmit} className="w-full cursor-pointer" disabled={createDistrict.isPending || updateDistrict.isPending}>
+          <Button
+            onClick={onSubmit}
+            className="w-full cursor-pointer"
+            loading={saving}
+            loadingText={isHi ? 'सहेजा जा रहा है…' : 'Saving…'}
+          >
             {editing ? (isHi ? 'अपडेट करें' : 'Update') : (isHi ? 'बनाएं' : 'Create')}
           </Button>
         }
       >
         <form className="space-y-4" onSubmit={onSubmit}>
+          <fieldset disabled={saving} className="space-y-4">
           <div>
             <Label htmlFor="name">{isHi ? 'नाम' : 'Name'}</Label>
             <Input id="name" {...form.register('name')} className="mt-1" />
@@ -123,6 +132,7 @@ export default function DistrictManagementPage() {
               </SelectContent>
             </Select>
           </div>
+          </fieldset>
         </form>
       </AppDrawer>
     </div>

@@ -94,7 +94,6 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-neutral-400 text-center">{isHi ? 'महीना' : 'Month'}</p>
         </div>
 
         {/* Day Selector (Second) */}
@@ -110,7 +109,6 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
               {days.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-neutral-400 text-center">{isHi ? 'दिन' : 'Day'}</p>
         </div>
 
         {/* Year Selector (Third) */}
@@ -135,7 +133,6 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
               {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-neutral-400 text-center">{isHi ? 'साल' : 'Year'}</p>
         </div>
       </div>
     </div>
