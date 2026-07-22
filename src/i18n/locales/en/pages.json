@@ -340,7 +340,14 @@
     "howStep2Title": "Select Document",
     "howStep2Desc": "Choose the document you want to download.",
     "howStep3Title": "Download PDF",
-    "howStep3Desc": "Click Download to get your document instantly."
+    "howStep3Desc": "Click Download to get your document instantly.",
+    "requiredMsg": "Please enter your membership number.",
+    "notFoundTitle": "Record Not Found",
+    "notFoundMsg": "No membership record found with the provided membership number. Please verify and try again.",
+    "foundFor": "Showing documents for {{name}}",
+    "idCard": "ADWA Driver ID Card",
+    "receipt": "Payment Receipt",
+    "certificate": "Membership Certificate"
   },
   "rules": {
     "title": "Rules & Guidelines",
