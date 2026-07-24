@@ -83,30 +83,6 @@ export const publicRoutes: RouteConfig[] = [
     meta: { title: 'Application Status' },
   },
   {
-    key: 'payment',
-    path: '/payment',
-    label: 'nav.payment',
-    icon: 'CreditCard',
-    component: lazyPage(() => import('../pages/public/PaymentPage')),
-    layout: 'public',
-    showInNav: false,
-    showInSidebar: false,
-    navOrder: 6,
-    meta: { title: 'Payment' },
-  },
-  {
-    key: 'download',
-    path: '/download',
-    label: 'nav.download',
-    icon: 'Download',
-    component: lazyPage(() => import('../pages/public/DownloadPage')),
-    layout: 'public',
-    showInNav: false,
-    showInSidebar: false,
-    navOrder: 7,
-    meta: { title: 'Download' },
-  },
-  {
     key: 'support',
     path: '/support',
     label: 'nav.support',
@@ -118,18 +94,7 @@ export const publicRoutes: RouteConfig[] = [
     navOrder: 6,
     meta: { title: 'Support' },
   },
-  // Secondary pages — accessible via member dashboard & footer, not navbar
-  {
-    key: 'dashboard',
-    path: '/dashboard',
-    label: 'nav.memberDashboard',
-    icon: 'LayoutDashboard',
-    component: lazyPage(() => import('../pages/public/MemberDashboardPage')),
-    layout: 'public',
-    showInNav: false,
-    showInSidebar: false,
-    meta: { title: 'Member Dashboard' },
-  },
+  // Secondary pages — accessible via footer / services, not navbar
   {
     key: 'about',
     path: '/about',
@@ -252,7 +217,7 @@ export function getPrimaryNavRoutes(): RouteConfig[] {
 
 export function getSecondaryPublicRoutes(): RouteConfig[] {
   const secondaryKeys = new Set([
-    'dashboard', 'renewal', 'status', 'payment', 'download',
+    'renewal', 'status',
     'about', 'history', 'guidelines', 'rules', 'team', 'events', 'notifications', 'verify',
   ])
   return publicRoutes.filter((r) => secondaryKeys.has(r.key))

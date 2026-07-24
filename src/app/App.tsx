@@ -30,14 +30,19 @@ function PageLoader() {
 const router = createBrowserRouter([
   {
     element: <PublicLayout />,
-    children: publicRoutes.map((route) => ({
-      path: route.path,
-      element: (
-        <Suspense fallback={<PageLoader />}>
-          <route.component />
-        </Suspense>
-      ),
-    })),
+    children: [
+      { path: '/dashboard', element: <Navigate to="/services" replace /> },
+      { path: '/payment', element: <Navigate to="/services" replace /> },
+      { path: '/download', element: <Navigate to="/services" replace /> },
+      ...publicRoutes.map((route) => ({
+        path: route.path,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <route.component />
+          </Suspense>
+        ),
+      })),
+    ],
   },
   {
     path: '/district/login',
