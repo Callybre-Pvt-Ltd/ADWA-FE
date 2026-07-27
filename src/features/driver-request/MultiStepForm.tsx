@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FormProvider, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,6 +41,10 @@ export default function MultiStepForm() {
   const [referenceNumber, setReferenceNumber] = useState<string | null>(null)
   const [declared, setDeclared] = useState(false)
   const submitRequest = useSubmitDriverRequest()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step, referenceNumber])
 
   const form = useForm<DriverRequestFormData>({
     resolver: zodResolver(
