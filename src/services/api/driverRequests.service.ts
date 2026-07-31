@@ -142,9 +142,10 @@ export const driverRequestsService = {
   ): Promise<DriverRequest> {
     try {
       const formData = new FormData()
-      if (verificationRemarks) formData.append('verification_remarks', verificationRemarks)
+      // Always send remarks so FastAPI multipart parsing stays valid when other fields are empty.
+      formData.append('verification_remarks', verificationRemarks?.trim() ?? '')
+      if (diNotes?.trim()) formData.append('di_notes', diNotes.trim())
       if (paymentProof) formData.append('payment_proof', paymentProof)
-      if (diNotes) formData.append('di_notes', diNotes)
 
       const { data } = await apiClient.post<APIResponse<ApiDriverRequest>>(
         `/driver-requests/${id}/forward`,

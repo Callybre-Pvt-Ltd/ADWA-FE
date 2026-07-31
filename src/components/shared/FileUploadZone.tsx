@@ -68,7 +68,8 @@ export function FileUploadZone({
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition-all min-h-42.5 bg-neutral-50',
+          'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition-all min-h-42.5 bg-neutral-50 overflow-visible',
+          preview && 'pt-7',
           dragOver ? 'border-royal-600 bg-royal-50 scale-[1.01]' : 'border-neutral-400 hover:border-royal-500 hover:bg-white',
           preview && 'border-emerald-500 bg-emerald-50/40',
           displayError && 'border-red-500 bg-red-50/40',
@@ -86,33 +87,39 @@ export function FileUploadZone({
           }}
         />
         {preview ? (
-          <div className="relative flex flex-col items-center gap-2">
-            {isImage ? (
-              <img src={preview} alt="Preview" className="h-20 w-20 rounded-lg object-cover ring-2 ring-white shadow-sm" />
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-white shadow-sm">
-                <FileText className="h-8 w-8 text-royal-600" />
-              </div>
-            )}
+          <div className="flex flex-col items-center gap-2 w-full overflow-visible">
+            <div className="relative h-20 w-20 shrink-0">
+              {isImage ? (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="h-full w-full rounded-lg object-cover ring-2 ring-white shadow-sm"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center rounded-lg bg-white shadow-sm">
+                  <FileText className="h-8 w-8 text-royal-600" />
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="absolute -right-2.5 -top-2.5 z-10 h-7 w-7 rounded-full p-0 bg-white shadow-md border-neutral-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setFileName(null)
+                  if (inputRef.current) inputRef.current.value = ''
+                  onFileRemove?.()
+                }}
+                aria-label="Remove file"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="h-3.5 w-3.5" /> Uploaded
             </span>
             {fileName && <p className="text-xs text-neutral-500 truncate max-w-35">{fileName}</p>}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="absolute -right-1 -top-1 h-7 w-7 rounded-full p-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                setFileName(null)
-                if (inputRef.current) inputRef.current.value = ''
-                onFileRemove?.()
-              }}
-              aria-label="Remove file"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
           </div>
         ) : (
           <>

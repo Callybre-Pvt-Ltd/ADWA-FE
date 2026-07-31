@@ -151,18 +151,6 @@ export const publicRoutes: RouteConfig[] = [
     meta: { title: 'Team' },
   },
   {
-    key: 'events',
-    path: '/events',
-    label: 'nav.events',
-    icon: 'Calendar',
-    component: lazyPage(() => import('../pages/public/EventsPage')),
-    layout: 'public',
-    showInNav: true,
-    showInSidebar: false,
-    navOrder: 4,
-    meta: { title: 'Events' },
-  },
-  {
     key: 'members',
     path: '/members',
     label: 'nav.members',
@@ -218,7 +206,7 @@ export function getPrimaryNavRoutes(): RouteConfig[] {
 export function getSecondaryPublicRoutes(): RouteConfig[] {
   const secondaryKeys = new Set([
     'renewal', 'status',
-    'about', 'history', 'guidelines', 'rules', 'team', 'events', 'notifications', 'verify',
+    'about', 'history', 'guidelines', 'rules', 'team', 'notifications', 'verify',
   ])
   return publicRoutes.filter((r) => secondaryKeys.has(r.key))
 }
@@ -358,17 +346,6 @@ export const adminRoutes: RouteConfig[] = [
     showInNav: true,
     showInSidebar: true,
     meta: { title: 'Payment Confirmations', requiresRole: 'admin' },
-  },
-  {
-    key: 'admin-events',
-    path: '/admin/events',
-    label: 'nav.adminEvents',
-    icon: 'Calendar',
-    component: lazyPage(() => import('../pages/admin/EventsManagementPage')),
-    layout: 'admin',
-    showInNav: false,
-    showInSidebar: true,
-    meta: { title: 'Events Management', requiresRole: 'admin' },
   },
   {
     key: 'admin-profile',

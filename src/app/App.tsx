@@ -34,6 +34,7 @@ const router = createBrowserRouter([
       { path: '/dashboard', element: <Navigate to="/services" replace /> },
       { path: '/payment', element: <Navigate to="/services" replace /> },
       { path: '/download', element: <Navigate to="/services" replace /> },
+      { path: '/events', element: <Navigate to="/" replace /> },
       ...publicRoutes.map((route) => ({
         path: route.path,
         element: (
@@ -78,6 +79,7 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { path: '/admin/dashboard', element: <Navigate to="/admin/applications" replace /> },
+      { path: '/admin/events', element: <Navigate to="/admin/applications" replace /> },
       ...adminRoutes.map((route) => ({
         path: route.path,
         element: (

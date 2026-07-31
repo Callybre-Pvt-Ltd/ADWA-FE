@@ -56,10 +56,11 @@ export default function StepUploads() {
         {docs('noteText')}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-visible">
         {UPLOAD_FIELDS.map(({ field, labelKey, hintKey }) => (
           <FileUploadZone
             key={field}
+            className="overflow-visible"
             label={docs(labelKey)}
             hint={hintKey ? docs(hintKey) : undefined}
             accept="image/*,.pdf"

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { driverRequestsService } from '../services'
 import type { DriverFilters } from '../types/driver.types'
 import { buildDriverRequestFormData, type DriverRequestFormData } from '../utils/validators'
+import { compressImageFields } from '../utils/imageCompression'
 import { toast } from 'sonner'
 
 export const DRIVER_REQUESTS_QUERY_KEY = ['driver-requests'] as const
@@ -36,8 +37,17 @@ export function useForwardedApplications(filters?: DriverFilters) {
 export function useSubmitDriverRequest() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: DriverRequestFormData) =>
-      driverRequestsService.submit(buildDriverRequestFormData(data)),
+    mutationFn: async (data: DriverRequestFormData) => {
+      const compressed = await compressImageFields(data, [
+        'driverPhoto',
+        'aadhaarFront',
+        'aadhaarBack',
+        'licenseFront',
+        'licenseBack',
+        'vehicleRc',
+      ])
+      return driverRequestsService.submit(buildDriverRequestFormData(compressed))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: DRIVER_REQUESTS_QUERY_KEY })
     },
