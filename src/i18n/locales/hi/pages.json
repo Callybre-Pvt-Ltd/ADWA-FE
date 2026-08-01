@@ -158,7 +158,7 @@
       "aadhaar": "आधार नंबर",
       "aadhaarPlaceholder": "12 अंकों का आधार",
       "license": "ड्राइविंग लाइसेंस नंबर",
-      "licensePlaceholder": "जैसे DL-0420110012345",
+      "licensePlaceholder": "जैसे DL0420110012345",
       "fullAddress": "पूरा पता",
       "addressPlaceholder": "मकान नंबर, गली, मोहल्ला",
       "village": "गाँव / कस्बा",

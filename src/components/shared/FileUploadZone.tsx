@@ -1,144 +1,152 @@
-import { useCallback, useRef, useState } from 'react'
-import { FileText, Image, Upload, X, CheckCircle2 } from 'lucide-react'
-import { cn } from '@/utils/cn'
-import { Button } from '@/components/ui/button'
+import { useId } from "react";
+import { Upload, X } from "lucide-react";
+import { cn } from "@/utils/cn";
 
 export interface FileUploadZoneProps {
-  label: string
-  accept: string
-  maxSizeMB?: number
-  onFileSelect: (file: File) => void
-  onFileRemove?: () => void
-  preview?: string
-  hint?: string
-  error?: string
-  className?: string
-  testId?: string
+  label: string;
+  hint?: string;
+  accept?: string;
+  preview?: string;
+  onFileSelect: (file: File) => void;
+  onFileRemove?: () => void;
+  error?: string;
+  className?: string;
+}
+
+function isImagePreview(preview?: string) {
+  return Boolean(preview && /^(blob:|data:image\/|https?:\/\/)/i.test(preview));
 }
 
 export function FileUploadZone({
   label,
+  hint,
   accept,
-  maxSizeMB,
+  preview,
   onFileSelect,
   onFileRemove,
-  preview,
-  hint,
   error,
   className,
-  testId,
 }: FileUploadZoneProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [dragOver, setDragOver] = useState(false)
-  const [fileName, setFileName] = useState<string | null>(null)
-  const [localError, setLocalError] = useState<string | null>(null)
-
-  const handleFile = useCallback(
-    (file: File) => {
-      setLocalError(null)
-      if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
-        setLocalError(`File must be under ${maxSizeMB}MB`)
-        return
-      }
-      setFileName(file.name)
-      onFileSelect(file)
-    },
-    [maxSizeMB, onFileSelect],
-  )
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setDragOver(false)
-      const file = e.dataTransfer.files[0]
-      if (file) handleFile(file)
-    },
-    [handleFile],
-  )
-
-  const displayError = error ?? localError
-  const isImage = preview && (preview.startsWith('blob:') || preview.startsWith('data:image') || /\.(jpg|jpeg|png|webp|gif)/i.test(fileName ?? ''))
+  const inputId = useId();
+  const hasPreview = Boolean(preview);
+  const showImagePreview = isImagePreview(preview);
 
   return (
-    <div data-testid={testId} className={cn('space-y-2', className)}>
-      <label className="text-base font-bold text-neutral-900">{label}</label>
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
+    <div className={cn("space-y-3", className)}>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <label
+            htmlFor={inputId}
+            className="text-sm font-semibold text-neutral-900"
+          >
+            {label}
+          </label>
+          {hint && (
+            <p className="mt-1 text-xs leading-5 text-neutral-500">{hint}</p>
+          )}
+        </div>
+        {hasPreview && onFileRemove && (
+          <button
+            type="button"
+            onClick={onFileRemove}
+            aria-label={`Remove ${label}`}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+          >
+            <X className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+
+      <label
+        htmlFor={inputId}
         className={cn(
-          'relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition-all min-h-42.5 bg-neutral-50 overflow-visible',
-          preview && 'pt-7',
-          dragOver ? 'border-royal-600 bg-royal-50 scale-[1.01]' : 'border-neutral-400 hover:border-royal-500 hover:bg-white',
-          preview && 'border-emerald-500 bg-emerald-50/40',
-          displayError && 'border-red-500 bg-red-50/40',
+          "group relative flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-[1.75rem] border-2 border-dashed border-blue-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-all",
+          "hover:border-blue-300 hover:bg-blue-50/30 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100",
+          error
+            ? "border-red-300 focus-within:border-red-400 focus-within:ring-red-100"
+            : "",
+          hasPreview ? "justify-between" : "items-center justify-center",
         )}
       >
         <input
-          ref={inputRef}
+          id={inputId}
           type="file"
           accept={accept}
           className="sr-only"
-          aria-label={label}
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) handleFile(file)
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) onFileSelect(file);
+            event.target.value = "";
           }}
         />
-        {preview ? (
-          <div className="flex flex-col items-center gap-2 w-full overflow-visible">
-            <div className="relative h-20 w-20 shrink-0">
-              {isImage ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="h-full w-full rounded-lg object-cover ring-2 ring-white shadow-sm"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-lg bg-white shadow-sm">
-                  <FileText className="h-8 w-8 text-royal-600" />
-                </div>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="absolute -right-2.5 -top-2.5 z-10 h-7 w-7 rounded-full p-0 bg-white shadow-md border-neutral-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setFileName(null)
-                  if (inputRef.current) inputRef.current.value = ''
-                  onFileRemove?.()
-                }}
-                aria-label="Remove file"
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+
+        {!hasPreview ? (
+          <div className="flex w-full max-w-xs flex-col items-center text-center">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 shadow-inner ring-1 ring-blue-100">
+              <Upload
+                className="h-7 w-7"
+                strokeWidth={2.2}
+                aria-hidden="true"
+              />
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Uploaded
-            </span>
-            {fileName && <p className="text-xs text-neutral-500 truncate max-w-35">{fileName}</p>}
+            <p className="text-lg font-semibold text-neutral-900">
+              Tap to upload file
+            </p>
+            <p className="mt-2 text-sm leading-6 text-neutral-500">
+              Drag and drop here, or browse from your device
+            </p>
+            {hint && (
+              <p className="mt-4 max-w-[16rem] rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-medium leading-5 text-blue-700">
+                {hint}
+              </p>
+            )}
           </div>
         ) : (
           <>
-            <div className="icon-tile h-12 w-12 mb-2">
-              <Upload className="h-6 w-6" />
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">
+                  File selected
+                </p>
+                <p className="mt-1 text-xs leading-5 text-neutral-500">
+                  {label}
+                </p>
+              </div>
+              <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
+                Ready
+              </div>
             </div>
-            <p className="text-base font-semibold text-neutral-800 text-center">Tap to upload file</p>
-            {maxSizeMB && <p className="text-sm text-neutral-600 mt-1">Max {maxSizeMB}MB</p>}
+
+            <div className="mt-4 flex flex-1 items-center justify-center rounded-[1.5rem] bg-linear-to-br from-neutral-50 to-blue-50/60 p-3">
+              {showImagePreview ? (
+                <img
+                  src={preview}
+                  alt={label}
+                  className="max-h-52 w-full rounded-[1.25rem] object-contain shadow-sm"
+                />
+              ) : (
+                <div className="flex w-full max-w-60 flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-blue-200 bg-white/90 px-6 py-10 text-center shadow-sm">
+                  <Upload
+                    className="h-8 w-8 text-blue-600"
+                    strokeWidth={2.1}
+                    aria-hidden="true"
+                  />
+                  <p className="mt-3 text-sm font-semibold text-neutral-900">
+                    Preview ready
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-500">
+                    The file will be uploaded with the form
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         )}
-        {fileName && !preview && (
-          <p className="mt-2 text-sm text-neutral-600 flex items-center gap-1">
-            {accept.includes('image') ? <Image className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-            {fileName}
-          </p>
+
+        {error && (
+          <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
         )}
-      </div>
-      {hint && !displayError && <p className="text-base text-neutral-600">{hint}</p>}
-      {displayError && <p className="text-base font-semibold text-red-700">{displayError}</p>}
+      </label>
     </div>
-  )
+  );
 }

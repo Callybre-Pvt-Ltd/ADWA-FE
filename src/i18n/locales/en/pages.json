@@ -158,7 +158,7 @@
       "aadhaar": "Aadhaar Number",
       "aadhaarPlaceholder": "12-digit Aadhaar",
       "license": "Driving License Number",
-      "licensePlaceholder": "e.g. DL-0420110012345",
+      "licensePlaceholder": "e.g. DL0420110012345",
       "fullAddress": "Full Address",
       "addressPlaceholder": "House No, Street, Locality",
       "village": "Village / Town",

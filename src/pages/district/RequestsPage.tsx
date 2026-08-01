@@ -71,12 +71,12 @@ export default function RequestsPage() {
   }
 
   const handleForward = () => {
-    if (forwardApp.isPending || !selected || selected.registrationConflict) return
+    if (forwardApp.isPending || !selected || selected.registrationConflict || !paymentProof) return
     forwardApp.mutate(
       {
         id: selected.id,
         verificationRemarks: verificationRemarks.trim() || undefined,
-        paymentProof: paymentProof ?? undefined,
+        paymentProof: paymentProof,
       },
       {
         onSuccess: () => {
@@ -179,7 +179,7 @@ export default function RequestsPage() {
               onClick={handleForward}
               loading={forwardApp.isPending}
               loadingText={isHi ? 'अग्रेषित हो रहा है…' : 'Forwarding…'}
-              disabled={Boolean(selected?.registrationConflict)}
+              disabled={Boolean(selected?.registrationConflict) || !paymentProof}
             >
               {isHi ? 'अग्रेषित करें' : 'Forward'}
             </Button>
@@ -195,8 +195,8 @@ export default function RequestsPage() {
               />
             </div>
             <div>
-              <Label>{isHi ? 'भुगतान स्क्रीनशॉट (वैकल्पिक)' : 'Payment screenshot (optional)'}</Label>
-              <Input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)} />
+              <Label>{isHi ? 'भुगतान स्क्रीनशॉट (आवश्यक)' : 'Payment screenshot (required)'}</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)} required />
             </div>
           </div>
         </AppDrawer>

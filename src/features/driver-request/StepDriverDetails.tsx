@@ -117,7 +117,7 @@ export default function StepDriverDetails() {
         >
           <Input
             id="vehicleNumber"
-            placeholder="e.g. MP09 AB 1234"
+            placeholder="e.g. MP09AB1234"
             className="uppercase"
             {...register("vehicleNumber", {
               onChange: (e) => {
