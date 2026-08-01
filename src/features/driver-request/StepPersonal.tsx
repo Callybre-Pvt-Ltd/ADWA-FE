@@ -230,6 +230,7 @@ export default function StepPersonal() {
             <DistrictSearchSelect
               districts={districts ?? []}
               value={districtId}
+              selectedName={watch("district")}
               onChange={handleDistrictChange}
               placeholder={f("selectDistrict")}
               searchPlaceholder={f("searchDistrict")}

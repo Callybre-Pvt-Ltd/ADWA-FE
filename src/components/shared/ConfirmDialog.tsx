@@ -42,7 +42,14 @@ export function ConfirmDialog({
         if (!loading) onOpenChange(nextOpen)
       }}
     >
-      <AlertDialogContent data-testid={testId}>
+      <AlertDialogContent
+        data-testid={testId}
+        overlayProps={{
+          onClick: () => {
+            if (!loading) onOpenChange(false)
+          },
+        }}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}

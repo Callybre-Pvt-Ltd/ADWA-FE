@@ -25,6 +25,31 @@ function useSelectCtx() {
   return ctx
 }
 
+function findSelectedLabel(nodes: React.ReactNode, targetValue: string | undefined): React.ReactNode {
+  if (targetValue === undefined || targetValue === null || targetValue === '') return undefined
+  let found: React.ReactNode = undefined
+
+  React.Children.forEach(nodes, child => {
+    if (found !== undefined) return
+    if (!React.isValidElement(child)) return
+
+    const props = child.props as { value?: string; children?: React.ReactNode }
+    if (props.value !== undefined && String(props.value) === String(targetValue)) {
+      found = props.children
+      return
+    }
+
+    if (props.children) {
+      const childFound = findSelectedLabel(props.children, targetValue)
+      if (childFound !== undefined) {
+        found = childFound
+      }
+    }
+  })
+
+  return found
+}
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 interface SelectProps {
@@ -40,6 +65,12 @@ export function Select({ value, defaultValue, onValueChange, disabled = false, c
   const [open, setOpen] = React.useState(false)
   const [selectedLabel, setSelectedLabel] = React.useState<React.ReactNode>(undefined)
   const triggerRef = React.useRef<HTMLButtonElement>(null)
+
+  const currentValue = value ?? defaultValue
+  const computedLabel = React.useMemo(
+    () => findSelectedLabel(children, currentValue),
+    [children, currentValue]
+  )
 
   // Collect placeholder from SelectValue child
   let placeholder: string | undefined
@@ -69,14 +100,14 @@ export function Select({ value, defaultValue, onValueChange, disabled = false, c
   return (
     <SelectContext.Provider
       value={{
-        value: value ?? defaultValue,
+        value: currentValue,
         onValueChange: (v) => { onValueChange?.(v); setOpen(false) },
         open,
         setOpen,
         disabled,
         placeholder,
         triggerRef,
-        selectedLabel,
+        selectedLabel: selectedLabel ?? computedLabel,
         setSelectedLabel,
       }}
     >

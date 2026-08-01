@@ -33,7 +33,6 @@ const router = createBrowserRouter([
     children: [
       { path: '/dashboard', element: <Navigate to="/services" replace /> },
       { path: '/payment', element: <Navigate to="/services" replace /> },
-      { path: '/download', element: <Navigate to="/services" replace /> },
       { path: '/events', element: <Navigate to="/" replace /> },
       ...publicRoutes.map((route) => ({
         path: route.path,

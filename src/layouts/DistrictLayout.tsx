@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/navigation/Sidebar'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { useAuth } from '@/context/AuthContext'
 import { AdwaSeal } from '@/components/shared/AdwaSeal'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { getIcon } from '@/routes/iconMap'
 import { cn } from '@/utils/cn'
 import { translateFullName } from '@/utils/translations'
@@ -99,12 +100,24 @@ function LangToggle() {
 export function DistrictLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [signOutOpen, setSignOutOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { i18n } = useTranslation('dashboard')
   const { t: tNav } = useTranslation('nav')
   const isHi = i18n.language === 'hi'
+
+  const requestSignOut = () => {
+    setMobileMenuOpen(false)
+    setSignOutOpen(true)
+  }
+
+  const confirmSignOut = () => {
+    setSignOutOpen(false)
+    logout()
+    navigate('/district/login')
+  }
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -120,7 +133,7 @@ export function DistrictLayout() {
           onToggle={() => setCollapsed(!collapsed)}
           portalLabel={tNav('portalDistrict')}
           collapsedLabel={isHi ? 'ज' : 'D'}
-          onSignOut={() => { logout(); navigate('/district/login') }}
+          onSignOut={requestSignOut}
         />
 
         <div className="flex flex-1 flex-col min-w-0">
@@ -207,9 +220,7 @@ export function DistrictLayout() {
                     <button
                       type="button"
                       onClick={() => {
-                        setMobileMenuOpen(false)
-                        logout()
-                        navigate('/district/login')
+                        requestSignOut()
                       }}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600/10 border border-red-500/20 py-3.5 text-xs font-black text-red-400 hover:bg-red-600/20 transition-all cursor-pointer"
                     >
@@ -226,6 +237,17 @@ export function DistrictLayout() {
             <main className="flex-1 px-4 py-5 md:px-8 md:py-8">
               <Outlet />
             </main>
+
+            <ConfirmDialog
+              open={signOutOpen}
+              onOpenChange={setSignOutOpen}
+              title={isHi ? 'साइन आउट करें?' : 'Sign out?'}
+              description={isHi ? 'आप अपने खाते से साइन आउट हो जाएंगे।' : 'You will be signed out of your account.'}
+              confirmLabel={isHi ? 'साइन आउट' : 'Sign out'}
+              cancelLabel={isHi ? 'रद्द करें' : 'Cancel'}
+              variant="destructive"
+              onConfirm={confirmSignOut}
+            />
           </div>
         </div>
       </div>

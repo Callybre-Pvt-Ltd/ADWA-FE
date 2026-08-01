@@ -83,6 +83,18 @@ export const publicRoutes: RouteConfig[] = [
     meta: { title: 'Application Status' },
   },
   {
+    key: 'download',
+    path: '/download',
+    label: 'nav.download',
+    icon: 'Download',
+    component: lazyPage(() => import('../pages/public/DownloadPage')),
+    layout: 'public',
+    showInNav: false,
+    showInSidebar: false,
+    navOrder: 6,
+    meta: { title: 'Download Center' },
+  },
+  {
     key: 'support',
     path: '/support',
     label: 'nav.support',
@@ -91,7 +103,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: true,
     showInSidebar: false,
-    navOrder: 6,
+    navOrder: 7,
     meta: { title: 'Support' },
   },
   // Secondary pages — accessible via footer / services, not navbar

@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { Check } from 'lucide-react'
+import { Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/utils/cn'
 
@@ -21,13 +22,13 @@ export function ApplicationStepper({ steps, current }: ApplicationStepperProps) 
 
   return (
     <nav aria-label="Application progress" className="w-full">
-      <ol className="flex items-center justify-between">
+      <ol className="flex items-center w-full">
         {steps.map((step, i) => {
           const done = i < current
           const active = i === current
           return (
-            <li key={step.id} className="flex flex-1 items-center">
-              <div className="flex flex-col items-center gap-2 flex-1">
+            <Fragment key={step.id}>
+              <li className="flex flex-col items-center gap-2 shrink-0">
                 <span
                   className={cn(
                     'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-all duration-200',
@@ -39,19 +40,22 @@ export function ApplicationStepper({ steps, current }: ApplicationStepperProps) 
                   {done ? <Check size={16} strokeWidth={3} /> : <step.icon size={16} />}
                 </span>
                 <p className={cn(
-                  'text-xs font-bold text-center leading-tight max-w-[72px]',
+                  'text-xs font-bold text-center leading-tight max-w-18',
                   active ? 'text-blue-900' : done ? 'text-neutral-700' : 'text-neutral-400',
                 )}>
                   {isHi ? step.labelHi : step.labelEn}
                 </p>
-              </div>
+              </li>
               {i < steps.length - 1 && (
-                <div className={cn(
-                  'flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300',
-                  done ? 'bg-blue-600' : 'bg-neutral-200',
-                )} />
+                <div
+                  aria-hidden
+                  className={cn(
+                    'flex-1 h-0.5 mx-2 sm:mx-3 rounded-full transition-colors duration-300',
+                    done ? 'bg-blue-600' : 'bg-neutral-200',
+                  )}
+                />
               )}
-            </li>
+            </Fragment>
           )
         })}
       </ol>

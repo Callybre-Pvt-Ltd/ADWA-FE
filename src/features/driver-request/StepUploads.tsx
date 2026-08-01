@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { FileUploadZone } from "@/components/shared/FileUploadZone";
@@ -28,9 +28,31 @@ export default function StepUploads() {
 
   const {
     setValue,
+    getValues,
     formState: { errors },
   } = useFormContext<DriverRequestFormData>();
   const [previews, setPreviews] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const currentValues = getValues();
+    const initialPreviews: Record<string, string> = {};
+    const createdUrls: string[] = [];
+
+    UPLOAD_FIELDS.forEach(({ field }) => {
+      const file = currentValues[field] as File | undefined;
+      if (file && file instanceof File) {
+        const url = fileToPreview(file);
+        initialPreviews[field] = url;
+        createdUrls.push(url);
+      }
+    });
+
+    setPreviews((prev) => ({ ...prev, ...initialPreviews }));
+
+    return () => {
+      createdUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [getValues]);
 
   const handleFile = (field: keyof DriverRequestFormData, file: File) => {
     setPreviews((current) => {

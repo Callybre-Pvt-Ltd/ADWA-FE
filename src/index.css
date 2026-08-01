@@ -297,3 +297,13 @@
     }
   }
 }
+
+@media print {
+  header, footer, nav, .no-print, .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+  }
+}
+

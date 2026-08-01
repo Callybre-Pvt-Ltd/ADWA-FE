@@ -102,7 +102,7 @@
   },
   "apply": {
     "title": "Apply for Driver ID Card",
-    "subtitle": "Complete the form below in 5 simple steps",
+    "subtitle": "Complete the form below in 4 simple steps",
     "badge": "Driver ID Application",
     "step1": "Personal Details",
     "step2": "Address",
@@ -249,6 +249,7 @@
     "refNumber": "Reference Number",
     "refPlaceholder": "e.g. ADWA-2025-ABC123",
     "mobile": "Mobile Number",
+    "mobilePlaceholder": "10-digit mobile number",
     "exampleText": "ADWA-2025-ABC123",
     "dob": "Date of Birth",
     "searchBtn": "Search Record",
@@ -257,6 +258,7 @@
     "notFoundTitle": "Record Not Found",
     "notFoundMsg": "No application found with the provided reference number. Please verify and try again.",
     "recover": {
+      "question": "Don't have your reference number?",
       "link": "Forgot your reference number?",
       "title": "Recover your reference number",
       "description": "Enter the mobile number and date of birth you used in your application. We will find your reference number for you.",

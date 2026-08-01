@@ -4,7 +4,7 @@ import { FormProvider, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, ArrowRight, User, Car, Images, ClipboardCheck } from 'lucide-react'
+import { CheckCircle, ArrowRight, User, Car, Images, ClipboardCheck, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSubmitDriverRequest } from '@/hooks/useDriverRequests'
 import {
@@ -101,7 +101,8 @@ export default function MultiStepForm() {
           <Button asChild variant="accent">
             <Link to="/status">{t('apply.trackApplication')} <ArrowRight className="h-4 w-4" /></Link>
           </Button>
-          <Button variant="outline" onClick={() => { setReferenceNumber(null); setStep(0); form.reset() }}>
+          <Button variant="outline" onClick={() => window.print()} className="print:hidden">
+            <Printer className="h-4 w-4 mr-2" />
             {t('apply.printReceipt')}
           </Button>
         </div>

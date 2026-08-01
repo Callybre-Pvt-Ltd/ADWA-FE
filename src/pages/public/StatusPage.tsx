@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
-import { Search, CheckCircle, Circle, AlertCircle, HelpCircle } from 'lucide-react'
+import { Search, CheckCircle, Circle, AlertCircle, HelpCircle, ChevronRight } from 'lucide-react'
 import { PageHero } from '@/components/shared/PageHero'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { DOBPicker } from '@/components/shared/DOBPicker'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
 import { useTrackApplication, useRecoverReference } from '@/hooks/useDriverRequests'
 import { formatDate, formatDateTime } from '@/utils/formatters'
@@ -71,7 +72,7 @@ export default function StatusPage() {
                 type="tel"
                 inputMode="numeric"
                 {...register('mobile', { required: true, pattern: /^[6-9]\d{9}$/ })}
-                placeholder="10-digit mobile number"
+                placeholder={t('track.mobilePlaceholder', '10-digit mobile number')}
                 className="mt-1"
               />
               {errors.mobile && <p className="text-sm text-red-600 mt-1">Enter a valid 10-digit mobile number</p>}
@@ -84,13 +85,17 @@ export default function StatusPage() {
             >
               <Search className="h-4 w-4 mr-1" /> {t('track.searchBtn')}
             </Button>
-            <button
-              type="button"
-              onClick={() => setRecoverOpen((open) => !open)}
-              className="w-full text-center text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
-            >
-              {t('track.recover.link')}
-            </button>
+            <div className="pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-neutral-500 font-medium">{t('track.recover.question')}</span>
+              <button
+                type="button"
+                onClick={() => setRecoverOpen((open) => !open)}
+                className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 transition-colors group cursor-pointer"
+              >
+                <span className="group-hover:underline">{t('track.recover.link')}</span>
+                <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </div>
           </form>
 
           {recoverOpen && (
@@ -114,18 +119,15 @@ export default function StatusPage() {
                     inputMode="numeric"
                     value={recoverMobile}
                     onChange={(e) => setRecoverMobile(e.target.value)}
-                    placeholder="10-digit mobile number"
+                    placeholder={t('track.mobilePlaceholder', '10-digit mobile number')}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="recover-dob">{t('track.dob', 'Date of Birth')}</Label>
-                  <Input
-                    id="recover-dob"
-                    type="date"
+                  <Label className="mb-1 block">{t('track.dob', 'Date of Birth')}</Label>
+                  <DOBPicker
                     value={recoverDob}
-                    onChange={(e) => setRecoverDob(e.target.value)}
-                    className="mt-1"
+                    onChange={setRecoverDob}
                   />
                 </div>
               </div>

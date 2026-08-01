@@ -84,7 +84,7 @@ export default function ContactPage() {
                         {value}
                       </a>
                     ) : (
-                      <p className="text-sm font-bold text-neutral-900 leading-relaxed break-words">{value}</p>
+                      <p className="text-sm font-bold text-neutral-900 leading-relaxed wrap-break-word">{value}</p>
                     )}
                   </div>
                 </div>

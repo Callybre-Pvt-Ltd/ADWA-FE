@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,21 +19,45 @@ const MONTHS = [
 ]
 
 interface DOBPickerProps {
-  name: string
+  name?: string
   error?: string
   minYear?: number
   maxYear?: number
+  value?: string
+  onChange?: (val: string) => void
 }
 
-export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
-  const { setValue } = useFormContext()
+export function DOBPicker({ name, error, minYear, maxYear, value: controlledValue, onChange }: DOBPickerProps) {
+  const formContext = useFormContext()
+  const setValue = formContext?.setValue
+  const watch = formContext?.watch
+  const getValues = formContext?.getValues
+
+  const rhfValue = name && watch ? (watch(name) ?? getValues?.(name)) as string | undefined : undefined
+  const rawValue = controlledValue ?? rhfValue
+
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
 
-  // Own state — not derived from form field (avoids clearing loop)
-  const [day,   setDay]   = useState('')
-  const [month, setMonth] = useState('')
-  const [year,  setYear]  = useState('')
+  const parseDate = (val?: string) => {
+    if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const [y, m, d] = val.split('-')
+      return { y, m, d }
+    }
+    return { y: '', m: '', d: '' }
+  }
+
+  const initial = parseDate(rawValue)
+  const [day,   setDay]   = useState(initial.d)
+  const [month, setMonth] = useState(initial.m)
+  const [year,  setYear]  = useState(initial.y)
+
+  useEffect(() => {
+    const { y, m, d } = parseDate(rawValue)
+    setYear(y)
+    setMonth(m)
+    setDay(d)
+  }, [rawValue])
 
   const currentYear = new Date().getFullYear()
   const yMin = minYear ?? currentYear - 65
@@ -59,7 +83,11 @@ export function DOBPicker({ name, error, minYear, maxYear }: DOBPickerProps) {
 
   function commit(d: string, m: string, y: string) {
     const complete = Boolean(d && m && y)
-    setValue(name, complete ? `${y}-${m}-${d}` : '', { shouldValidate: complete })
+    const formatted = complete ? `${y}-${m}-${d}` : ''
+    if (name && setValue) {
+      setValue(name, formatted, { shouldValidate: complete })
+    }
+    onChange?.(formatted)
   }
 
   const showError = Boolean(error)

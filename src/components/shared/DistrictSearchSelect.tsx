@@ -11,6 +11,7 @@ export type DistrictOption = {
 type DistrictSearchSelectProps = {
   districts: DistrictOption[]
   value?: string
+  selectedName?: string
   onChange: (id: string) => void
   placeholder?: string
   searchPlaceholder?: string
@@ -22,6 +23,7 @@ type DistrictSearchSelectProps = {
 export function DistrictSearchSelect({
   districts,
   value,
+  selectedName,
   onChange,
   placeholder = 'Select district',
   searchPlaceholder = 'Search district…',
@@ -34,6 +36,7 @@ export function DistrictSearchSelect({
   const rootRef = useRef<HTMLDivElement>(null)
 
   const selected = districts.find((d) => d.id === value)
+  const displayName = selected?.name || selectedName
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -71,8 +74,8 @@ export function DistrictSearchSelect({
           disabled && 'cursor-not-allowed opacity-60',
         )}
       >
-        <span className={cn(!selected && 'text-neutral-400')}>
-          {selected?.name ?? placeholder}
+        <span className={cn(!displayName && 'text-neutral-400')}>
+          {displayName ?? placeholder}
         </span>
         <ChevronDown
           size={16}
