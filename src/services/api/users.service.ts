@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type { CreateUserDto, UpdateUserDto, User, UserFilters } from '@/types/user.types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,7 +22,7 @@ function mapUser(raw: ApiUser): User {
 }
 
 export const usersService = {
-  async list(filters?: UserFilters): Promise<User[]> {
+  async list(filters?: UserFilters): Promise<PaginatedResult<User>> {
     try {
       const { data } = await apiClient.get<APIResponse<ApiUser[]>>(
         `/users${buildQueryParams({
@@ -30,11 +30,15 @@ export const usersService = {
           role: filters?.role,
           status: filters?.status,
           district_id: filters?.districtId,
-          page: filters?.page,
-          size: filters?.size,
+          page: filters?.page ?? 1,
+          size: filters?.size ?? 10,
         })}`,
       )
-      return unwrapPaginated(data).items.map(mapUser)
+      const res = unwrapPaginated(data)
+      return {
+        ...res,
+        items: res.items.map(mapUser),
+      }
     } catch (error) {
       throw await extractError(error)
     }

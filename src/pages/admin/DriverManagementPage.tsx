@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { useDrivers, useSuspendDriver, useActivateDriver, useDriverActiveCard } from '@/hooks/useDrivers'
+import { useQueryClient } from '@tanstack/react-query'
+import { driversService } from '@/services'
+import { useDrivers, useSuspendDriver, useActivateDriver, useDriverActiveCard, DRIVERS_QUERY_KEY } from '@/hooks/useDrivers'
 import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { useDistricts } from '@/hooks/useDistricts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -17,7 +19,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
 import type { Driver, DriverStatus } from '@/types/driver.types'
-import { Download } from 'lucide-react'
+import { Download, QrCode, ShieldAlert } from 'lucide-react'
 
 const DRIVER_STATUSES: DriverStatus[] = [
   'APPROVED', 'ID_CARD_GENERATED', 'ACTIVE', 'SUSPENDED', 'EXPIRED',
@@ -36,20 +38,35 @@ const statusMapEnToHi: Record<string, string> = {
 export default function DriverManagementPage() {
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
+  const queryClient = useQueryClient()
   const [status, setStatus] = useState<DriverStatus | 'all'>('all')
   const [districtId, setDistrictId] = useState<string>('all')
   const [selected, setSelected] = useState<Driver | null>(null)
   const [suspendOpen, setSuspendOpen] = useState(false)
   const [suspendReason, setSuspendReason] = useState('')
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
 
   const { data: districts } = useDistricts()
-  const { data, isLoading, isError, refetch } = useDrivers({
+  const { data: driverRes, isLoading, isError, refetch } = useDrivers({
     status: status === 'all' ? undefined : status,
     districtId: districtId === 'all' ? undefined : districtId,
+    page,
+    size: 10,
+    search: search || undefined,
   })
+  const drivers = driverRes?.items ?? []
   const suspend = useSuspendDriver()
   const activate = useActivateDriver()
-  const { data: activeCard } = useDriverActiveCard(selected?.id ?? null)
+  const { data: activeCard, isLoading: isLoadingCard } = useDriverActiveCard(selected?.id ?? null)
+
+  const prefetchActiveCard = (driverId: string) => {
+    void queryClient.prefetchQuery({
+      queryKey: [...DRIVERS_QUERY_KEY, 'active-card', driverId],
+      queryFn: () => driversService.getActiveCard(driverId),
+      staleTime: 1000 * 60 * 5,
+    })
+  }
 
   const translateStatus = (s: string) => {
     if (!isHi) return s.replace(/_/g, ' ')
@@ -66,7 +83,7 @@ export default function DriverManagementPage() {
   ]
 
   const exportData = () => {
-    toast.success(isHi ? `${data?.length ?? 0} ड्राइवर रिकॉर्ड निर्यात किए गए` : `Exported ${data?.length ?? 0} driver records`)
+    toast.success(isHi ? `${driverRes?.total ?? 0} ड्राइवर रिकॉर्ड निर्यात किए गए` : `Exported ${driverRes?.total ?? 0} driver records`)
   }
 
   const handleSuspend = async () => {
@@ -97,14 +114,24 @@ export default function DriverManagementPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={drivers}
           columns={columns}
           getRowKey={(r) => r.id}
           searchable
           onRowClick={setSelected}
+          onRowHover={(r) => prefetchActiveCard(r.id)}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: driverRes?.total ?? 0,
+            totalPages: driverRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => { setSearch(v); setPage(1) },
+          }}
           actions={
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)} className="w-full sm:w-auto">
+              <Select value={status} onValueChange={(v) => { setStatus(v as typeof status); setPage(1) }} className="w-full sm:w-auto">
                 <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'स्थिति' : 'Status'} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{isHi ? 'सभी स्थितियां' : 'All Statuses'}</SelectItem>
@@ -113,7 +140,7 @@ export default function DriverManagementPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={districtId} onValueChange={setDistrictId} className="w-full sm:w-auto">
+              <Select value={districtId} onValueChange={(v) => { setDistrictId(v); setPage(1) }} className="w-full sm:w-auto">
                 <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'जिला' : 'District'} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{isHi ? 'सभी जिले' : 'All Districts'}</SelectItem>
@@ -168,12 +195,42 @@ export default function DriverManagementPage() {
                 </div>
               ))}
             </dl>
-            {activeCard && (
+
+            {isLoadingCard ? (
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 space-y-3 animate-pulse">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded bg-neutral-200" />
+                  <div className="h-5 w-36 rounded bg-neutral-200" />
+                </div>
+                <div className="h-4 w-4/5 rounded bg-neutral-200" />
+                <div className="flex flex-col items-center gap-3 pt-2">
+                  <div className="h-44 w-44 rounded-xl bg-neutral-200" />
+                  <div className="h-3 w-48 rounded bg-neutral-200" />
+                  <div className="flex justify-center gap-2 w-full">
+                    <div className="h-8 w-24 rounded-md bg-neutral-200" />
+                    <div className="h-8 w-28 rounded-md bg-neutral-200" />
+                    <div className="h-8 w-24 rounded-md bg-neutral-200" />
+                  </div>
+                </div>
+              </div>
+            ) : activeCard ? (
               <DriverQrPanel
                 cardId={activeCard.id}
                 verificationCode={activeCard.verificationCode}
                 driverName={selected.name}
               />
+            ) : (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 text-sm space-y-1">
+                <p className="font-medium flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-amber-600" />
+                  {isHi ? 'कोई सक्रिय आईडी कार्ड नहीं' : 'No Active ID Card'}
+                </p>
+                <p className="text-xs text-amber-700">
+                  {isHi
+                    ? 'इस ड्राइवर के लिए अभी तक कोई आईडी कार्ड जनरेट नहीं किया गया है।'
+                    : 'No active QR card has been generated for this driver yet.'}
+                </p>
+              </div>
             )}
           </div>
         )}

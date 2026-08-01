@@ -34,8 +34,10 @@ export default function PaymentsPage() {
   const { i18n } = useTranslation();
   const isHi = i18n.language === "hi";
   const [tab, setTab] = useState<PaymentStatus | "all">("all");
-  const { data, isLoading, isError, refetch } = usePayments({ status: tab });
-  const { data: cards } = useCards();
+  const { data: payRes, isLoading, isError, refetch } = usePayments({ status: tab });
+  const payments = payRes?.items ?? [];
+  const { data: cardRes } = useCards();
+  const cards = cardRes?.items ?? [];
   const collectPayment = useCollectPayment();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -103,14 +105,14 @@ export default function PaymentsPage() {
             </div>
           )}
           {isError && <ErrorState onRetry={() => refetch()} />}
-          {!isLoading && !isError && !data?.length && (
+          {!isLoading && !isError && !payments.length && (
             <EmptyState
               icon={CreditCard}
               title={isHi ? "कोई भुगतान नहीं मिला" : "No payments found"}
             />
           )}
           <div className="grid gap-4 md:grid-cols-2">
-            {data?.map((p) => (
+            {payments.map((p) => (
               <div
                 key={p.id}
                 className="rounded-lg border border-neutral-200 bg-white p-4 shadow-card"

@@ -28,14 +28,23 @@ const statusMapEnToHi: Record<string, string> = {
 export default function DriversPage() {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
-  const { data, isLoading, isError, refetch } = useDrivers()
-  const { data: cards } = useDriverCards()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  const { data: driverRes, isLoading, isError, refetch } = useDrivers({
+    page,
+    size: 10,
+    search: search || undefined,
+  })
+  const drivers = driverRes?.items ?? []
+  const { data: cardsRes } = useDriverCards()
+  const cards = cardsRes?.items ?? []
   const [selected, setSelected] = useState<Driver | null>(null)
   const [downloading, setDownloading] = useState(false)
 
   const cardByDriver = useMemo(() => {
     const map = new Map<string, string>()
-    cards?.forEach(card => map.set(card.driverId, card.id))
+    cards.forEach(card => map.set(card.driverId, card.id))
     return map
   }, [cards])
 
@@ -90,11 +99,20 @@ export default function DriversPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={drivers}
           columns={columns}
           getRowKey={(r) => r.id}
           searchable
           onRowClick={setSelected}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: driverRes?.total ?? 0,
+            totalPages: driverRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => { setSearch(v); setPage(1) },
+          }}
           emptyState={<EmptyState icon={Users} title={isHi ? 'कोई ड्राइवर नहीं मिला' : 'No drivers found'} />}
         />
       )}

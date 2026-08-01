@@ -11,7 +11,7 @@ export function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t('whatsappHelp')}
-      className="fixed bottom-6 right-4 md:right-6 z-50 flex items-center justify-center gap-2 rounded-full bg-green-600 p-3.5 sm:px-5 sm:py-3.5 text-base font-bold text-white shadow-lg hover:bg-green-700 transition-colors min-h-[48px] sm:min-h-[56px] w-[48px] h-[48px] sm:w-auto sm:h-auto"
+      className="fixed bottom-6 right-4 md:right-6 z-50 flex items-center justify-center gap-2 rounded-full bg-green-600 p-3.5 sm:px-5 sm:py-3.5 text-base font-bold text-white shadow-lg hover:bg-green-700 transition-colors min-h-[48px] sm:min-h-[56px] w-[48px] h-[48px] sm:w-auto sm:h-auto print:hidden"
       initial={{ scale: 1 }}
       whileHover={{ scale: 1.03 }}
     >

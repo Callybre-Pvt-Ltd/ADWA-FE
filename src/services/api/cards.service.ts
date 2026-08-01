@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, resolveStorageUrl, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 
 export type CardStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'REPLACED'
 
@@ -50,16 +50,20 @@ export const cardsService = {
     status?: CardStatus
     page?: number
     size?: number
-  }): Promise<DriverCard[]> {
+  }): Promise<PaginatedResult<DriverCard>> {
     try {
       const { data } = await apiClient.get<APIResponse<ApiCard[]>>(
         `/cards${buildQueryParams({
           status: params?.status,
-          page: params?.page,
-          size: params?.size,
+          page: params?.page ?? 1,
+          size: params?.size ?? 10,
         })}`,
       )
-      return unwrapPaginated(data).items.map(mapCard)
+      const res = unwrapPaginated(data)
+      return {
+        ...res,
+        items: res.items.map(mapCard),
+      }
     } catch (error) {
       throw await extractError(error)
     }

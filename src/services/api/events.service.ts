@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type { CreateEventDto, Event, EventFilters } from '@/types/event.types'
 import i18n from '@/i18n'
 
@@ -100,27 +100,26 @@ function getMockEvents(): Event[] {
 }
 
 export const eventsService = {
-  async getAll(filters?: EventFilters): Promise<Event[]> {
+  async getAll(filters?: EventFilters): Promise<PaginatedResult<Event>> {
     try {
       const publishedOnly = filters?.status === 'upcoming'
       const { data } = await apiClient.get<APIResponse<ApiEvent[]>>(
         `/events${buildQueryParams({
           published_only: publishedOnly ? true : undefined,
-          page: 1,
-          size: 100,
+          search: filters?.search,
+          page: filters?.page ?? 1,
+          size: filters?.size ?? 10,
         })}`,
       )
-      let items = unwrapPaginated(data).items.map(mapEvent)
-      if (filters?.search) {
-        const q = filters.search.toLowerCase()
-        items = items.filter(
-          (e) => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q),
-        )
-      }
+      const res = unwrapPaginated(data)
+      let items = res.items.map(mapEvent)
       if (filters?.status && filters.status !== 'all') {
         items = items.filter((e) => e.status === filters.status)
       }
-      return items
+      return {
+        ...res,
+        items,
+      }
     } catch (error) {
       console.warn('API call failed, returning mock events fallback:', error)
       let items = getMockEvents()
@@ -133,7 +132,13 @@ export const eventsService = {
       if (filters?.status && filters.status !== 'all') {
         items = items.filter((e) => e.status === filters.status)
       }
-      return items
+      return {
+        items,
+        total: items.length,
+        page: 1,
+        size: items.length,
+        pages: 1,
+      }
     }
   },
 

@@ -47,7 +47,15 @@ export default function ApplicationsPage() {
     verificationCode?: string
     driverName: string
   } | null>(null)
-  const { data, isLoading, isError, refetch } = useForwardedApplications()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  const { data: appRes, isLoading, isError, refetch } = useForwardedApplications({
+    page,
+    size: 10,
+    search: search || undefined,
+  })
+  const applications = appRes?.items ?? []
   const { data: selected, isLoading: detailLoading } = useDriverRequest(selectedId)
   const approve = useApproveApplication()
   const reject = useRejectApplication()
@@ -122,11 +130,20 @@ export default function ApplicationsPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={applications}
           columns={columns}
           getRowKey={(r) => r.id}
           searchable
           onRowClick={(r) => setSelectedId(r.id)}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: appRes?.total ?? 0,
+            totalPages: appRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => { setSearch(v); setPage(1) },
+          }}
           emptyState={<EmptyState icon={ClipboardList} title={t('apps.emptyTitle')} description={t('apps.emptyDesc')} />}
         />
       )}

@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type { Payment, PaymentFilters, PaymentStatus } from '@/types/payment.types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,7 +32,7 @@ function mapPayment(raw: ApiPayment): Payment {
 }
 
 export const paymentsService = {
-  async getAll(filters?: PaymentFilters): Promise<Payment[]> {
+  async getAll(filters?: PaymentFilters): Promise<PaginatedResult<Payment>> {
     try {
       const backendStatus =
         filters?.status === 'collected'
@@ -44,16 +44,16 @@ export const paymentsService = {
       const { data } = await apiClient.get<APIResponse<ApiPayment[]>>(
         `/payments${buildQueryParams({
           status: backendStatus,
-          page: 1,
-          size: 100,
+          search: filters?.search,
+          page: filters?.page ?? 1,
+          size: filters?.size ?? 10,
         })}`,
       )
-      let items = unwrapPaginated(data).items.map(mapPayment)
-      if (filters?.search) {
-        const q = filters.search.toLowerCase()
-        items = items.filter((p) => p.referenceNumber.toLowerCase().includes(q))
+      const res = unwrapPaginated(data)
+      return {
+        ...res,
+        items: res.items.map(mapPayment),
       }
-      return items
     } catch (error) {
       throw await extractError(error)
     }
@@ -97,9 +97,10 @@ export const paymentsService = {
   },
 
   async getStats() {
-    const payments = await this.getAll()
+    const res = await this.getAll({ page: 1, size: 100 })
+    const payments = res.items
     return {
-      total: payments.length,
+      total: res.total,
       pending: payments.filter((p) => p.status === 'pending').length,
       collected: payments.filter((p) => p.status === 'collected').length,
       confirmed: payments.filter((p) => p.status === 'confirmed').length,

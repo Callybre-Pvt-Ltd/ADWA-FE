@@ -14,6 +14,16 @@ export interface ColumnDef<T> {
   className?: string
 }
 
+export interface ServerPaginationProps {
+  page: number
+  pageSize: number
+  totalItems: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  searchValue?: string
+  onSearchChange?: (search: string) => void
+}
+
 export interface DataTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
@@ -21,11 +31,13 @@ export interface DataTableProps<T> {
   searchable?: boolean
   searchPlaceholder?: string
   onRowClick?: (row: T) => void
+  onRowHover?: (row: T) => void
   emptyState?: React.ReactNode
   className?: string
   testId?: string
   getRowKey: (row: T) => string
   actions?: React.ReactNode
+  pagination?: ServerPaginationProps
 }
 
 const PAGE_SIZE = 10
@@ -36,22 +48,36 @@ export function DataTable<T>({
   searchable,
   searchPlaceholder = 'Search...',
   onRowClick,
+  onRowHover,
   emptyState,
   className,
   testId,
   getRowKey,
   actions,
+  pagination,
 }: DataTableProps<T>) {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
-  const [search, setSearch] = useState('')
+  const [localSearch, setLocalSearch] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const [page, setPage] = useState(0)
+  const [localPage, setLocalPage] = useState(0)
+
+  const isServer = Boolean(pagination)
+  const search = isServer && pagination?.searchValue !== undefined ? pagination.searchValue : localSearch
+
+  const handleSearchChange = (value: string) => {
+    if (isServer && pagination?.onSearchChange) {
+      pagination.onSearchChange(value)
+    } else {
+      setLocalSearch(value)
+      setLocalPage(0)
+    }
+  }
 
   const filtered = useMemo(() => {
     let result = [...data]
-    if (search) {
+    if (!isServer && search) {
       const q = search.toLowerCase()
       result = result.filter((row) =>
         columns.some((col) => {
@@ -72,10 +98,10 @@ export function DataTable<T>({
       }
     }
     return result
-  }, [data, search, sortKey, sortDir, columns])
+  }, [data, search, sortKey, sortDir, columns, isServer])
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const totalPages = isServer ? (pagination?.totalPages ?? 1) : Math.ceil(filtered.length / PAGE_SIZE)
+  const paged = isServer ? data : filtered.slice(localPage * PAGE_SIZE, (localPage + 1) * PAGE_SIZE)
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -86,12 +112,40 @@ export function DataTable<T>({
     }
   }
 
-  const isEmpty = filtered.length === 0
+  const isEmpty = (isServer ? data : filtered).length === 0
   const emptyContent = emptyState ?? (
     <p className="py-8 text-center text-sm text-neutral-500">
       {isHi ? 'कोई डेटा नहीं मिला' : 'No data found'}
     </p>
   )
+
+  const currentPage = isServer ? (pagination?.page ?? 1) : localPage + 1
+  const totalItemCount = isServer ? (pagination?.totalItems ?? data.length) : filtered.length
+
+  const handlePrevPage = () => {
+    if (isServer) {
+      if (pagination && pagination.page > 1) {
+        pagination.onPageChange(pagination.page - 1)
+      }
+    } else {
+      setLocalPage((p) => Math.max(0, p - 1))
+    }
+  }
+
+  const handleNextPage = () => {
+    if (isServer) {
+      if (pagination && pagination.page < totalPages) {
+        pagination.onPageChange(pagination.page + 1)
+      }
+    } else {
+      setLocalPage((p) => p + 1)
+    }
+  }
+
+  const isPrevDisabled = isServer ? (pagination ? pagination.page <= 1 : true) : localPage === 0
+  const isNextDisabled = isServer
+    ? (pagination ? pagination.page >= totalPages : true)
+    : localPage >= totalPages - 1
 
   return (
     <div data-testid={testId} className={cn('space-y-4', className)}>
@@ -102,7 +156,7 @@ export function DataTable<T>({
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
               <Input
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={searchPlaceholder === 'Search...' && isHi ? 'खोजें...' : searchPlaceholder}
                 className="pl-9"
                 aria-label="Search table"
@@ -150,6 +204,7 @@ export function DataTable<T>({
               <tr
                 key={getRowKey(row)}
                 onClick={() => onRowClick?.(row)}
+                onMouseEnter={() => onRowHover?.(row)}
                 className={cn(
                   'border-b border-neutral-200',
                   onRowClick && 'cursor-pointer hover:bg-neutral-50:bg-neutral-800/50',
@@ -175,6 +230,7 @@ export function DataTable<T>({
           <div
             key={getRowKey(row)}
             onClick={() => onRowClick?.(row)}
+            onMouseEnter={() => onRowHover?.(row)}
             className={cn(
               'rounded-lg border border-neutral-200 p-4',
               onRowClick && 'cursor-pointer active:bg-neutral-50:bg-neutral-800',
@@ -190,18 +246,30 @@ export function DataTable<T>({
         ))}
       </div>
 
-      {totalPages > 1 && (
+      {(totalPages > 1 || (isServer && totalItemCount > 0)) && (
         <div className="flex items-center justify-between">
           <p className="text-small text-neutral-600">
-            {isHi 
-              ? `पृष्ठ ${page + 1} / ${totalPages} (कुल ${filtered.length} आइटम)`
-              : `Page ${page + 1} of ${totalPages} (${filtered.length} items)`}
+            {isHi
+              ? `पृष्ठ ${currentPage} / ${totalPages} (कुल ${totalItemCount} आइटम)`
+              : `Page ${currentPage} of ${totalPages} (${totalItemCount} items)`}
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isPrevDisabled}
+              onClick={handlePrevPage}
+              className="cursor-pointer"
+            >
               {isHi ? 'पिछला' : 'Previous'}
             </Button>
-            <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isNextDisabled}
+              onClick={handleNextPage}
+              className="cursor-pointer"
+            >
               {isHi ? 'अगला' : 'Next'}
             </Button>
           </div>
@@ -210,3 +278,4 @@ export function DataTable<T>({
     </div>
   )
 }
+

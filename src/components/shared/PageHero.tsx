@@ -9,7 +9,7 @@ export interface PageHeroProps {
 
 export function PageHero({ title, subtitle, className }: PageHeroProps) {
   return (
-    <div className={`relative overflow-hidden border-b border-neutral-300 bg-white py-10 md:py-12 ${className ?? ''}`}>
+    <div className={`relative overflow-hidden border-b border-neutral-300 bg-white py-10 md:py-12 print:hidden ${className ?? ''}`}>
       <div className="accent-bar absolute inset-x-0 top-0" aria-hidden="true" />
       <motion.div {...fadeInUp} className="container-wide relative text-center">
         <h1 className="text-2xl md:text-4xl font-bold text-blue-900">{title}</h1>

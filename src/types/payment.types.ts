@@ -23,6 +23,8 @@ export type PaymentFilters = {
   status?: PaymentStatus | 'all'
   district?: string
   search?: string
+  page?: number
+  size?: number
 }
 
 export type UpdatePaymentDto = {

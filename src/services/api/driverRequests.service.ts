@@ -1,7 +1,7 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
 import { mapDriverRequest } from './driverRequestMapper'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type {
   DriverFilters,
   DriverRequest,
@@ -92,12 +92,12 @@ export const driverRequestsService = {
     }
   },
 
-  async list(filters?: DriverFilters): Promise<DriverRequest[]> {
+  async list(filters?: DriverFilters): Promise<PaginatedResult<DriverRequest>> {
     try {
       const params: Record<string, string | number | undefined> = {
         search: filters?.search,
-        page: filters?.page,
-        size: filters?.size,
+        page: filters?.page ?? 1,
+        size: filters?.size ?? 10,
         date_from: filters?.dateFrom,
         date_to: filters?.dateTo,
       }
@@ -107,7 +107,11 @@ export const driverRequestsService = {
       const { data } = await apiClient.get<APIResponse<ApiDriverRequest[]>>(
         `/driver-requests${buildQueryParams(params)}`,
       )
-      return unwrapPaginated(data).items.map(mapDriverRequest)
+      const res = unwrapPaginated(data)
+      return {
+        ...res,
+        items: res.items.map(mapDriverRequest),
+      }
     } catch (error) {
       throw await extractError(error)
     }

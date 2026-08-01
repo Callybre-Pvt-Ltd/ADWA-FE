@@ -14,6 +14,8 @@ export type Event = {
 export type EventFilters = {
   status?: 'upcoming' | 'past' | 'all'
   search?: string
+  page?: number
+  size?: number
 }
 
 export type CreateEventDto = Omit<Event, 'id' | 'createdAt' | 'status'>

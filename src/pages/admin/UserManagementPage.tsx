@@ -39,7 +39,15 @@ type FormData = z.infer<typeof schema>
 export default function UserManagementPage() {
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
-  const { data, isLoading, isError, refetch } = useUsers()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  const { data: userRes, isLoading, isError, refetch } = useUsers({
+    page,
+    size: 10,
+    search: search || undefined,
+  })
+  const users = userRes?.items ?? []
   const { data: districts } = useDistricts()
   const createUser = useCreateUser()
   const updateUser = useUpdateUser()
@@ -143,11 +151,20 @@ export default function UserManagementPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={users}
           columns={columns}
           getRowKey={(u) => u.id}
           searchable
           onRowClick={openEdit}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: userRes?.total ?? 0,
+            totalPages: userRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => { setSearch(v); setPage(1) },
+          }}
         />
       )}
       <AppDrawer

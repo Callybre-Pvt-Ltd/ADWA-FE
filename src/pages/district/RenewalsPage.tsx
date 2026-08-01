@@ -30,7 +30,8 @@ const statusMapEnToHi: Record<string, string> = {
 export default function RenewalsPage() {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
-  const { data, isLoading, isError, refetch } = useRenewals()
+  const { data: renewalRes, isLoading, isError, refetch } = useRenewals()
+  const renewals = renewalRes?.items ?? []
 
   const translateStatus = (s: string) => {
     if (!isHi) return s.replace(/_/g, ' ')
@@ -72,7 +73,7 @@ export default function RenewalsPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={renewals}
           columns={columns}
           getRowKey={(r) => r.id}
           searchable

@@ -21,9 +21,10 @@ export function IdCardGenerationPanel() {
   const { t, i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
   const d = (key: string) => t(`dashboard.${key}`)
-  const { data: cards, isLoading, isError, refetch } = useCards()
+  const { data: cardRes, isLoading, isError, refetch } = useCards()
+  const cards = cardRes?.items ?? []
   const [selectedCardId, setSelectedCardId] = useState('')
-  const selectedCard = cards?.find((c) => c.id === selectedCardId) ?? cards?.[0]
+  const selectedCard = cards.find((c) => c.id === selectedCardId) ?? cards[0]
 
   const { data: snapshot, isLoading: snapshotLoading } = useCardSnapshot(selectedCard?.id ?? null)
   const generate = useGenerateIdCard()
@@ -42,22 +43,17 @@ export function IdCardGenerationPanel() {
     [],
   )
 
-  const [prevSnapshot, setPrevSnapshot] = useState<unknown>(null)
-  const [prevCards, setPrevCards] = useState<DriverCard[] | undefined>(undefined)
-
-  if (snapshot !== prevSnapshot) {
-    setPrevSnapshot(snapshot)
+  useEffect(() => {
     if (snapshot) {
       setForm(snapshotToForm(snapshot))
     }
-  }
+  }, [snapshot])
 
-  if (cards !== prevCards) {
-    setPrevCards(cards)
-    if (cards?.length && !selectedCardId) {
+  useEffect(() => {
+    if (cards.length > 0 && !selectedCardId) {
       setSelectedCardId(cards[0].id)
     }
-  }
+  }, [cards, selectedCardId])
 
   useEffect(() => {
     if (!selectedCard?.id) return

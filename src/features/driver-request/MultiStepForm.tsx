@@ -14,6 +14,7 @@ import {
 import { fadeInUp } from '@/utils/animations'
 import { ApplicationStepper, type StepConfig } from './ApplicationStepper'
 import { FormBottomBar } from '@/components/shared/FormBottomBar'
+import { AdwaSeal } from '@/components/shared/AdwaSeal'
 import StepPersonal from './StepPersonal'
 import StepDriverDetails from './StepDriverDetails'
 import StepUploads from './StepUploads'
@@ -85,23 +86,37 @@ export default function MultiStepForm() {
 
   if (referenceNumber) {
     return (
-      <motion.div {...fadeInUp} className="bg-white rounded-3xl border-2 border-neutral-200 mx-auto max-w-lg p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
-          <CheckCircle className="h-10 w-10 text-emerald-600" />
+      <motion.div
+        {...fadeInUp}
+        className="bg-white rounded-3xl border-2 border-neutral-200 mx-auto max-w-lg p-8 text-center shadow-sm print:shadow-none print:border print:border-neutral-300 print:rounded-2xl print:p-6 print:mx-auto print:max-w-md print:bg-white"
+      >
+        <div className="flex flex-col items-center justify-center pb-5 mb-5 border-b border-neutral-100 print:pb-4 print:mb-4 print:border-neutral-200">
+          <AdwaSeal size="md" className="mb-2" />
+          <h1 className="text-xs sm:text-sm font-extrabold text-neutral-900 tracking-wide uppercase">
+            Auto-Rickshaw Driver Welfare Association
+          </h1>
+          <p className="text-xs text-neutral-500 font-medium mt-0.5">Application Submission Receipt</p>
         </div>
-        <h2 className="mt-6 text-2xl font-bold text-neutral-900">{t('apply.success')}</h2>
-        <p className="mt-2 text-sm text-neutral-500">{t('apply.successReceived')}</p>
-        <div className="mt-6 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 px-5 py-5">
+
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50 print:ring-0 print:bg-emerald-50 print:h-12 print:w-12">
+          <CheckCircle className="h-9 w-9 text-emerald-600 print:h-7 print:w-7" />
+        </div>
+        <h2 className="mt-4 text-2xl font-bold text-neutral-900 print:text-xl">{t('apply.success')}</h2>
+        <p className="mt-2 text-sm text-neutral-500 print:text-xs">{t('apply.successReceived')}</p>
+
+        <div className="mt-6 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 px-5 py-5 print:my-4 print:py-4 print:bg-blue-50/50 print:border-blue-400">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t('apply.successRef')}</p>
-          <p className="mt-2 text-3xl font-bold text-blue-900 font-mono tracking-widest">{referenceNumber}</p>
+          <p className="mt-2 text-3xl font-bold text-blue-900 font-mono tracking-widest print:text-2xl">{referenceNumber}</p>
           <p className="mt-2 text-xs text-neutral-500">{t('apply.successSave')}</p>
         </div>
-        <p className="mt-4 text-sm text-neutral-500 leading-relaxed">{t('apply.successMsg')}</p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+
+        <p className="mt-4 text-sm text-neutral-500 leading-relaxed print:text-xs print:mt-3">{t('apply.successMsg')}</p>
+
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center print:hidden">
           <Button asChild variant="accent">
             <Link to="/status">{t('apply.trackApplication')} <ArrowRight className="h-4 w-4" /></Link>
           </Button>
-          <Button variant="outline" onClick={() => window.print()} className="print:hidden">
+          <Button variant="outline" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" />
             {t('apply.printReceipt')}
           </Button>

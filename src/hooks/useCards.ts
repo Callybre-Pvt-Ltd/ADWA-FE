@@ -55,3 +55,15 @@ export function useUploadCardPhoto() {
     onError: (err: Error) => toast.error(`Photo upload failed: ${err.message}`),
   })
 }
+
+export function useCardQrBlob(cardId: string | null) {
+  return useQuery({
+    queryKey: [...CARDS_QUERY_KEY, 'qr-blob', cardId],
+    queryFn: async () => {
+      const blob = await cardsService.getQrBlob(cardId!)
+      return URL.createObjectURL(blob)
+    },
+    enabled: !!cardId,
+    staleTime: 1000 * 60 * 30,
+  })
+}

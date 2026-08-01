@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle, Copy, Download, ExternalLink, QrCode } from 'lucide-react'
+import { CheckCircle, Copy, Download, ExternalLink, Loader2, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cardsService } from '@/services/api/cards.service'
+import { useCardQrBlob } from '@/hooks/useCards'
 import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { cn } from '@/utils/cn'
 
@@ -21,39 +22,40 @@ export function DriverQrPanel({
   driverName,
   className,
 }: DriverQrPanelProps) {
-  const [qrSrc, setQrSrc] = useState<string | null>(null)
+  const { data: qrSrc, isLoading: isLoadingQr } = useCardQrBlob(cardId)
   const [url, setUrl] = useState(
     verificationUrl ? normalizeVerifyUrl(verificationUrl, verificationCode) : '',
   )
-  const [loading, setLoading] = useState(true)
+  const [isLoadingUrl, setIsLoadingUrl] = useState(!verificationUrl && !verificationCode)
 
   useEffect(() => {
-    let objectUrl: string | null = null
     let cancelled = false
 
-    async function load() {
-      try {
-        setLoading(true)
-        if (!verificationUrl) {
+    async function loadUrl() {
+      if (verificationUrl) {
+        setUrl(normalizeVerifyUrl(verificationUrl, verificationCode))
+        setIsLoadingUrl(false)
+      } else if (verificationCode) {
+        setUrl(normalizeVerifyUrl('', verificationCode))
+        setIsLoadingUrl(false)
+      } else {
+        try {
+          setIsLoadingUrl(true)
           const info = await cardsService.getVerifyUrl(cardId)
           if (!cancelled) {
             setUrl(normalizeVerifyUrl(info.verificationUrl, info.verificationCode))
           }
+        } catch {
+          if (!cancelled) toast.error('Could not load verify URL')
+        } finally {
+          if (!cancelled) setIsLoadingUrl(false)
         }
-        const blob = await cardsService.getQrBlob(cardId)
-        objectUrl = URL.createObjectURL(blob)
-        if (!cancelled) setQrSrc(objectUrl)
-      } catch {
-        if (!cancelled) toast.error('Could not load QR code')
-      } finally {
-        if (!cancelled) setLoading(false)
       }
     }
 
-    void load()
+    void loadUrl()
     return () => {
       cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [cardId, verificationUrl, verificationCode])
 
@@ -71,6 +73,8 @@ export function DriverQrPanel({
     a.click()
   }
 
+  const loading = isLoadingQr || isLoadingUrl
+
   return (
     <div className={cn('rounded-xl border border-neutral-200 bg-neutral-50 p-4', className)}>
       <div className="flex items-center gap-2 mb-3">
@@ -86,7 +90,10 @@ export function DriverQrPanel({
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-xl bg-white p-3 border border-neutral-200 shadow-sm">
           {loading ? (
-            <div className="h-44 w-44 animate-pulse bg-neutral-100 rounded-lg" />
+            <div className="h-44 w-44 bg-neutral-50 rounded-lg flex flex-col items-center justify-center gap-2 text-neutral-500 border border-neutral-100">
+              <Loader2 className="h-7 w-7 animate-spin text-green-700" />
+              <span className="text-xs font-medium text-neutral-600">Loading QR...</span>
+            </div>
           ) : qrSrc ? (
             <img src={qrSrc} alt="Driver verification QR code" className="h-44 w-44" />
           ) : (

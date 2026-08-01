@@ -42,6 +42,8 @@ export type AuditLogFilters = {
   dateFrom?: string
   dateTo?: string
   search?: string
+  page?: number
+  size?: number
 }
 
 export type ActivityItem = {

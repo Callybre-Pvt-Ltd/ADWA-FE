@@ -108,6 +108,7 @@ export function useDriverActiveCard(driverId: string | null) {
     queryFn: () => driversService.getActiveCard(driverId!),
     enabled: !!driverId,
     retry: false,
+    staleTime: 1000 * 60 * 5,
   })
 }
 

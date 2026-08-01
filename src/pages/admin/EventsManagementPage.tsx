@@ -16,6 +16,7 @@ export default function EventsManagementPage() {
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
   const { data, isLoading, isError, refetch } = useEvents()
+  const events = data?.items ?? []
   const deleteEvent = useDeleteEvent()
   const publishEvent = usePublishEvent()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -33,9 +34,9 @@ export default function EventsManagementPage() {
       />
       {isLoading && <div className="grid gap-4 md:grid-cols-3">{[1,2,3].map((i) => <SkeletonCard key={i} />)}</div>}
       {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && !data?.length && <EmptyState icon={Calendar} title={isHi ? 'कोई कार्यक्रम नहीं' : 'No events'} />}
+      {!isLoading && !isError && !events.length && <EmptyState icon={Calendar} title={isHi ? 'कोई कार्यक्रम नहीं' : 'No events'} />}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data?.map((e) => (
+        {events.map((e) => (
           <div key={e.id} className="relative">
             <EventCard event={e} />
             <div className="absolute right-2 top-2 flex gap-1">

@@ -43,9 +43,17 @@ export default function RequestsPage() {
   const [rejectReason, setRejectReason] = useState('')
   const [verificationRemarks, setVerificationRemarks] = useState('')
   const [paymentProof, setPaymentProof] = useState<File | null>(null)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
 
-  const filters = status === 'all' ? undefined : { status: status as RequestStatus }
-  const { data, isLoading, isError, refetch } = useDriverRequestList(filters)
+  const filters = {
+    status: status === 'all' ? undefined : (status as RequestStatus),
+    page,
+    size: 10,
+    search: search || undefined,
+  }
+  const { data: requestRes, isLoading, isError, refetch } = useDriverRequestList(filters)
+  const requests = requestRes?.items ?? []
   const { data: selected, isLoading: detailLoading } = useDriverRequest(selectedId)
   const forwardApp = useForwardApplication()
   const rejectApp = useRejectApplication()
@@ -113,14 +121,23 @@ export default function RequestsPage() {
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && (
         <DataTable
-          data={data ?? []}
+          data={requests}
           columns={columns}
           getRowKey={(r) => r.id}
           searchable
           onRowClick={(r) => setSelectedId(r.id)}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: requestRes?.total ?? 0,
+            totalPages: requestRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => { setSearch(v); setPage(1) },
+          }}
           emptyState={<EmptyState icon={ClipboardList} title={isHi ? 'कोई अनुरोध नहीं मिला' : 'No requests found'} />}
           actions={
-            <Select value={status} onValueChange={setStatus} className="w-full sm:w-auto">
+            <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1) }} className="w-full sm:w-auto">
               <SelectTrigger className="w-full sm:w-52"><SelectValue placeholder={isHi ? 'सभी' : 'All'} /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{isHi ? 'सभी' : 'All'}</SelectItem>

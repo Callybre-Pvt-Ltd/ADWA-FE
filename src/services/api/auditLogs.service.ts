@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type { AuditLog, AuditLogFilters } from '@/types/common.types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,29 +26,24 @@ function mapAuditLog(raw: ApiAuditLog): AuditLog {
 }
 
 export const auditLogsService = {
-  async getAll(filters?: AuditLogFilters): Promise<AuditLog[]> {
+  async getAll(filters?: AuditLogFilters): Promise<PaginatedResult<AuditLog>> {
     try {
       const { data } = await apiClient.get<APIResponse<ApiAuditLog[]>>(
         `/audit-logs${buildQueryParams({
-          page: 1,
-          size: 100,
+          page: filters?.page ?? 1,
+          size: filters?.size ?? 10,
           action: filters?.search,
         })}`,
       )
-      let items = unwrapPaginated(data).items.map(mapAuditLog)
+      const res = unwrapPaginated(data)
+      let items = res.items.map(mapAuditLog)
       if (filters?.actorType && filters.actorType !== 'all') {
         items = items.filter((l) => l.actorType === filters.actorType)
       }
-      if (filters?.search) {
-        const q = filters.search.toLowerCase()
-        items = items.filter(
-          (l) =>
-            l.action.toLowerCase().includes(q) ||
-            l.entity.toLowerCase().includes(q) ||
-            l.actor.toLowerCase().includes(q),
-        )
+      return {
+        ...res,
+        items,
       }
-      return items
     } catch (error) {
       throw await extractError(error)
     }

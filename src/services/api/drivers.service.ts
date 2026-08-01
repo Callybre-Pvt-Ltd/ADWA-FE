@@ -1,6 +1,6 @@
 import { apiClient, unwrapPaginated, unwrapResponse } from './client'
 import { buildQueryParams, extractError, toCamelCase } from './mappers'
-import type { APIResponse } from '@/types/api.types'
+import type { APIResponse, PaginatedResult } from '@/types/api.types'
 import type { Driver, DriverFilters, DriverStatus } from '@/types/driver.types'
 import type { DriverCard } from './cards.service'
 import { driverRequestsService } from './driverRequests.service'
@@ -35,13 +35,13 @@ function mapDriver(raw: ApiDriver): Driver {
 }
 
 export const driversService = {
-  async getAll(filters?: DriverFilters): Promise<Driver[]> {
+  async getAll(filters?: DriverFilters): Promise<PaginatedResult<Driver>> {
     try {
       const params: Record<string, string | number | undefined> = {
         search: filters?.search,
         district_id: filters?.districtId ?? filters?.district,
-        page: filters?.page,
-        size: filters?.size,
+        page: filters?.page ?? 1,
+        size: filters?.size ?? 10,
       }
       if (filters?.status && filters.status !== 'all') {
         params.status = filters.status
@@ -49,7 +49,11 @@ export const driversService = {
       const { data } = await apiClient.get<APIResponse<ApiDriver[]>>(
         `/drivers${buildQueryParams(params)}`,
       )
-      return unwrapPaginated(data).items.map(mapDriver)
+      const res = unwrapPaginated(data)
+      return {
+        ...res,
+        items: res.items.map(mapDriver),
+      }
     } catch (error) {
       throw await extractError(error)
     }
@@ -108,8 +112,8 @@ export const driversService = {
     return driverRequestsService.list(filters)
   },
 
-  async getRenewals(): Promise<Driver[]> {
-    return this.getAll({ status: 'EXPIRED' })
+  async getRenewals(filters?: DriverFilters): Promise<PaginatedResult<Driver>> {
+    return this.getAll({ ...filters, status: 'EXPIRED' })
   },
 
   async updateStatus(id: string, status: DriverStatus): Promise<Driver> {

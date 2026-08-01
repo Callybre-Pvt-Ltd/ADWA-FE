@@ -140,7 +140,7 @@ export function RulesRegulationsPanel() {
   const activeCard = cards[activeIndex]
 
   return (
-    <section id="rules-regulations" className="mt-8 scroll-mt-28">
+    <section id="rules-regulations" className="mt-8 scroll-mt-28 print:hidden">
       <div className="surface-card p-6 md:p-8 rounded-3xl border-2 border-neutral-200">
         
         {/* Header */}

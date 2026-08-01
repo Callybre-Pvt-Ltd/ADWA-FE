@@ -8,7 +8,7 @@ export function CallFab() {
     <motion.a
       href="tel:+917319222335"
       aria-label={t('callHelp')}
-      className="fixed bottom-6 left-4 md:left-6 z-50 flex items-center justify-center gap-2 rounded-full bg-orange-600 p-3.5 sm:px-5 sm:py-3.5 text-base font-bold text-white shadow-lg hover:bg-orange-700 transition-colors min-h-12 sm:min-h-14 w-12 h-12 sm:w-auto sm:h-auto"
+      className="fixed bottom-6 left-4 md:left-6 z-50 flex items-center justify-center gap-2 rounded-full bg-orange-600 p-3.5 sm:px-5 sm:py-3.5 text-base font-bold text-white shadow-lg hover:bg-orange-700 transition-colors min-h-12 sm:min-h-14 w-12 h-12 sm:w-auto sm:h-auto print:hidden"
       initial={{ scale: 1 }}
       whileHover={{ scale: 1.03 }}
     >
