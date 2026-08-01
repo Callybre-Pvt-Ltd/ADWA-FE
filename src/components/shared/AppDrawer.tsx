@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -12,6 +13,7 @@ export interface AppDrawerProps {
   description?: string
   children: ReactNode
   footer?: ReactNode
+  footerMode?: 'docked' | 'inline'
   side?: 'left' | 'right' | 'bottom'
   size?: 'sm' | 'md' | 'lg' | 'full'
   className?: string
@@ -33,6 +35,7 @@ export function AppDrawer({
   description,
   children,
   footer,
+  footerMode = 'docked',
   side = 'right',
   size = 'md',
   className,
@@ -40,11 +43,14 @@ export function AppDrawer({
   loading,
 }: AppDrawerProps) {
   const isBottom = side === 'bottom'
+  const dockFooter = footerMode === 'docked'
   const requestClose = () => {
     if (!loading) onClose()
   }
 
-  return (
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -68,7 +74,7 @@ export function AppDrawer({
               isBottom
                 ? 'inset-x-0 bottom-0 max-h-[90vh] rounded-t-xl md:hidden'
                 : cn(
-                    'top-0 h-full',
+                    'inset-y-0',
                     side === 'right' ? 'right-0' : 'left-0',
                     'hidden md:flex',
                     sizeClasses[size],
@@ -78,7 +84,12 @@ export function AppDrawer({
               className,
             )}
           >
-            <div className="flex items-start justify-between border-b border-neutral-200 p-4">
+            <div
+              className={cn(
+                'flex justify-between border-b border-neutral-200 px-4',
+                description ? 'items-start py-4' : 'items-center py-3',
+              )}
+            >
               <div>
                 <h2 className="text-h3 text-neutral-900">{title}</h2>
                 {description && (
@@ -89,15 +100,16 @@ export function AppDrawer({
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">{children}</div>
+            <div className={cn('overflow-y-auto p-4', dockFooter && 'min-h-0 flex-1')}>{children}</div>
             {footer && (
-              <div className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
+              <div className={cn('border-t border-neutral-200 bg-white p-4', dockFooter && 'shrink-0')}>
                 {footer}
               </div>
             )}
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

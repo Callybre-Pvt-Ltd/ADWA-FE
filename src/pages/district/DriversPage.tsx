@@ -103,6 +103,7 @@ export default function DriversPage() {
         onClose={() => setSelected(null)}
         loading={downloading}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
+        footerMode="inline"
         footer={selectedCardId ? (
           <Button
             className="w-full cursor-pointer"

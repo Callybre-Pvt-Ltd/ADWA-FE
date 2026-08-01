@@ -112,7 +112,7 @@ export function Sidebar({ routes, collapsed, onToggle, portalLabel, collapsedLab
             type="button"
             onClick={onSignOut}
             className={cn(
-              'flex w-full items-center justify-center rounded px-2.5 py-2 text-xs text-red-400 hover:text-red-200 hover:bg-red-950/20 transition-colors cursor-pointer',
+              'flex w-full items-center justify-center rounded border border-transparent px-2.5 py-2 text-xs text-red-300 transition-colors cursor-pointer hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-100',
               !collapsed && 'justify-start px-2.5 gap-2.5',
             )}
           >

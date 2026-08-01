@@ -26,7 +26,7 @@ export function AvatarWithInitials({
     <div
       data-testid={testId}
       className={cn(
-        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-navy-700 font-semibold text-white',
+        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-900 font-semibold text-white',
         sizes[size],
         className,
       )}

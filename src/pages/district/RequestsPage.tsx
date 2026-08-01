@@ -56,7 +56,7 @@ export default function RequestsPage() {
   }
 
   const columns: ColumnDef<DriverRequest>[] = [
-    { key: 'ref', header: isHi ? 'आवेदन #' : 'Application #', cell: (r) => r.referenceNumber ?? r.id.slice(0, 8) },
+    { key: 'ref', header: isHi ? 'आवेदन #' : 'Application No.', cell: (r) => r.referenceNumber ?? r.id.slice(0, 8) },
     { key: 'name', header: isHi ? 'नाम' : 'Name', cell: (r) => isHi ? (nameTranslations[r.name] || r.name) : r.name, sortable: true, sortValue: (r) => r.name },
     { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (r) => r.mobile },
     { key: 'district', header: isHi ? 'जिला' : 'District', cell: (r) => isHi ? (districtMapEnToHi[r.district] || r.district) : r.district },
@@ -231,3 +231,4 @@ export default function RequestsPage() {
     </div>
   )
 }
+
