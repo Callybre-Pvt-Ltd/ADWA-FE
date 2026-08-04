@@ -39,7 +39,7 @@ export default function EventsPage() {
           <p className="mt-4 text-blue-100/90 text-base md:text-lg max-w-xl mx-auto">
             {isHi 
               ? 'भारत भर में एडवा (ADWA) द्वारा आयोजित शिखर सम्मेलन, जागरूकता अभियान, कार्यशालाएं और कल्याणकारी कार्यक्रम।'
-              : 'Summits, awareness drives, workshops and welfare programmes organised by ADWA across India.'}
+              : 'Summits, awareness drives, workshops and welfare programmes organised by ADWA across Madhya Pradesh.'}
           </p>
         </div>
         <div className="relative z-10 leading-none" aria-hidden="true">

@@ -203,6 +203,33 @@ export default function RequestsPage() {
           }
         >
           <div className="space-y-3">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-800">
+                {isHi ? 'बैंक खाता विवरण (भुगतान के लिए)' : 'Bank account details (for payment)'}
+              </p>
+              <dl className="space-y-1.5 text-sm">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
+                  <dt className="text-neutral-500 shrink-0">{isHi ? 'खाताधारक' : 'Account holder'}</dt>
+                  <dd className="font-semibold text-neutral-900 sm:text-right">KASHIRAM SEN</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
+                  <dt className="text-neutral-500 shrink-0">{isHi ? 'बैंक' : 'Bank'}</dt>
+                  <dd className="font-semibold text-neutral-900 sm:text-right">State Bank of India</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
+                  <dt className="text-neutral-500 shrink-0">{isHi ? 'खाता संख्या' : 'Account number'}</dt>
+                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">45391987346</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
+                  <dt className="text-neutral-500 shrink-0">IFSC</dt>
+                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">SBIN0000519</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
+                  <dt className="text-neutral-500 shrink-0">{isHi ? 'शाखा' : 'Branch'}</dt>
+                  <dd className="font-medium text-neutral-800 sm:text-right">H E Township (Bhopal), Piplani</dd>
+                </div>
+              </dl>
+            </div>
             <div>
               <Label>{isHi ? 'नोट्स (वैकल्पिक)' : 'Notes (optional)'}</Label>
               <Textarea

@@ -12,10 +12,10 @@ export default function TeamPage() {
 
   return (
     <div className="bg-white">
-      <PageHero title="Our Team" subtitle="National leadership dedicated to driver welfare" />
+      <PageHero title="Our Team" subtitle="State leadership dedicated to driver welfare in Madhya Pradesh" />
       <section className="section-padding">
         <div className="container-wide">
-          <SectionHeading title="Leadership Team" subtitle="Experienced leaders across India" />
+          <SectionHeading title="Leadership Team" subtitle="Office bearers of ADWA Madhya Pradesh" />
           {isLoading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[1,2,3,4,5,6].map((i) => <SkeletonCard key={i} />)}</div>}
           {isError && <ErrorState onRetry={() => refetch()} />}
           {!isLoading && !isError && !data?.length && <EmptyState icon={Users} title="No team members" />}

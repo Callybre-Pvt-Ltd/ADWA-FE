@@ -12,7 +12,7 @@ export default function AdminProfilePage() {
         title={isHi ? 'एडमिन प्रोफाइल' : 'Admin Profile'}
         subtitle={isHi ? 'अपने प्रशासक खाते को प्रबंधित करें' : 'Manage your administrator account'}
       />
-      <ProfileForm defaultValues={{ name: 'System Admin', email: 'admin@adwa.org', mobile: '9999999999', designation: 'National Administrator' }} />
+      <ProfileForm defaultValues={{ name: '', email: '', mobile: '', designation: isHi ? 'एडमिन' : 'Administrator' }} />
     </div>
   )
 }

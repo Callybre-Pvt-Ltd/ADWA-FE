@@ -1,60 +1,21 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-  MapPin, CheckCircle2, Wallet, Shield, ChevronLeft, ChevronRight,
-  Heart, Phone, Users, Award, Building2, Truck, Mail,
-  Quote, Moon, Sun, Navigation,
+  MapPin, CheckCircle2, Shield, Phone, Users, Award, Building2, Truck, Mail,
 } from 'lucide-react'
 import { fadeInUp, staggerContainer, popIn, slideInRight } from '@/utils/animations'
 import { SectionHeading } from '@/components/shared/SectionHeading'
-import { CountUp } from '@/components/shared/CountUp'
 import { AdwaSeal } from '@/components/shared/AdwaSeal'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utils/cn'
-
-
-const DRIVER_VOICES = [
-  {
-    quoteEn: "I drive 600 km every night so my children can go to school in the morning. Nobody sees the road — they only see the truck.",
-    quoteHi: "मैं हर रात 600 किमी चलाता हूं ताकि मेरे बच्चे सुबह स्कूल जा सकें। लोग सिर्फ ट्रक देखते हैं, ड्राइवर नहीं।",
-    nameEn: "Ramesh Yadav", nameHi: "रमेश यादव",
-    roleEn: "Truck Driver · 18 years", roleHi: "ट्रक चालक · 18 साल",
-    icon: Moon,
-    accent: '#1D4ED8',
-  },
-  {
-    quoteEn: "When I show my ADWA card, people treat me as a professional. Before this, I was just 'the driver'.",
-    quoteHi: "जब मैं ADWA कार्ड दिखाता हूं, लोग मुझे पेशेवर मानते हैं। पहले मैं सिर्फ 'ड्राइवर' था।",
-    nameEn: "Suresh Patel", nameHi: "सुरेश पटेल",
-    roleEn: "Bus Driver · 12 years", roleHi: "बस चालक · 12 साल",
-    icon: Sun,
-    accent: '#F97316',
-  },
-  {
-    quoteEn: "My family stays awake worrying every time I leave. ADWA gave us accident insurance — now there is some safety net.",
-    quoteHi: "जब भी मैं निकलता हूं, परिवार जागकर चिंता करता है। ADWA ने हमें दुर्घटना बीमा दिया — अब थोड़ा सहारा है।",
-    nameEn: "Mohammad Asif", nameHi: "मोहम्मद आसिफ",
-    roleEn: "Long-haul Driver · 9 years", roleHi: "लंबी दूरी चालक · 9 साल",
-    icon: Heart,
-    accent: '#16A34A',
-  },
-  {
-    quoteEn: "India runs on us, but we have no identity. ADWA is fighting to change that.",
-    quoteHi: "भारत हम पर चलता है, लेकिन हमारी कोई पहचान नहीं। ADWA इसे बदलने के लिए लड़ रहा है।",
-    nameEn: "Dinesh Kumar", nameHi: "दिनेश कुमार",
-    roleEn: "Highway Driver · 22 years", roleHi: "हाइवे चालक · 22 साल",
-    icon: Navigation,
-    accent: '#D97706',
-  },
-] as const
+import { CONTACT_INFO, SOCIAL_LINKS } from '@/constants'
 
 const ORG_STATS = [
-  { id: '1', labelEn: 'Registered Members', labelHi: 'पंजीकृत सदस्य', value: 1200000, suffix: '+' },
-  { id: '2', labelEn: 'Districts Covered', labelHi: 'जिले कवर किए गए', value: 52, suffix: '' },
-  { id: '3', labelEn: 'ID Cards Issued', labelHi: 'जारी किए गए आईडी कार्ड', value: 85000, suffix: '+' },
-  { id: '4', labelEn: 'Years of Service', labelHi: 'सेवा के वर्ष', value: 7, suffix: '+' },
+  { id: '1', labelEn: 'Founded', labelHi: 'स्थापना', display: '2026' },
+  { id: '2', labelEn: 'Districts (M.P.)', labelHi: 'जिले (म.प्र.)', display: '55' },
+  { id: '3', labelEn: 'Registry No.', labelHi: 'पंजीकरण क्रमांक', display: '01/01/01/43116/26' },
+  { id: '4', labelEn: 'State', labelHi: 'राज्य', display: 'M.P.' },
 ] as const
 
 const PATRON = {
@@ -106,7 +67,6 @@ function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; si
 export default function HomePage() {
   const { t, i18n } = useTranslation('home')
   const isHi = i18n.language === 'hi'
-  const [testimonialIdx, setTestimonialIdx] = useState(0)
 
   return (
     <div className="bg-neutral-50">
@@ -159,7 +119,9 @@ export default function HomePage() {
                     {isHi ? 'एसोसिएशन' : 'Association'}
                   </p>
                   <p className="text-xs text-white/50 mt-0.5">
-                    {isHi ? 'पंजीकरण क्रमांक: ADWA/2019/INDIA · म.प्र.' : 'Reg. ADWA/2019/INDIA · M.P.'}
+                    {isHi
+                      ? `पंजीकरण क्रमांक: ${CONTACT_INFO.registryNumber} · म.प्र.`
+                      : `Reg. ${CONTACT_INFO.registryNumber} · M.P.`}
                   </p>
                 </div>
               </div>
@@ -169,17 +131,16 @@ export default function HomePage() {
               </p>
               <p className="text-base text-blue-100/80 max-w-md mx-auto lg:mx-0 leading-relaxed">
                 {isHi
-                  ? 'एक पंजीकृत कल्याण संघ जो पूरे भारत में पेशेवर ड्राइवरों की सेवा कर रहा है - 2019 से आधिकारिक पहचान, कल्याण सहायता और डिजिटल सेवाएं प्रदान कर रहा है।'
-                  : 'A registered welfare association serving professional drivers across India — providing official identity, welfare support, and digital services since 2019.'}
+                  ? 'एक पंजीकृत कल्याण संघ जो मध्य प्रदेश में पेशेवर ड्राइवरों की सेवा कर रहा है — 2 जून 2026 से आधिकारिक पहचान, कल्याण सहायता और डिजिटल सेवाएं प्रदान कर रहा है।'
+                  : 'A registered welfare association serving professional drivers across Madhya Pradesh — providing official identity, welfare support, and digital services since 2 June 2026.'}
               </p>
 
               {/* Org trust chips */}
               <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-2">
                 {[
                   { icon: Award, labelEn: 'Govt. Recognised', labelHi: 'सरकार मान्यता प्राप्त' },
-                  { icon: Users, labelEn: '12L+ Members', labelHi: '12L+ सदस्य' },
-                  { icon: MapPin, labelEn: '28 States', labelHi: '28 राज्य' },
-                  { icon: Building2, labelEn: 'Since 2019', labelHi: '2019 से स्थापित' },
+                  { icon: MapPin, labelEn: '55 Districts (M.P.)', labelHi: '55 जिले (म.प्र.)' },
+                  { icon: Building2, labelEn: 'Since 2026', labelHi: '2026 से स्थापित' },
                 ].map(({ icon: Icon, labelEn, labelHi }) => (
                   <span key={labelEn} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
                     <Icon className="h-3.5 w-3.5 text-orange-300" aria-hidden="true" />
@@ -239,10 +200,10 @@ export default function HomePage() {
             className="grid gap-4 grid-cols-2 lg:grid-cols-4"
           >
             {ORG_STATS.map((s, i) => {
-                const StatIcons = [Users, MapPin, CheckCircle2, Truck]
+                const StatIcons = [Building2, MapPin, CheckCircle2, Truck]
                 const Icon = StatIcons[i % StatIcons.length]
-                const colors = ['#1D4ED8', '#F97316', '#16A34A', '#D97706']
-                const bgs = ['#DBEAFE', '#FFEDD5', '#DCFCE7', '#FEF3C7']
+                const colors = ['#F97316', '#1D4ED8', '#16A34A', '#D97706']
+                const bgs = ['#FFEDD5', '#DBEAFE', '#DCFCE7', '#FEF3C7']
                 const color = colors[i % colors.length]
                 const bg = bgs[i % bgs.length]
                 return (
@@ -257,8 +218,8 @@ export default function HomePage() {
                     >
                       <Icon className="h-7 w-7" aria-hidden="true" />
                     </div>
-                    <p className="text-2xl md:text-4xl font-extrabold tabular-nums" style={{ color }}>
-                      <CountUp end={s.value} suffix={s.suffix ?? ''} />
+                    <p className="text-xl md:text-2xl font-extrabold tabular-nums break-all" style={{ color }}>
+                      {s.display}
                     </p>
                     <p className="mt-1 text-sm md:text-base font-bold text-neutral-700">{isHi ? s.labelHi : s.labelEn}</p>
                   </motion.div>
@@ -268,8 +229,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Driver Voices */}
-      <DriverVoicesSection isHi={isHi} />
+      {/* Official association facts */}
+      <AssociationFactsSection isHi={isHi} />
 
       {/* Mission */}
       <section className="section-padding bg-white">
@@ -278,24 +239,24 @@ export default function HomePage() {
             <motion.div {...fadeInUp}>
               <SectionHeading
                 title={isHi ? 'हमारा मिशन' : 'Our Mission'}
-                subtitle={isHi ? 'भारत के पेशेवर ड्राइवरों के लिए' : 'For professional drivers of India'}
+                subtitle={isHi ? 'मध्य प्रदेश के पेशेवर ड्राइवरों के लिए' : 'For professional drivers of Madhya Pradesh'}
                 align="left"
               />
               <p className="mt-4 text-base text-neutral-600 leading-relaxed">
                 {isHi
-                  ? 'ADWA भारत भर में पेशेवर ड्राइवरों के कल्याण और सशक्तिकरण के लिए समर्पित है। हम आधिकारिक मान्यता, डिजिटल पहचान और सहायता प्रणाली प्रदान करते हैं जो ड्राइवरों और उनके परिवारों की रक्षा करते हैं।'
-                  : 'ADWA is dedicated to the welfare and empowerment of professional drivers across India. We provide official recognition, digital identity, and support systems that protect drivers and their families.'}
+                  ? 'ADWA मध्य प्रदेश में पेशेवर ड्राइवरों के कल्याण और सशक्तिकरण के लिए समर्पित है। हम आधिकारिक मान्यता, डिजिटल पहचान और सहायता प्रणाली प्रदान करते हैं जो ड्राइवरों और उनके परिवारों की रक्षा करते हैं।'
+                  : 'ADWA is dedicated to the welfare and empowerment of professional drivers across Madhya Pradesh. We provide official recognition, digital identity, and support systems that protect drivers and their families.'}
               </p>
               <p className="mt-3 text-base text-neutral-600 leading-relaxed">
                 {isHi
-                  ? 'मध्य प्रदेश से लेकर 28 राज्यों तक, हमारे सदस्य पेशेवर पहचान, कल्याणकारी लाभों और नीतिगत मामलों में एक एकीकृत आवाज़ के लिए ADWA पर भरोसा करते हैं।'
-                  : 'From Madhya Pradesh and across 28 states, our members rely on ADWA for their professional identity, welfare benefits, and a unified voice in policy matters.'}
+                  ? 'मध्य प्रदेश के 55 जिलों में, हमारे सदस्य पेशेवर पहचान, कल्याणकारी लाभों और नीतिगत मामलों में एक एकीकृत आवाज़ के लिए ADWA पर भरोसा करते हैं।'
+                  : 'Across 55 districts of Madhya Pradesh, our members rely on ADWA for their professional identity, welfare benefits, and a unified voice in policy matters.'}
               </p>
               <div className="mt-6 grid grid-cols-3 gap-4">
                 {[
-                  { value: '2019', labelEn: 'Founded', labelHi: 'स्थापना', cls: 'bg-orange-50 text-orange-600' },
-                  { value: '28', labelEn: 'States', labelHi: 'राज्य', cls: 'bg-blue-50 text-blue-700' },
-                  { value: '12L+', labelEn: 'Members', labelHi: 'सदस्य', cls: 'bg-green-50 text-green-700' },
+                  { value: '2026', labelEn: 'Founded', labelHi: 'स्थापना', cls: 'bg-orange-50 text-orange-600' },
+                  { value: '55', labelEn: 'Districts', labelHi: 'जिले', cls: 'bg-blue-50 text-blue-700' },
+                  { value: 'M.P.', labelEn: 'State', labelHi: 'राज्य', cls: 'bg-green-50 text-green-700' },
                 ].map(({ value, labelEn, labelHi, cls }) => (
                   <div key={labelEn} className={cn("rounded-xl p-4 text-center", cls)}>
                     <p className="text-2xl font-black">{value}</p>
@@ -436,29 +397,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="section-padding bg-white">
-        <div className="container-wide max-w-2xl">
-          <SectionHeading title={t('testimonials.title')} subtitle={t('testimonials.subtitle')} align="center" />
-          <motion.div {...popIn} className="surface-card p-6 relative overflow-hidden mt-6">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 via-blue-600 to-green-500" aria-hidden="true" />
-            <p className="text-center text-sm text-neutral-800 leading-relaxed">
-              &ldquo;{isHi ? DRIVER_VOICES[testimonialIdx].quoteHi : DRIVER_VOICES[testimonialIdx].quoteEn}&rdquo;
-            </p>
-            <p className="mt-4 text-center text-sm font-bold text-blue-900">
-              {isHi ? DRIVER_VOICES[testimonialIdx].nameHi : DRIVER_VOICES[testimonialIdx].nameEn}
-            </p>
-            <p className="text-center text-xs text-neutral-500">
-              {isHi ? DRIVER_VOICES[testimonialIdx].roleHi : DRIVER_VOICES[testimonialIdx].roleEn}
-            </p>
-            <div className="mt-5 flex justify-center gap-3">
-              <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i - 1 + DRIVER_VOICES.length) % DRIVER_VOICES.length)}><ChevronLeft className="h-5 w-5" /></Button>
-              <Button variant="outline" size="icon" onClick={() => setTestimonialIdx((i) => (i + 1) % DRIVER_VOICES.length)}><ChevronRight className="h-5 w-5" /></Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* CONTACT */}
       <section className="cta-section py-12 px-4 relative">
         <div className="container-wide text-center relative z-10">
@@ -471,20 +409,23 @@ export default function HomePage() {
               {isHi ? 'ऑल ड्राईवर्स कल्याण संगठन, म.प्र.' : 'All Drivers Welfare Association, M.P.'}
             </p>
             <p className="mt-3 text-xs text-blue-200/80 max-w-xs mx-auto leading-relaxed">
-              {isHi
-                ? 'मकान नं. 08, भौरी, तह.–हुजूर, जिला–भोपाल – 462030'
-                : 'H.No. 08, Bhauri, Tehsil-Huzur, District-Bhopal - 462030'}
+              {isHi ? CONTACT_INFO.addressHi : CONTACT_INFO.address}
             </p>
             <div className="mt-5 flex flex-col items-center gap-3">
-              <a href="tel:9977282547" className="inline-flex items-center gap-2 text-white font-bold text-sm bg-white/10 border border-white/20 rounded-full px-5 py-2.5 backdrop-blur-sm">
-                <Phone className="h-4 w-4 text-orange-300" /> 9977282547
+              <a href={`tel:${CONTACT_INFO.phoneTel}`} className="inline-flex items-center gap-2 text-white font-bold text-sm bg-white/10 border border-white/20 rounded-full px-5 py-2.5 backdrop-blur-sm">
+                <Phone className="h-4 w-4 text-orange-300" /> {CONTACT_INFO.supportPhone}
               </a>
-              <a href="mailto:alldriverwelfareassociation.mp@gmail.com" className="inline-flex items-center gap-2 text-white font-semibold text-xs bg-white/10 border border-white/20 rounded-full px-4 py-2.5 backdrop-blur-sm">
-                <Mail className="h-4 w-4 text-blue-300" /> alldriverwelfareassociation.mp@gmail.com
+              <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white font-bold text-sm bg-white/10 border border-white/20 rounded-full px-5 py-2.5 backdrop-blur-sm">
+                WhatsApp {CONTACT_INFO.whatsapp}
+              </a>
+              <a href={`mailto:${CONTACT_INFO.email}`} className="inline-flex items-center gap-2 text-white font-semibold text-xs bg-white/10 border border-white/20 rounded-full px-4 py-2.5 backdrop-blur-sm">
+                <Mail className="h-4 w-4 text-blue-300" /> {CONTACT_INFO.email}
               </a>
             </div>
             <p className="mt-5 text-xs text-blue-300/50">
-              {isHi ? 'पंजीकरण क्रमांक: 01/01/01/43116/26' : 'Reg. No. 01/01/01/43116/26'}
+              {isHi
+                ? `पंजीकरण क्रमांक: ${CONTACT_INFO.registryNumber}`
+                : `Reg. No. ${CONTACT_INFO.registryNumber}`}
             </p>
           </motion.div>
         </div>
@@ -493,137 +434,75 @@ export default function HomePage() {
   )
 }
 
-function DriverVoicesSection({ isHi }: { isHi: boolean }) {
-  const [active, setActive] = useState(0)
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setActive((i) => (i + 1) % DRIVER_VOICES.length)
-    }, 4500)
-    return () => clearInterval(id)
-  }, [])
-
-  const voice = DRIVER_VOICES[active]
+function AssociationFactsSection({ isHi }: { isHi: boolean }) {
+  const facts = [
+    {
+      icon: Building2,
+      titleEn: 'Founded',
+      titleHi: 'स्थापना',
+      valueEn: CONTACT_INFO.foundedOn,
+      valueHi: CONTACT_INFO.foundedOnHi,
+    },
+    {
+      icon: CheckCircle2,
+      titleEn: 'Registry Number',
+      titleHi: 'पंजीकरण क्रमांक',
+      valueEn: CONTACT_INFO.registryNumber,
+      valueHi: CONTACT_INFO.registryNumber,
+    },
+    {
+      icon: MapPin,
+      titleEn: 'Coverage',
+      titleHi: 'क्षेत्र',
+      valueEn: CONTACT_INFO.districtsCovered,
+      valueHi: CONTACT_INFO.districtsCoveredHi,
+    },
+    {
+      icon: Phone,
+      titleEn: 'Contact',
+      titleHi: 'संपर्क',
+      valueEn: `${CONTACT_INFO.supportPhone} · WhatsApp ${CONTACT_INFO.whatsapp}`,
+      valueHi: `${CONTACT_INFO.supportPhone} · व्हाट्सएप ${CONTACT_INFO.whatsapp}`,
+    },
+  ]
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 py-16 md:py-20">
-      {/* Ambient texture */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-orange-500/8 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-green-500/10 blur-3xl" />
-        {/* Road lines — decorative */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="absolute bottom-3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-      </div>
-
       <div className="container-wide relative z-10">
-        {/* Section header */}
         <motion.div {...fadeInUp} className="text-center mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/15 border border-orange-400/25 px-4 py-1.5 text-sm font-bold text-orange-300 mb-4">
-            {isHi ? 'ड्राइवरों की आवाज़' : 'Voice of the Driver'}
+            {isHi ? 'आधिकारिक जानकारी' : 'Official Information'}
           </span>
           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
-            {isHi ? 'उनकी कहानी, हमारी ज़िम्मेदारी' : 'Their story. Our responsibility.'}
+            {isHi ? 'ऑल ड्राइवर्स वेलफेयर एसोसिएशन, मध्य प्रदेश' : 'All Drivers Welfare Association, Madhya Pradesh'}
           </h2>
           <p className="mt-2 text-blue-200/70 text-base max-w-xl mx-auto">
             {isHi
-              ? 'भारत के सड़कों पर दौड़ते 1.5 करोड़ ड्राइवर — जो देश को आगे बढ़ाते हैं, पर अक्सर पीछे रह जाते हैं।'
-              : 'India\'s 1.5 crore drivers keep the country moving — yet remain largely unseen and unprotected.'}
+              ? '2 जून 2026 को स्थापित पंजीकृत कल्याण संघ — मध्य प्रदेश के 55 जिलों में ड्राइवर कल्याण के लिए।'
+              : 'Registered welfare association founded on 2 June 2026 — serving drivers across 55 districts of Madhya Pradesh.'}
           </p>
         </motion.div>
 
-        <div className="grid gap-8 lg:grid-cols-2 items-center">
-          {/* Big rotating quote */}
-          <div className="relative min-h-[260px] flex items-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -24 }}
-                transition={{ duration: 0.45, ease: 'easeOut' }}
-                className="w-full"
-              >
-                {/* Quote mark */}
-                <Quote className="h-10 w-10 mb-4 opacity-30" style={{ color: voice.accent }} aria-hidden="true" />
-
-                {/* Hindi quote — big, emotional */}
-                <p className="text-xl md:text-2xl font-bold text-white leading-snug mb-3">
-                  &ldquo;{isHi ? voice.quoteHi : voice.quoteEn}&rdquo;
-                </p>
-                {/* Other language sub-quote */}
-                <p className="text-sm text-blue-200/60 italic mb-5 leading-relaxed">
-                  &ldquo;{isHi ? voice.quoteEn : voice.quoteHi}&rdquo;
-                </p>
-
-                {/* Attribution */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                    style={{ backgroundColor: `${voice.accent}25`, color: voice.accent }}
-                  >
-                    <voice.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-sm">{isHi ? voice.nameHi : voice.nameEn}</p>
-                    <p className="text-xs text-blue-300/70">{isHi ? voice.roleHi : voice.roleEn}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Dot nav */}
-            <div className="absolute -bottom-6 left-0 flex gap-2">
-              {DRIVER_VOICES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className="h-2 rounded-full transition-all duration-300 focus:outline-none"
-                  style={{
-                    width: i === active ? '24px' : '8px',
-                    backgroundColor: i === active ? DRIVER_VOICES[i].accent : 'rgba(255,255,255,0.25)',
-                  }}
-                  aria-label={`Voice ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Right: insight cards */}
-          <div className="grid grid-cols-2 gap-3 mt-8 lg:mt-0">
-            {[
-              { stat: '1.5 करोड़', statEn: '1.5 Crore', labelHi: 'पेशेवर ड्राइवर', labelEn: 'Professional Drivers in India', icon: Truck, color: '#60A5FA', bg: 'rgba(96,165,250,0.1)' },
-              { stat: '₹12,000', statEn: '₹12,000', labelHi: 'औसत मासिक वेतन', labelEn: 'Avg. Monthly Income', icon: Wallet, color: '#FB923C', bg: 'rgba(251,146,60,0.1)' },
-              { stat: '72%', statEn: '72%', labelHi: 'के पास कोई ID नहीं', labelEn: 'Had No Formal Identity', icon: Shield, color: '#4ADE80', bg: 'rgba(74,222,128,0.1)' },
-              { stat: '24/7', statEn: '24/7', labelHi: 'सड़क पर, अकेले', labelEn: 'On the road, away from family', icon: Moon, color: '#FBBF24', bg: 'rgba(251,191,36,0.1)' },
-            ].map(({ stat, statEn, labelHi, labelEn, icon: Icon, color, bg }, i) => (
-              <motion.div
-                key={labelEn}
-                {...fadeInUp}
-                transition={{ delay: i * 0.07 }}
-                className="rounded-2xl border border-white/10 p-4 flex flex-col gap-2"
-                style={{ backgroundColor: bg }}
-              >
-                <Icon className="h-5 w-5 mb-1" style={{ color }} aria-hidden="true" />
-                <p className="text-xl font-black text-white leading-none">{isHi ? stat : statEn}</p>
-                <p className="text-xs text-blue-200/70 leading-snug">{isHi ? labelHi : labelEn}</p>
-              </motion.div>
-            ))}
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {facts.map(({ icon: Icon, titleEn, titleHi, valueEn, valueHi }, i) => (
+            <motion.div
+              key={titleEn}
+              {...fadeInUp}
+              transition={{ delay: i * 0.07 }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-5"
+            >
+              <Icon className="h-5 w-5 text-orange-300 mb-3" aria-hidden="true" />
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-200/70">
+                {isHi ? titleHi : titleEn}
+              </p>
+              <p className="mt-1 text-sm font-bold text-white leading-snug break-words">
+                {isHi ? valueHi : valueEn}
+              </p>
+            </motion.div>
+          ))}
         </div>
-
-        {/* Bottom strip: emotional tagline */}
-        <motion.div {...fadeInUp} className="mt-16 text-center border-t border-white/10 pt-8">
-          <p className="text-base md:text-lg text-blue-200/80 font-medium max-w-2xl mx-auto leading-relaxed">
-            {isHi
-              ? '"जो रात को चलता है, वो देश को सुबह देता है।" — ADWA उन्हीं के लिए खड़ा है।'
-              : '"He who drives through the night gives the country its morning." — ADWA stands for them.'}
-          </p>
-        </motion.div>
       </div>
     </section>
   )
 }
-
-
 

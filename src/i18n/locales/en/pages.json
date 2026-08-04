@@ -1,9 +1,9 @@
 {
   "about": {
     "title": "About ADWA",
-    "subtitle": "Empowering professional drivers with verified identity and welfare support since 2010",
+    "subtitle": "Empowering professional drivers with verified identity and welfare support since 2026",
     "aboutTitle": "About the Association",
-    "aboutText": "All Drivers Welfare Association (ADWA) is India's leading digital platform dedicated to the welfare, registration, and empowerment of professional drivers. Founded in 2010, we have grown to serve over 12 lakh registered drivers across 28 states.",
+    "aboutText": "All Drivers Welfare Association (ADWA) is a registered welfare association dedicated to the welfare, registration, and empowerment of professional drivers across Madhya Pradesh. Founded on 2 June 2026 (Reg. No. 01/01/01/43116/26), we serve drivers across 55 districts of Madhya Pradesh.",
     "visionTitle": "Our Vision",
     "visionText": "A future where every professional driver in India has verified digital identity, comprehensive welfare coverage, and a strong collective voice that is heard at every level of government.",
     "missionTitle": "Our Mission",
@@ -12,24 +12,24 @@
     "objectivesSubtitle": "What we stand for and work towards every day",
     "timelineTitle": "Our Journey",
     "timelineSubtitle": "Key milestones in ADWA's journey",
-    "badge": "Established 2010",
+    "badge": "Established 2 June 2026",
     "whoWeAreBadge": "Who We Are",
-    "whoWeAreTitle": "India's Largest Driver Welfare Platform",
-    "whoWeAreDesc1": "All Drivers Welfare Association (ADWA) is India's leading digital platform dedicated to the welfare, registration, and empowerment of professional drivers. Founded in 2010, we have grown to serve over 12 lakh registered drivers across 28 states.",
+    "whoWeAreTitle": "Driver Welfare Association of Madhya Pradesh",
+    "whoWeAreDesc1": "All Drivers Welfare Association (ADWA) is a registered welfare association dedicated to the welfare, registration, and empowerment of professional drivers. Founded on 2 June 2026 (Reg. No. 01/01/01/43116/26) in Madhya Pradesh, we work across all 55 districts of the state.",
     "whoWeAreDesc2": "Our mission is to provide every professional driver with a verified digital identity, comprehensive welfare coverage, and a strong support network that upholds their dignity and security.",
-    "stat1Label": "Members",
-    "stat2Label": "States",
-    "stat3Label": "Years of service",
-    "stat4Label": "Renewals",
+    "stat1Label": "Registry No.",
+    "stat2Label": "Districts (M.P.)",
+    "stat3Label": "Founded",
+    "stat4Label": "State",
     "welfareProgramsTitle": "Welfare Programs",
     "welfareProgramsSubtitle": "Benefits available to all active ADWA members",
-    "leadershipTitle": "National Leadership Team",
-    "leadershipSubtitle": "Experienced leaders dedicated to driver welfare",
+    "leadershipTitle": "State Leadership Team",
+    "leadershipSubtitle": "Experienced leaders dedicated to driver welfare in Madhya Pradesh",
     "objectives": [
       "Provide digital identity credentials to all professional drivers.",
-      "Create a national database of verified drivers for transport companies.",
+      "Create a state-wide database of verified drivers for transport companies.",
       "Offer accident insurance, medical assistance, and emergency support.",
-      "Advocate for drivers' rights and welfare at state and national levels.",
+      "Advocate for drivers' rights and welfare at state and district levels.",
       "Simplify renewal and registration through digital platforms.",
       "Bridge the gap between drivers and government welfare schemes."
     ],
@@ -67,28 +67,8 @@
     ],
     "timeline": [
       {
-        "year": "2010",
-        "event": "ADWA founded in New Delhi with 200 founding members."
-      },
-      {
-        "year": "2013",
-        "event": "Expanded to 10 states. Launched first membership ID card program."
-      },
-      {
-        "year": "2016",
-        "event": "Registered 1 lakh members. Launched welfare fund."
-      },
-      {
-        "year": "2019",
-        "event": "Digital ID card system launched. Mobile-friendly portal released."
-      },
-      {
-        "year": "2022",
-        "event": "Reached 10 lakh members across 25 states."
-      },
-      {
-        "year": "2025",
-        "event": "Launched full digital platform. 12+ lakh members, 28 states."
+        "year": "2026",
+        "event": "ADWA founded on 2 June 2026 in Madhya Pradesh (Reg. No. 01/01/01/43116/26)."
       }
     ]
   },
@@ -451,7 +431,7 @@
     "emailSupport": "Email Support",
     "officeAddress": "Office Address",
     "workingHours": "Working Hours",
-    "mapAddress": "H.No. 199/1, Kartar Nagar, India"
+    "mapAddress": "House No. 08, Bhouri, Tehsil Huzur, District Bhopal, Madhya Pradesh – 462030"
   },
   "login": {
     "districtTitle": "District Portal Login",

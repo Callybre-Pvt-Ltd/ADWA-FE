@@ -122,9 +122,7 @@ export function AdminFooter() {
                     aria-hidden="true"
                   />
                   <span className="leading-normal hover:underline font-medium">
-                    {isHi
-                      ? "मकान नं. 199/1, करतार नगर, अमन अस्पताल के पास, भारत"
-                      : CONTACT_INFO.address}
+                    {isHi ? CONTACT_INFO.addressHi : CONTACT_INFO.address}
                   </span>
                 </a>
               </li>
@@ -136,6 +134,7 @@ export function AdminFooter() {
                 {isHi ? "सोशल कनेक्शन" : "Social Connection"}
               </h5>
               <div className="flex items-center gap-2.5">
+                {SOCIAL_LINKS.facebook && (
                 <a
                   href={SOCIAL_LINKS.facebook}
                   target="_blank"
@@ -145,6 +144,8 @@ export function AdminFooter() {
                 >
                   <FacebookIcon className="h-4.5 w-4.5" />
                 </a>
+                )}
+                {SOCIAL_LINKS.instagram && (
                 <a
                   href={SOCIAL_LINKS.instagram}
                   target="_blank"
@@ -154,6 +155,8 @@ export function AdminFooter() {
                 >
                   <InstagramIcon className="h-4.5 w-4.5" />
                 </a>
+                )}
+                {SOCIAL_LINKS.youtube && (
                 <a
                   href={SOCIAL_LINKS.youtube}
                   target="_blank"
@@ -163,6 +166,7 @@ export function AdminFooter() {
                 >
                   <YoutubeIcon className="h-4.5 w-4.5" />
                 </a>
+                )}
               </div>
             </div>
           </div>

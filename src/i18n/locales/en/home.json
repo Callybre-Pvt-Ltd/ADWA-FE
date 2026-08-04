@@ -5,13 +5,13 @@
     "titleHighlight": "Association",
     "hindiLine": "ड्राइवर ID कार्ड बनवाएं",
     "subtitleShort": "Get your official Driver ID Card",
-    "subtitle": "Digital driver registration, verification, renewal and welfare support platform for professional drivers across India.",
+    "subtitle": "Digital driver registration, verification, renewal and welfare support for professional drivers across Madhya Pradesh.",
     "applyButton": "Apply for ID Card",
     "trackButton": "Track Application",
     "trustFree": "Free to apply",
     "trustSteps": "Only 3 easy steps",
     "illustrationTitle": "Your Official Driver ID",
-    "illustrationSubtitle": "Recognized across India",
+    "illustrationSubtitle": "Recognized across Madhya Pradesh",
     "cardAllDrivers": "All Drivers",
     "cardWelfareAssoc": "Welfare Association",
     "cardVerified": "Verified",
@@ -20,10 +20,10 @@
     "cardRTO": "RTO",
     "cardRefNo": "Ref No.",
     "chipMembers": "Members",
-    "chipStates": "States",
+    "chipStates": "Districts",
     "chipDigitalIndia": "🇮🇳 Digital India",
-    "socialProof": "drivers already registered",
-    "socialProofCount": "12 lakh+",
+    "socialProof": "districts of Madhya Pradesh",
+    "socialProofCount": "55",
     "cardDriverType": "Heavy Vehicle Driver"
   },
   "quickActions": {
@@ -71,12 +71,12 @@
     ]
   },
   "stats": {
-    "title": "Trusted by Drivers Across India",
-    "subtitle": "Numbers that reflect our commitment to driver welfare",
+    "title": "Trusted Across Madhya Pradesh",
+    "subtitle": "Official association details you can verify",
     "registeredDrivers": "Registered Drivers",
     "activeMembers": "Active Members",
     "renewalsCompleted": "Renewals Completed",
-    "statesCovered": "States Covered"
+    "statesCovered": "Districts Covered"
   },
   "services": {
     "title": "Our Services",
@@ -104,40 +104,40 @@
     "headline1": "Everything a driver needs,",
     "headline2": "in one membership.",
     "cta": "Join ADWA Today",
-    "stat1Value": "12L+",
-    "stat1Label": "Members",
-    "stat2Value": "28",
-    "stat2Label": "States",
-    "stat3Value": "15yr",
-    "stat3Label": "Serving India",
+    "stat1Value": "55",
+    "stat1Label": "Districts",
+    "stat2Value": "2026",
+    "stat2Label": "Founded",
+    "stat3Value": "M.P.",
+    "stat3Label": "State focus",
     "verifiedId": "Verified Driver Identity",
-    "verifiedIdDesc": "A nationally recognized professional ID card for drivers.",
+    "verifiedIdDesc": "A professional ID card for drivers registered with ADWA Madhya Pradesh.",
     "digitalRecords": "Digital Records",
     "digitalRecordsDesc": "Secure digital storage of all your credentials and documents.",
     "welfareSupport": "Welfare Support",
     "welfareSupportDesc": "Access to accident insurance and emergency assistance.",
     "easyRenewal": "Easy Renewals",
-    "easyRenewalDesc": "Simple online renewal process from anywhere in India.",
+    "easyRenewalDesc": "Simple online renewal process from anywhere in Madhya Pradesh.",
     "emergency": "Emergency Assistance",
-    "emergencyDesc": "24/7 emergency helpline for members in distress.",
-    "national": "National Recognition",
-    "nationalDesc": "Accepted by fleet operators and transport companies nationwide."
+    "emergencyDesc": "Helpline support for members in distress.",
+    "national": "State Recognition",
+    "nationalDesc": "Registered welfare association serving all 55 districts of Madhya Pradesh."
   },
   "leadership": {
-    "title": "National Leadership Team",
-    "subtitle": "Experienced leaders driving welfare for drivers across India",
+    "title": "State Leadership Team",
+    "subtitle": "Experienced leaders driving welfare for drivers across Madhya Pradesh",
     "eyebrow": "Leadership"
   },
   "testimonials": {
     "title": "What Drivers Say",
-    "subtitle": "Real experiences from ADWA members across India",
+    "subtitle": "Experiences from ADWA members in Madhya Pradesh",
     "eyebrow": "Testimonials",
     "avgRating": "Average rating",
-    "avgRatingValue": "4.9 / 5",
+    "avgRatingValue": "—",
     "reviews": "Reviews",
-    "reviewsValue": "12,000+",
+    "reviewsValue": "—",
     "satisfied": "Members satisfied",
-    "satisfiedValue": "98%"
+    "satisfiedValue": "—"
   },
   "faq": {
     "title": "Frequently Asked Questions",
@@ -148,12 +148,12 @@
   },
   "cta": {
     "title": "Ready to Get Your Driver ID Card?",
-    "subtitle": "Join over 12 lakh professional drivers who trust ADWA for their official identity.",
+    "subtitle": "Join professional drivers across Madhya Pradesh who trust ADWA for their official identity.",
     "button": "Apply for Driver ID Card",
     "secondary": "Know Your Eligibility",
     "badge": "Registrations open",
     "trust1": "Govt. recognised",
     "trust2": "Apply in 5 minutes",
-    "trust3": "12L+ members"
+    "trust3": "55 districts (M.P.)"
   }
 }

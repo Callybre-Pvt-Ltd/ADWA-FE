@@ -44,7 +44,7 @@ export default function PaymentPage() {
             <ul className="mt-4 space-y-2 text-sm text-neutral-700">
               <li>{CONTACT_INFO.phone}</li>
               <li>{CONTACT_INFO.email}</li>
-              <li>{i18n.language === 'hi' ? 'मकान नं. 199/1, करतार नगर, अमन अस्पताल के पास, भारत' : CONTACT_INFO.address}</li>
+              <li>{i18n.language === 'hi' ? CONTACT_INFO.addressHi : CONTACT_INFO.address}</li>
             </ul>
           </div>
         </div>

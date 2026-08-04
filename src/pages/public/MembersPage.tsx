@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Phone } from 'lucide-react'
+import { CONTACT_INFO } from '@/constants'
 
 interface Member {
   roleEn: string
@@ -106,7 +107,9 @@ export default function MembersPage() {
       {/* Registration badge */}
       <div className="flex justify-center -mt-4">
         <span className="bg-amber-500 text-amber-950 text-xs font-bold px-5 py-1.5 rounded-full shadow-md">
-          {isHi ? 'रजि. क्र. 01/01/01/43116/26' : 'Reg. No. 01/01/01/43116/26'}
+          {isHi
+            ? `रजि. क्र. ${CONTACT_INFO.registryNumber}`
+            : `Reg. No. ${CONTACT_INFO.registryNumber}`}
         </span>
       </div>
 
@@ -155,17 +158,15 @@ export default function MembersPage() {
               {isHi ? 'कार्यालय संपर्क' : 'Office Contact'}
             </p>
             <p className="text-blue-200 text-sm mt-1">
-              {isHi
-                ? 'मकान नं. 08, भौरी, तह.–हुज़ूर, जिला–भोपाल – 462030'
-                : 'House No. 08, Bhauri, Teh.–Huzur, Dist.–Bhopal – 462030'}
+              {isHi ? CONTACT_INFO.addressHi : CONTACT_INFO.address}
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <a href="tel:9977282547" className="text-blue-200 hover:text-white font-semibold flex items-center gap-2">
-              <Phone size={14} /> 9977282547
+            <a href={`tel:${CONTACT_INFO.phoneTel}`} className="text-blue-200 hover:text-white font-semibold flex items-center gap-2">
+              <Phone size={14} /> {CONTACT_INFO.supportPhone}
             </a>
-            <a href="mailto:alldriverwelfareassociation.mp@gmail.com" className="text-blue-200 hover:text-white text-sm">
-              alldriverwelfareassociation.mp@gmail.com
+            <a href={`mailto:${CONTACT_INFO.email}`} className="text-blue-200 hover:text-white text-sm">
+              {CONTACT_INFO.email}
             </a>
           </div>
         </div>

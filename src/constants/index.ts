@@ -41,17 +41,28 @@ export const EXPERIENCE_OPTIONS = [
 export const API_DELAY = 800
 
 export const SOCIAL_LINKS = {
-  facebook: 'https://facebook.com',
-  twitter: 'https://twitter.com',
-  instagram: 'https://instagram.com',
-  youtube: 'https://youtube.com',
-  whatsapp: 'https://wa.me/917319222335',
+  facebook: 'https://www.facebook.com/share/18uRHiSyQX/',
+  twitter: '',
+  instagram: '',
+  youtube: 'https://youtube.com/@driverkasanghrshsw358',
+  whatsapp: 'https://wa.me/919407240690',
 }
 
 export const CONTACT_INFO = {
-  phone: '+91 73192 22335',
-  supportPhone: '9023817901 / 8092511607',
-  email: 'support@alldriverwelfareassociation.org',
-  address: 'H.No. 199/1, Kartar Nagar, Near Aman Hospital, India',
-  hours: 'Mon - Sat 10:00 AM - 6:00 PM',
+  phone: '+91 95890 74870',
+  phoneTel: '+919589074870',
+  supportPhone: '9589074870',
+  whatsapp: '9407240690',
+  whatsappTel: '+919407240690',
+  email: 'alldriverwelfareassociation.mp@gmail.com',
+  address:
+    'House No. 08, Bhouri, Tehsil Huzur, District Bhopal, Madhya Pradesh – 462030',
+  addressHi: 'मकान नं. 08, भौरी, तहसील हुजूर, जिला भोपाल, मध्य प्रदेश – 462030',
+  registryNumber: '01/01/01/43116/26',
+  foundedOn: '2 June 2026',
+  foundedOnHi: '2 जून 2026',
+  state: 'Madhya Pradesh',
+  stateHi: 'मध्य प्रदेश',
+  districtsCovered: '55 districts of Madhya Pradesh',
+  districtsCoveredHi: 'मध्य प्रदेश के 55 जिले',
 }

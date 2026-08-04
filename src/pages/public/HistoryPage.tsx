@@ -13,7 +13,7 @@ export default function HistoryPage() {
       <PageHero title={t('about.timelineTitle')} subtitle={t('about.timelineSubtitle')} />
       <section className="section-padding">
         <div className="container-wide max-w-2xl">
-          <SectionHeading title="ADWA Timeline" subtitle="Key milestones since 2010" />
+          <SectionHeading title="ADWA Timeline" subtitle="Key milestones since 2026" />
           {timeline.map((item, i) => (
             <TimelineItem
               key={item.year}

@@ -140,9 +140,7 @@ export function Footer() {
                       aria-hidden="true"
                     />
                     <span className="leading-normal hover:underline">
-                      {i18n.language === "hi"
-                        ? "मकान नं. 199/1, करतार नगर, अमन अस्पताल के पास, भारत"
-                        : CONTACT_INFO.address}
+                      {i18n.language === 'hi' ? CONTACT_INFO.addressHi : CONTACT_INFO.address}
                     </span>
                   </a>
                 </li>
@@ -156,6 +154,7 @@ export function Footer() {
                     : "Social Connection"}
                 </h5>
                 <div className="flex items-center gap-2.5">
+                  {SOCIAL_LINKS.facebook && (
                   <a
                     href={SOCIAL_LINKS.facebook}
                     target="_blank"
@@ -165,6 +164,8 @@ export function Footer() {
                   >
                     <FacebookIcon className="h-4.5 w-4.5" />
                   </a>
+                  )}
+                  {SOCIAL_LINKS.instagram && (
                   <a
                     href={SOCIAL_LINKS.instagram}
                     target="_blank"
@@ -174,6 +175,8 @@ export function Footer() {
                   >
                     <InstagramIcon className="h-4.5 w-4.5" />
                   </a>
+                  )}
+                  {SOCIAL_LINKS.youtube && (
                   <a
                     href={SOCIAL_LINKS.youtube}
                     target="_blank"
@@ -183,6 +186,7 @@ export function Footer() {
                   >
                     <YoutubeIcon className="h-4.5 w-4.5" />
                   </a>
+                  )}
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { CONTACT_INFO } from '@/constants'
+import { CONTACT_INFO, SOCIAL_LINKS } from '@/constants'
 import { PageHero } from '@/components/shared/PageHero'
 
 export default function ContactPage() {
@@ -46,25 +46,32 @@ export default function ContactPage() {
                 { 
                   icon: Phone, 
                   label: t('contact.mainHelpline'), 
-                  value: CONTACT_INFO.phone, 
-                  isLink: false,
+                  value: CONTACT_INFO.phone,
+                  href: `tel:${CONTACT_INFO.phoneTel}`,
                   colorClass: 'bg-orange-50 text-orange-600 border-orange-100/50'
+                },
+                {
+                  icon: Phone,
+                  label: isHi ? 'व्हाट्सएप' : 'WhatsApp',
+                  value: CONTACT_INFO.whatsapp,
+                  href: SOCIAL_LINKS.whatsapp,
+                  colorClass: 'bg-green-50 text-green-600 border-green-100/50'
                 },
                 { 
                   icon: Mail, 
                   label: t('contact.emailSupport'), 
-                  value: CONTACT_INFO.email, 
-                  isLink: false,
+                  value: CONTACT_INFO.email,
+                  href: `mailto:${CONTACT_INFO.email}`,
                   colorClass: 'bg-blue-50 text-blue-600 border-blue-100/50'
                 },
                 { 
                   icon: MapPin, 
                   label: t('contact.officeAddress'), 
-                  value: isHi ? 'मकान नं. 199/1, करतार नगर, अमन अस्पताल के पास, भारत' : CONTACT_INFO.address, 
-                  isLink: true,
+                  value: isHi ? CONTACT_INFO.addressHi : CONTACT_INFO.address,
+                  href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT_INFO.address)}`,
                   colorClass: 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
                 },
-              ].map(({ icon: Icon, label, value, isLink, colorClass }) => (
+              ].map(({ icon: Icon, label, value, href, colorClass }) => (
                 <div 
                   key={label} 
                   className="flex gap-4 rounded-2xl border border-neutral-200 p-5 bg-white shadow-card hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
@@ -74,18 +81,14 @@ export default function ContactPage() {
                   </div>
                   <div className="space-y-1.5 min-w-0">
                     <p className="text-xs font-black text-neutral-400 uppercase tracking-wider leading-none">{label}</p>
-                    {isLink ? (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-bold text-blue-700 hover:text-blue-900 leading-relaxed block truncate hover:underline"
-                      >
-                        {value}
-                      </a>
-                    ) : (
-                      <p className="text-sm font-bold text-neutral-900 leading-relaxed wrap-break-word">{value}</p>
-                    )}
+                    <a
+                      href={href}
+                      target={href.startsWith('http') ? '_blank' : undefined}
+                      rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      className="text-sm font-bold text-blue-700 hover:text-blue-900 leading-relaxed block break-words hover:underline"
+                    >
+                      {value}
+                    </a>
                   </div>
                 </div>
               ))}
@@ -95,11 +98,11 @@ export default function ContactPage() {
             <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4.5 flex gap-3 text-sm text-blue-800">
               <Info className="h-5 w-5 shrink-0 text-blue-600 mt-0.5" />
               <div className="space-y-1">
-                <span className="font-bold block text-xs tracking-wider uppercase text-blue-900">{isHi ? 'सहायता समय' : 'Support Hours'}</span>
+                <span className="font-bold block text-xs tracking-wider uppercase text-blue-900">{isHi ? 'आधिकारिक संपर्क' : 'Official Contact'}</span>
                 <span className="text-xs text-blue-700/90 leading-relaxed block">
-                  {isHi 
-                    ? 'हमारा सहायता डेस्क सोमवार से शनिवार सुबह 10:00 बजे से शाम 6:00 बजे तक सक्रिय रहता है।'
-                    : 'Our support desk is active from Monday to Saturday, 10:00 AM to 6:00 PM.'}
+                  {isHi
+                    ? `पंजीकरण क्रमांक ${CONTACT_INFO.registryNumber} · स्थापना ${CONTACT_INFO.foundedOnHi} · ${CONTACT_INFO.districtsCoveredHi}`
+                    : `Reg. No. ${CONTACT_INFO.registryNumber} · Founded ${CONTACT_INFO.foundedOn} · ${CONTACT_INFO.districtsCovered}`}
                 </span>
               </div>
             </div>

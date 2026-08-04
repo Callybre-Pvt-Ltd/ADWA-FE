@@ -8,7 +8,7 @@ import { PageHero } from '@/components/shared/PageHero'
 const VALUES = [
   { icon: Heart, title: 'Integrity', desc: 'Transparent processes and honest service to every driver.' },
   { icon: Target, title: 'Empowerment', desc: 'Giving drivers a verified identity and collective voice.' },
-  { icon: Eye, title: 'Inclusion', desc: 'Serving drivers across all states, languages, and backgrounds.' },
+  { icon: Eye, title: 'Inclusion', desc: 'Serving drivers across Madhya Pradesh’s 55 districts, languages, and backgrounds.' },
 ]
 
 export default function AboutPage() {
@@ -58,7 +58,7 @@ export default function AboutPage() {
 
       <section className="section-padding bg-neutral-50">
         <div className="container-wide max-w-3xl">
-          <SectionHeading title="Founding Story" subtitle="From 200 members to 12 lakh+ drivers" />
+          <SectionHeading title="Founding Story" subtitle="Registered in Madhya Pradesh on 2 June 2026" />
           <p className="text-neutral-700">{t('about.whoWeAreDesc1')}</p>
           <p className="mt-4 text-neutral-700">{t('about.whoWeAreDesc2')}</p>
         </div>
@@ -69,10 +69,10 @@ export default function AboutPage() {
           <SectionHeading title="Achievements" subtitle={t('about.objectivesSubtitle')} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: t('about.stat1Label'), value: '12L+' },
-              { label: t('about.stat2Label'), value: '28' },
-              { label: t('about.stat3Label'), value: '15+' },
-              { label: t('about.stat4Label'), value: '9.8L+' },
+              { label: t('about.stat1Label'), value: '01/01/01/43116/26' },
+              { label: t('about.stat2Label'), value: '55' },
+              { label: t('about.stat3Label'), value: '2026' },
+              { label: t('about.stat4Label'), value: 'M.P.' },
             ].map((a, i) => (
               <motion.div key={a.label} {...fadeInUp} transition={{ delay: i * 0.08 }} className="rounded-lg bg-navy-50 p-6 text-center">
                 <p className="text-2xl font-bold text-navy-700">{a.value}</p>
