@@ -49,11 +49,11 @@ export const SOCIAL_LINKS = {
 }
 
 export const CONTACT_INFO = {
-  phone: '+91 95890 74870',
-  phoneTel: '+919589074870',
-  supportPhone: '9589074870',
-  whatsapp: '9407240690',
-  whatsappTel: '+919407240690',
+  phone: '+91 99772 82547',
+  phoneTel: '+91+91 99772 82547',
+  supportPhone: '+91 99772 82547',
+  whatsapp: '+91 99772 82547',
+  whatsappTel: '+91 99772 82547',
   email: 'alldriverwelfareassociation.mp@gmail.com',
   address:
     'House No. 08, Bhouri, Tehsil Huzur, District Bhopal, Madhya Pradesh – 462030',
