@@ -165,7 +165,6 @@ function buildPersonalRows(r: DriverRequest): DetailRow[] {
   return [
     { label: 'Full name', value: r.fullName ?? r.name },
     { label: 'Father name', value: r.fatherName },
-    { label: 'Mother name', value: r.motherName },
     { label: 'Gender', value: formatEnum(r.gender) },
     { label: 'Date of birth', value: r.dateOfBirth ? formatDate(r.dateOfBirth) : undefined },
     { label: 'Mobile', value: r.mobile },
@@ -190,16 +189,6 @@ function buildProfessionalRows(r: DriverRequest): DetailRow[] {
   return [
     { label: 'Aadhaar number', value: r.aadharNumber },
     { label: 'License number', value: r.licenseNumber },
-    {
-      label: 'License issue date',
-      value: r.licenseIssueDate ? formatDate(r.licenseIssueDate) : undefined,
-    },
-    {
-      label: 'License expiry date',
-      value: r.licenseExpiryDate ? formatDate(r.licenseExpiryDate) : undefined,
-    },
-    { label: 'Vehicle type', value: r.vehicleType ?? r.licenseType },
-    { label: 'Vehicle number', value: r.vehicleNumber },
     {
       label: 'Experience (years)',
       value: r.experienceYears !== undefined ? r.experienceYears : undefined,

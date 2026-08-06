@@ -16,7 +16,6 @@ export function buildSubmitFormData(data: DriverRequestFormData): FormData {
   fd.append('district_id', data.districtId)
   fd.append('full_name', data.name)
   fd.append('father_name', data.fatherName)
-  fd.append('mother_name', data.motherName)
   fd.append('date_of_birth', data.dateOfBirth)
   fd.append('gender', data.gender)
   fd.append('mobile_number', data.mobile)
@@ -29,10 +28,6 @@ export function buildSubmitFormData(data: DriverRequestFormData): FormData {
   fd.append('state', data.state)
   fd.append('pincode', data.pincode)
   fd.append('license_number', data.licenseNumber)
-  fd.append('license_issue_date', data.licenseIssueDate)
-  fd.append('license_expiry_date', data.licenseExpiryDate)
-  fd.append('vehicle_type', data.vehicleType)
-  fd.append('vehicle_number', data.vehicleNumber)
   fd.append('experience_years', String(data.experienceYears))
   fd.append('aadhaar_number', data.aadharNumber)
   if (data.driverPhoto) fd.append('driver_photo', data.driverPhoto)
@@ -40,7 +35,6 @@ export function buildSubmitFormData(data: DriverRequestFormData): FormData {
   if (data.aadhaarBack) fd.append('aadhaar_back', data.aadhaarBack)
   if (data.licenseFront) fd.append('license_front', data.licenseFront)
   if (data.licenseBack) fd.append('license_back', data.licenseBack)
-  if (data.vehicleRc) fd.append('vehicle_rc', data.vehicleRc)
   return fd
 }
 

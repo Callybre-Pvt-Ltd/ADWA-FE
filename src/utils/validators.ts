@@ -17,9 +17,6 @@ export const driverPersonalSchema = z.object({
   fatherName: z
     .string()
     .min(2, msg("Enter father's name", 'पिता का नाम दर्ज करें')),
-  motherName: z
-    .string()
-    .min(2, msg("Enter mother's name", 'माता का नाम दर्ज करें')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
     error: () => t('Select your gender', 'लिंग चुनें'),
   }),
@@ -54,10 +51,6 @@ export const driverDetailsSchema = z.object({
   }),
   aadharNumber: z.string().regex(/^\d{12}$/, msg('Enter your 12-digit Aadhaar number', '12 अंकों का आधार नंबर डालें')),
   licenseNumber: z.string().min(5, msg('Enter your license number', 'लाइसेंस नंबर डालें')),
-  licenseIssueDate: z.string().min(1, msg('Select license issue date', 'लाइसेंस जारी तिथि चुनें')),
-  licenseExpiryDate: z.string().min(1, msg('Select license expiry date', 'लाइसेंस की वैधता तिथि चुनें')),
-  vehicleType: z.string().min(1, msg('Select vehicle type', 'वाहन प्रकार चुनें')),
-  vehicleNumber: z.string().min(4, msg('Enter vehicle number', 'वाहन नंबर दर्ज करें')),
   experienceYears: z.coerce
     .number()
     .min(0, msg('Enter driving experience', 'अनुभव दर्ज करें'))
@@ -73,7 +66,6 @@ export const documentUploadSchema = z.object({
   aadhaarBack: requiredFile('Upload Aadhaar card back', 'आधार कार्ड (पीछे) अपलोड करें'),
   licenseFront: requiredFile('Upload driving licence front', 'ड्राइविंग लाइसेंस (आगे) अपलोड करें'),
   licenseBack: requiredFile('Upload driving licence back', 'ड्राइविंग लाइसेंस (पीछे) अपलोड करें'),
-  vehicleRc: requiredFile('Upload vehicle RC', 'वाहन RC अपलोड करें'),
 })
 
 export const contactFormSchema = z.object({
@@ -104,7 +96,6 @@ export function buildDriverRequestFormData(data: DriverRequestFormData): FormDat
   formData.append('district_id', data.districtId)
   formData.append('full_name', data.name)
   formData.append('father_name', data.fatherName)
-  formData.append('mother_name', data.motherName)
   formData.append('date_of_birth', data.dateOfBirth)
   formData.append('gender', data.gender)
   formData.append('mobile_number', data.mobile)
@@ -117,10 +108,6 @@ export function buildDriverRequestFormData(data: DriverRequestFormData): FormDat
   formData.append('state', data.state)
   formData.append('pincode', data.pincode)
   formData.append('license_number', data.licenseNumber)
-  formData.append('license_issue_date', data.licenseIssueDate)
-  formData.append('license_expiry_date', data.licenseExpiryDate)
-  formData.append('vehicle_type', data.vehicleType)
-  formData.append('vehicle_number', data.vehicleNumber)
   formData.append('experience_years', String(data.experienceYears))
   formData.append('aadhaar_number', data.aadharNumber)
   if (data.driverPhoto) formData.append('driver_photo', data.driverPhoto)
@@ -128,6 +115,5 @@ export function buildDriverRequestFormData(data: DriverRequestFormData): FormDat
   if (data.aadhaarBack) formData.append('aadhaar_back', data.aadhaarBack)
   if (data.licenseFront) formData.append('license_front', data.licenseFront)
   if (data.licenseBack) formData.append('license_back', data.licenseBack)
-  if (data.vehicleRc) formData.append('vehicle_rc', data.vehicleRc)
   return formData
 }

@@ -12,7 +12,6 @@ const DOCUMENT_FIELDS: { field: keyof DriverRequestFormData; labelKey: string }[
   { field: 'aadhaarBack', labelKey: 'aadhaarBack' },
   { field: 'licenseFront', labelKey: 'licenseFront' },
   { field: 'licenseBack', labelKey: 'licenseBack' },
-  { field: 'vehicleRc', labelKey: 'vehicleRc' },
 ]
 
 interface ReviewSectionProps {
@@ -105,7 +104,6 @@ export default function StepReview({ goToStep, declared, setDeclared, submitting
         <ReviewSection icon={<User size={18} />} title={t('apply.personalDetails')} onEdit={() => goToStep(0)} disabled={submitting}>
           <ReviewRow label={f('fullName')} value={data.name} />
           <ReviewRow label={f('fatherName')} value={data.fatherName} />
-          <ReviewRow label={f('motherName')} value={data.motherName} />
           <ReviewRow label={f('gender')} value={genderLabel} />
           <ReviewRow label={f('mobile')} value={data.mobile} />
           <ReviewRow label={f('alternateMobile')} value={data.altMobile || '—'} />
@@ -128,16 +126,12 @@ export default function StepReview({ goToStep, declared, setDeclared, submitting
           <ReviewRow label={f('bloodGroup')} value={data.bloodGroup} />
           <ReviewRow label={f('aadhaar')} value={data.aadharNumber ? `••••••••${data.aadharNumber.slice(-4)}` : '—'} />
           <ReviewRow label={f('license')} value={data.licenseNumber} />
-          <ReviewRow label={f('licenseIssueDate', 'License Issue Date')} value={data.licenseIssueDate ? formatDate(data.licenseIssueDate) : '—'} />
-          <ReviewRow label={f('licenseExpiry')} value={data.licenseExpiryDate ? formatDate(data.licenseExpiryDate) : '—'} />
-          <ReviewRow label={f('vehicleType')} value={data.vehicleType} />
-          <ReviewRow label={f('vehicleNumber', 'Vehicle Number')} value={data.vehicleNumber} />
           <ReviewRow label={f('experience')} value={`${data.experienceYears} years`} />
         </ReviewSection>
       </div>
 
       <ReviewSection icon={<Images size={18} />} title={t('apply.documentUpload')} onEdit={() => goToStep(2)} disabled={submitting}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 px-5 py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 px-5 py-4">
           {documentPreviews.map(({ field, labelKey, file, url }) => (
             <figure key={field} className="flex flex-col items-center gap-2 text-center">
               {url ? (

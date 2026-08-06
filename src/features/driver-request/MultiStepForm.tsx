@@ -56,8 +56,6 @@ export default function MultiStepForm() {
       email: '',
       altMobile: '',
       dateOfBirth: '',
-      licenseIssueDate: '',
-      licenseExpiryDate: '',
       state: 'Madhya Pradesh',
       experienceYears: 0,
     },

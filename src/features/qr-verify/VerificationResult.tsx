@@ -192,8 +192,6 @@ export default function VerificationResult({ result, className }: VerificationRe
           title={t('verify.result.groups.driving')}
           rows={[
             { label: t('verify.result.fields.license'), value: meta?.licenseNumber },
-            { label: t('verify.result.fields.vehicle'), value: meta?.vehicleNumber },
-            { label: t('verify.result.fields.vehicleType'), value: meta?.vehicleType },
           ]}
         />
 

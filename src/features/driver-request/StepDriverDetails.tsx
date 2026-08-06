@@ -11,12 +11,9 @@ import {
 } from "@/components/ui/select";
 import { BloodGroupSelector } from "@/components/shared/BloodGroupSelector";
 import { AadharInput } from "@/components/shared/AadharInput";
-import { DOBPicker } from "@/components/shared/DOBPicker";
-import { VEHICLE_TYPES } from "@/constants";
 import type { DriverRequestFormData } from "@/utils/validators";
 import { FormField, FormSection } from "./FormField";
 
-const currentYear = new Date().getFullYear();
 const EXPERIENCE_OPTIONS = Array.from({ length: 41 }, (_, i) => i);
 
 export default function StepDriverDetails() {
@@ -57,74 +54,6 @@ export default function StepDriverDetails() {
               })}
             />
           </div>
-        </FormField>
-
-        <FormField
-          label={f("licenseIssueDate", "License Issue Date")}
-          required
-          error={errors.licenseIssueDate?.message}
-        >
-          <DOBPicker
-            name="licenseIssueDate"
-            error={errors.licenseIssueDate?.message}
-            maxYear={currentYear}
-          />
-        </FormField>
-
-        <FormField
-          label={f("licenseExpiry")}
-          required
-          error={errors.licenseExpiryDate?.message}
-          fullWidth
-        >
-          <DOBPicker
-            name="licenseExpiryDate"
-            error={errors.licenseExpiryDate?.message}
-            minYear={currentYear}
-            maxYear={currentYear + 20}
-          />
-        </FormField>
-
-        <FormField
-          label={f("vehicleType")}
-          required
-          error={errors.vehicleType?.message}
-        >
-          <Select
-            value={watch("vehicleType")}
-            onValueChange={(v) =>
-              setValue("vehicleType", v, { shouldValidate: true })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={f("vehicleTypeSelect")} />
-            </SelectTrigger>
-            <SelectContent>
-              {VEHICLE_TYPES.map((vt) => (
-                <SelectItem key={vt} value={vt}>
-                  {vt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        <FormField
-          label={f("vehicleNumber", "Vehicle Number")}
-          htmlFor="vehicleNumber"
-          required
-          error={errors.vehicleNumber?.message}
-        >
-          <Input
-            id="vehicleNumber"
-            placeholder="e.g. MP09AB1234"
-            className="uppercase"
-            {...register("vehicleNumber", {
-              onChange: (e) => {
-                e.target.value = e.target.value.toUpperCase();
-              },
-            })}
-          />
         </FormField>
 
         <FormField

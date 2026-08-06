@@ -19,7 +19,6 @@ const UPLOAD_FIELDS: {
   { field: "aadhaarBack", labelKey: "aadhaarBack", hintKey: "docSize" },
   { field: "licenseFront", labelKey: "licenseFront", hintKey: "docSize" },
   { field: "licenseBack", labelKey: "licenseBack", hintKey: "docSize" },
-  { field: "vehicleRc", labelKey: "vehicleRc", hintKey: "docSize" },
 ];
 
 export default function StepUploads() {

@@ -44,7 +44,6 @@ export function useSubmitDriverRequest() {
         'aadhaarBack',
         'licenseFront',
         'licenseBack',
-        'vehicleRc',
       ])
       return driverRequestsService.submit(buildDriverRequestFormData(compressed))
     },
