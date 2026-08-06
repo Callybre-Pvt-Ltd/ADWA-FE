@@ -5,13 +5,13 @@
 export const CARD_GEOMETRY = {
   "canvas": {
     "width": 1600,
-    "height": 1168
+    "height": 1255
   },
   "faceWidth": 800,
   "photo": {
-    "x": 1135,
-    "y": 430,
-    "width": 150,
-    "height": 174
+    "x": 1099,
+    "y": 429,
+    "width": 166,
+    "height": 222
   }
 } as const

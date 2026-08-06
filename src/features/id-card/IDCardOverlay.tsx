@@ -1,7 +1,7 @@
 /**
  * IDCardOverlay — Canvas-based renderer.
  *
- * The template is a 1600×1168px landscape print image (see cardGeometry.ts):
+ * The template is a 1600×1255px landscape print image (see cardGeometry.ts):
  *   Left  half (x 0–800)   = Back face
  *   Right half (x 800–1600) = Front face
  *
@@ -88,55 +88,54 @@ const FRONT = {
     h: CARD_GEOMETRY.photo.height,
   },
 
-  valueX: 375,  // x where value text starts (right of the dotted colon line)
+  // After the dotted colon on each label row (calibrated on id_card.png)
+  valueX: 335,
 
   rows: [
-    { key: 'fullName',      y: 640 },
-    { key: 'fatherName',    y: 681 },
-    { key: 'designation',   y: 725 },
-    { key: 'licenseNumber', y: 770 },
-    { key: 'mobileNumber',  y: 815 },
-    { key: 'policeStation', y: 860 },
-    { key: 'city',          y: 901 },
-    { key: 'state',         y: 950 },
-    { key: 'bloodGroup',    y: 995 },
-    { key: 'dateOfBirth',   y: 1040 },
+    { key: 'fullName',      y: 684 },
+    { key: 'fatherName',    y: 732 },
+    { key: 'designation',   y: 779 },
+    { key: 'licenseNumber', y: 827 },
+    { key: 'mobileNumber',  y: 874 },
+    { key: 'policeStation', y: 922 },
+    { key: 'city',          y: 969 },
+    { key: 'state',         y: 1017 },
+    { key: 'bloodGroup',    y: 1064 },
+    { key: 'dateOfBirth',   y: 1112 },
   ] as { key: keyof IdCardFormValues; y: number }[],
 
-  fontSize: 30,
+  // Optional QR / barcode slot (header "बारकोड" box)
+  qr: { x: 652, y: 220, w: 99, h: 102 },
+
+  fontSize: 22,
   fontFamily: 'Roboto, sans-serif',
-  valueColor: '#111827',
+  valueColor: '#141414',
 }
 
 // ─── Back face coordinates (face-local space) ────────────────────────────────
-// NOTE: The backend renderer uses a different source template (Simran-front.png),
-// so backend layout.py erase coordinates do NOT apply here.  These erase boxes
-// are calibrated for id_card.png used by the frontend canvas.
-//
-// Each erase box intentionally spans from the start of the value area all the
-// way to the right edge of the face so it covers every placeholder digit in
-// the template regardless of how many there are (card-no has 12, expiry has 13).
+// Value boxes only — do not cover the colored CARD NO / ISSUE / EXPIRY labels.
 const BACK = {
+  // Wipe the value-box interior only (after the colored pill tip → before the
+  // right border) so every template zero disappears without clipping the label.
   rows: [
     {
-      // erase covers the full value area so no template zeros bleed through
-      erase:  { x: 290, y: 513, w: 510, h: 44 },
-      textX:  300, textY: 545, color: '#393186',
+      erase: { x: 322, y: 548, w: 370, h: 52 },
+      textX: 330, textY: 574, color: '#113478',
       key: 'cardNumber' as const,
     },
     {
-      erase:  { x: 290, y: 599, w: 510, h: 44 },
-      textX:  300, textY: 631, color: '#2C642E',
+      erase: { x: 322, y: 635, w: 370, h: 58 },
+      textX: 330, textY: 664, color: '#005C33',
       key: 'issueDate' as const,
     },
     {
-      erase:  { x: 290, y: 683, w: 510, h: 44 },
-      textX:  300, textY: 715, color: '#E63C23',
+      erase: { x: 322, y: 728, w: 370, h: 58 },
+      textX: 330, textY: 757, color: '#B41E1E',
       key: 'expiryDate' as const,
     },
   ],
 
-  fontSize: 30,
+  fontSize: 26,
   fontFamily: 'Roboto, sans-serif',
 }
 
@@ -169,12 +168,13 @@ async function drawFront(
     } catch { /* photo load failed — show template placeholder */ }
   }
 
-  // Values only — template already has labels + dotted lines printed
+  // Values only — no white backing on the front; text sits on the dotted lines
   ctx.font = `700 ${FRONT.fontSize}px ${FRONT.fontFamily}`
   ctx.fillStyle = FRONT.valueColor
   ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
 
-  const maxW = FACE_W - FRONT.valueX - 20
+  const maxW = FACE_W - FRONT.valueX - 40
   for (const row of FRONT.rows) {
     const raw = String(form[row.key] || '')
     if (!raw) continue
@@ -188,11 +188,14 @@ async function drawFront(
     ctx.fillText(display, FRONT.valueX, row.y)
   }
 
-  // QR code (optional — bottom right corner)
+  // QR code in the header barcode slot
   if (qrUrl) {
     try {
       const qr = await loadUrl(qrUrl)
-      ctx.drawImage(qr, 665, 205, 88, 88)
+      const { x, y, w, h } = FRONT.qr
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(x, y, w, h)
+      ctx.drawImage(qr, x, y, w, h)
     } catch { /* ignore */ }
   }
 }
@@ -219,6 +222,7 @@ async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | und
 
   ctx.font = `700 ${BACK.fontSize}px ${BACK.fontFamily}`
   ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
 
   const values: Record<string, string> = {
     cardNumber: card?.cardNumber ?? '',
@@ -228,12 +232,13 @@ async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | und
 
   for (const row of BACK.rows) {
     const { erase, textX, textY, color, key } = row
-    // Fill the full erase area with white so all template placeholder digits are covered
+    const text = values[key]
+    if (!text) continue
+    // Wipe the whole value box so no template zeros bleed through
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(erase.x, erase.y, erase.w, erase.h)
-    // Draw the value text
     ctx.fillStyle = color
-    ctx.fillText(values[key], textX, textY)
+    ctx.fillText(text, textX, textY)
   }
 }
 
@@ -344,8 +349,9 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
   const drawFrontCb = useCallback(
     (canvas: HTMLCanvasElement) => drawFront(canvas, values, photoUrl, qrUrl),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [values.fullName, values.designation, values.mobileNumber, values.policeStation,
-     values.city, values.state, values.bloodGroup, values.dateOfBirth, photoUrl, qrUrl],
+    [values.fullName, values.fatherName, values.designation, values.licenseNumber,
+     values.mobileNumber, values.policeStation, values.city, values.state,
+     values.bloodGroup, values.dateOfBirth, photoUrl, qrUrl],
   )
 
   const drawBackCb = useCallback(
