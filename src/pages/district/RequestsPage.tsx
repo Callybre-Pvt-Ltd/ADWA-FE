@@ -117,9 +117,11 @@ export default function RequestsPage() {
         title={isHi ? 'ड्राइवर अनुरोध' : 'Driver Requests'}
         subtitle={isHi ? 'आवेदनों की समीक्षा करें और एडमिन को अग्रेषित करें' : 'Review applications and forward to admin'}
       />
-      {isLoading && <SkeletonTable />}
-      {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && (
+      {isLoading && !requestRes ? (
+        <SkeletonTable />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : (
         <DataTable
           data={requests}
           columns={columns}

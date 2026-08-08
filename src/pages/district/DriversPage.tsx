@@ -95,9 +95,11 @@ export default function DriversPage() {
         title={isHi ? 'ड्राइवर' : 'Drivers'}
         subtitle={isHi ? 'आपके जिले में सभी पंजीकृत ड्राइवर' : 'All registered drivers in your district'}
       />
-      {isLoading && <SkeletonTable />}
-      {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && (
+      {isLoading && !driverRes ? (
+        <SkeletonTable />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : (
         <DataTable
           data={drivers}
           columns={columns}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -41,6 +41,7 @@ export interface DataTableProps<T> {
 }
 
 const PAGE_SIZE = 10
+const SERVER_SEARCH_DEBOUNCE_MS = 400
 
 export function DataTable<T>({
   data,
@@ -64,11 +65,28 @@ export function DataTable<T>({
   const [localPage, setLocalPage] = useState(0)
 
   const isServer = Boolean(pagination)
-  const search = isServer && pagination?.searchValue !== undefined ? pagination.searchValue : localSearch
+  // Keep the input local while typing; only notify the parent after a short pause
+  // so each keystroke does not remount/refetch and steal focus.
+  const [serverDraft, setServerDraft] = useState(pagination?.searchValue ?? '')
+  const onSearchChangeRef = useRef(pagination?.onSearchChange)
+  onSearchChangeRef.current = pagination?.onSearchChange
+  const committedSearchRef = useRef(pagination?.searchValue ?? '')
+
+  useEffect(() => {
+    if (!isServer || !onSearchChangeRef.current) return
+    if (serverDraft === committedSearchRef.current) return
+    const timer = window.setTimeout(() => {
+      committedSearchRef.current = serverDraft
+      onSearchChangeRef.current?.(serverDraft)
+    }, SERVER_SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(timer)
+  }, [serverDraft, isServer])
+
+  const search = isServer ? serverDraft : localSearch
 
   const handleSearchChange = (value: string) => {
     if (isServer && pagination?.onSearchChange) {
-      pagination.onSearchChange(value)
+      setServerDraft(value)
     } else {
       setLocalSearch(value)
       setLocalPage(0)

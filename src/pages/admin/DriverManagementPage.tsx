@@ -110,9 +110,11 @@ export default function DriverManagementPage() {
         subtitle={isHi ? 'उन्नत फ़िल्टर के साथ राष्ट्रीय ड्राइवर डेटाबेस' : 'National driver database with advanced filters'}
         action={<Button variant="outline" onClick={exportData} className="w-full sm:w-auto cursor-pointer"><Download className="h-4 w-4" /> {isHi ? 'एक्सपोर्ट' : 'Export'}</Button>}
       />
-      {isLoading && <SkeletonTable />}
-      {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && (
+      {isLoading && !driverRes ? (
+        <SkeletonTable />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : (
         <DataTable
           data={drivers}
           columns={columns}

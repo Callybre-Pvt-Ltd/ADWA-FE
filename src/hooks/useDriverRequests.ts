@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { driverRequestsService } from '../services'
 import type { DriverFilters } from '../types/driver.types'
 import { buildDriverRequestFormData, type DriverRequestFormData } from '../utils/validators'
@@ -12,6 +12,7 @@ export function useDriverRequestList(filters?: DriverFilters) {
     queryKey: [...DRIVER_REQUESTS_QUERY_KEY, 'list', filters],
     queryFn: () => driverRequestsService.list(filters),
     staleTime: 1000 * 60 * 2,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -31,6 +32,7 @@ export function useForwardedApplications(filters?: DriverFilters) {
       driverRequestsService.list({ ...filters, status: 'FORWARDED_TO_ADMIN' }),
     staleTime: 0,
     refetchOnMount: 'always',
+    placeholderData: keepPreviousData,
   })
 }
 

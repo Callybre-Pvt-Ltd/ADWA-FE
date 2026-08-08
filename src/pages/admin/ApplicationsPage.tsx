@@ -126,9 +126,11 @@ export default function ApplicationsPage() {
         title={t('apps.title')}
         subtitle={t('apps.subtitle')}
       />
-      {isLoading && <SkeletonTable />}
-      {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && (
+      {isLoading && !appRes ? (
+        <SkeletonTable />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
+      ) : (
         <DataTable
           data={applications}
           columns={columns}

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { driversService, verificationService, cardsService } from '../services'
 import type { DriverFilters, DriverStatus, CreateDriverDto } from '../types/driver.types'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ export function useDrivers(filters?: DriverFilters) {
     queryKey: [...DRIVERS_QUERY_KEY, filters],
     queryFn: () => driversService.getAll(filters),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -26,6 +27,7 @@ export function useDriverRequests(filters?: DriverFilters) {
     queryKey: ['driver-requests', filters],
     queryFn: () => driversService.getRequests(filters),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   })
 }
 
