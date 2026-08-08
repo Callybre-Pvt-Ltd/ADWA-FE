@@ -25,6 +25,9 @@ const statusMapEnToHi: Record<string, string> = {
   'EXPIRED': 'समाप्त',
 }
 
+/** Admin has approved the driver — ID card download is allowed. */
+const DOWNLOADABLE_STATUSES = new Set(['APPROVED', 'ID_CARD_GENERATED', 'ACTIVE'])
+
 export default function DriversPage() {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
@@ -55,6 +58,15 @@ export default function DriversPage() {
 
   const handleDownload = async (driverId: string) => {
     if (downloading) return
+    const driver = drivers.find((d) => d.id === driverId) ?? selected
+    if (!driver || !DOWNLOADABLE_STATUSES.has(driver.status)) {
+      toast.error(
+        isHi
+          ? 'एडमिन द्वारा स्वीकृत होने के बाद ही आईडी कार्ड डाउनलोड हो सकता है'
+          : 'ID card can be downloaded only after admin approval',
+      )
+      return
+    }
     const cardId = cardByDriver.get(driverId)
     if (!cardId) {
       toast.error(isHi ? 'इस ड्राइवर के लिए कोई आईडी कार्ड नहीं मिला' : 'No ID card found for this driver')
@@ -88,6 +100,8 @@ export default function DriversPage() {
   ]
 
   const selectedCardId = selected ? cardByDriver.get(selected.id) : undefined
+  const canDownload =
+    Boolean(selected && selectedCardId && DOWNLOADABLE_STATUSES.has(selected.status))
 
   return (
     <div className="w-full space-y-6 pb-6 animate-fade-in">
@@ -124,16 +138,30 @@ export default function DriversPage() {
         loading={downloading}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footerMode="inline"
-        footer={selectedCardId ? (
-          <Button
-            className="w-full cursor-pointer"
-            onClick={() => selected && handleDownload(selected.id)}
-            loading={downloading}
-            loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
-          >
-            <Download className="h-4 w-4" /> {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
-          </Button>
-        ) : undefined}
+        footer={
+          selected ? (
+            <div className="w-full space-y-2">
+              <Button
+                className="w-full cursor-pointer"
+                onClick={() => selected && handleDownload(selected.id)}
+                loading={downloading}
+                loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
+                disabled={!canDownload || downloading}
+              >
+                <Download className="h-4 w-4" /> {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
+              </Button>
+              {!canDownload && (
+                <p className="text-xs text-center text-neutral-500">
+                  {!selectedCardId
+                    ? (isHi ? 'अभी तक कोई आईडी कार्ड नहीं बना।' : 'No ID card record yet.')
+                    : (isHi
+                      ? 'एडमिन स्वीकृति के बाद ही डाउनलोड उपलब्ध होगा।'
+                      : 'Available after admin approval.')}
+                </p>
+              )}
+            </div>
+          ) : undefined
+        }
       >
         {selected && (
           <div className="space-y-4">
@@ -152,11 +180,6 @@ export default function DriversPage() {
                 </div>
               ))}
             </dl>
-            {!selectedCardId && (
-              <p className="text-sm text-orange-700 bg-orange-50 rounded-lg p-3">
-                {isHi ? 'अभी तक कोई आईडी कार्ड जनरेट नहीं किया गया है।' : 'No ID card generated yet.'}
-              </p>
-            )}
           </div>
         )}
       </AppDrawer>

@@ -87,7 +87,7 @@ export function useActivateDriver() {
 export function useDriverCards() {
   return useQuery({
     queryKey: ['cards'],
-    queryFn: () => cardsService.list(),
+    queryFn: () => cardsService.list({ size: 100 }),
     staleTime: 1000 * 60 * 5,
   })
 }

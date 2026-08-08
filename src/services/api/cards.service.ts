@@ -17,6 +17,7 @@ export type DriverCard = {
   createdAt: string
   /** Driver display name from card snapshot (for dropdown labels). */
   fullNameSnapshot?: string | null
+  hasPdf?: boolean
 }
 
 export type CardSnapshot = {
