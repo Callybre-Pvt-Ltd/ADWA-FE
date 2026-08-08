@@ -41,7 +41,7 @@ export interface DataTableProps<T> {
 }
 
 const PAGE_SIZE = 10
-const SERVER_SEARCH_DEBOUNCE_MS = 400
+const SERVER_SEARCH_DEBOUNCE_MS = 50
 
 export function DataTable<T>({
   data,
