@@ -15,6 +15,8 @@ export type DriverCard = {
   expiresAt: string | null
   generatedAt: string | null
   createdAt: string
+  /** Driver display name from card snapshot (for dropdown labels). */
+  fullNameSnapshot?: string | null
 }
 
 export type CardSnapshot = {
@@ -108,7 +110,7 @@ export const cardsService = {
     const { downloadUrl } = await this.getDownloadUrl(id)
     const response = await fetch(downloadUrl)
     if (!response.ok) {
-      throw new Error('Could not download ID card PDF — generate the card first')
+      throw new Error('Could not download ID card PDF. Try again in a moment.')
     }
     const blob = await response.blob()
     const objectUrl = URL.createObjectURL(blob)
@@ -137,6 +139,15 @@ export const cardsService = {
   async getQrBlob(id: string): Promise<Blob> {
     try {
       const { data } = await apiClient.get<Blob>(`/cards/${id}/qr`, { responseType: 'blob' })
+      return data
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async getPhotoBlob(id: string): Promise<Blob> {
+    try {
+      const { data } = await apiClient.get<Blob>(`/cards/${id}/photo`, { responseType: 'blob' })
       return data
     } catch (error) {
       throw await extractError(error)

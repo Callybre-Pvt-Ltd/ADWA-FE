@@ -265,7 +265,7 @@ export const districtRoutes: RouteConfig[] = [
     component: lazyPage(() => import('../pages/district/PaymentsPage')),
     layout: 'district',
     showInNav: false,
-    showInSidebar: true,
+    showInSidebar: false,
     meta: { title: 'Payments', requiresRole: 'district' },
   },
   {
@@ -355,8 +355,8 @@ export const adminRoutes: RouteConfig[] = [
     icon: 'CreditCard',
     component: lazyPage(() => import('../pages/admin/PaymentConfirmationsPage')),
     layout: 'admin',
-    showInNav: true,
-    showInSidebar: true,
+    showInNav: false,
+    showInSidebar: false,
     meta: { title: 'Payment Confirmations', requiresRole: 'admin' },
   },
   {

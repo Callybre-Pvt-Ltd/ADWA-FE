@@ -45,7 +45,7 @@ export const SOCIAL_LINKS = {
   twitter: '',
   instagram: '',
   youtube: 'https://youtube.com/@driverkasanghrshsw358',
-  whatsapp: 'https://wa.me/919407240690',
+  whatsapp: 'https://wa.me/9977282547',
 }
 
 export const CONTACT_INFO = {

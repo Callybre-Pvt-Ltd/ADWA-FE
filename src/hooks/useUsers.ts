@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { usersService } from '../services'
 import type { CreateUserDto, UpdateUserDto, UserFilters } from '../types/user.types'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ export function useUsers(filters?: UserFilters) {
     queryKey: [...USERS_QUERY_KEY, filters],
     queryFn: () => usersService.list({ ...filters, role: 'DISTRICT_INCHARGE' }),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -54,7 +55,7 @@ export function useResetUserPassword() {
   return useMutation({
     mutationFn: ({ id, password }: { id: string; password: string }) =>
       usersService.resetPassword(id, password),
-    onSuccess: () => toast.success('Password reset'),
+    onSuccess: () => toast.success('Password reset successfully'),
     onError: (err: Error) => toast.error(`Failed: ${err.message}`),
   })
 }

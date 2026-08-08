@@ -137,6 +137,7 @@
     "idCard": {
       "noCardsTitle": "No cards ready",
       "noCardsDesc": "Approve driver applications first — each approved driver gets a card record.",
+      "noApprovedCardsDesc": "No approved driver ID cards in your district yet. Cards appear here after admin approval.",
       "selectDriver": "Select driver card",
       "cardInfo": "Card information",
       "printCard": "Print card",

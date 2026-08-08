@@ -100,14 +100,15 @@ apiClient.interceptors.response.use(
 )
 
 export function unwrapResponse<T>(response: APIResponse<T>): T {
-  if (!response.success || response.data === null || response.data === undefined) {
+  if (!response.success) {
     const message =
       typeof response.error === 'string'
         ? response.error
         : response.message || 'Request failed'
     throw new Error(message)
   }
-  return response.data
+  // Void endpoints (e.g. reset-password) return success with null data.
+  return response.data as T
 }
 
 export function unwrapPaginated<T>(

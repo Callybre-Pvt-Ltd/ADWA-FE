@@ -42,13 +42,51 @@ function loadTemplate(): Promise<HTMLImageElement> {
 }
 
 function loadUrl(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = url
-  })
+  // Fetch as blob so the canvas is never CORS-tainted and signed/local URLs
+  // load reliably (same pattern as the QR blob).
+  return (async () => {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Failed to load image (${res.status})`)
+    const blob = await res.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    try {
+      return await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new window.Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => reject(new Error('Image decode failed'))
+        img.src = objectUrl
+      })
+    } finally {
+      URL.revokeObjectURL(objectUrl)
+    }
+  })()
+}
+
+/** Draw image with object-fit: cover into the destination rect (passport-style). */
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+) {
+  const ir = img.naturalWidth / img.naturalHeight
+  const tr = dw / dh
+  let sx = 0
+  let sy = 0
+  let sw = img.naturalWidth
+  let sh = img.naturalHeight
+  if (ir > tr) {
+    // Source wider than slot — crop sides
+    sw = img.naturalHeight * tr
+    sx = (img.naturalWidth - sw) / 2
+  } else {
+    // Source taller — crop top/bottom, bias upward for faces
+    sh = img.naturalWidth / tr
+    sy = (img.naturalHeight - sh) * 0.35
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
 }
 
 // The backend renders card text with Roboto (assets/fonts/Roboto-Regular.ttf).
@@ -139,6 +177,8 @@ const BACK = {
   fontFamily: 'Roboto, sans-serif',
 }
 
+type CancelCheck = () => boolean
+
 // ─── Draw front face ──────────────────────────────────────────────────────────
 
 async function drawFront(
@@ -146,27 +186,37 @@ async function drawFront(
   form: IdCardFormValues,
   photoUrl: string | null | undefined,
   qrUrl: string | null | undefined,
+  isCancelled: CancelCheck = () => false,
 ) {
+  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
+  if (isCancelled()) return
+
   const ctx = canvas.getContext('2d')
   if (!ctx) return
+  // Reset size (clears canvas) only once assets are ready — avoids wiping a newer draw.
   canvas.width = FACE_W
   canvas.height = FACE_H
-
-  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
 
   // Draw right half of template
   ctx.drawImage(tpl, FACE_W, 0, FACE_W, FACE_H, 0, 0, FACE_W, FACE_H)
 
-  // Driver photo — stretch to the exact box to match the backend Pillow renderer.
+  // Always erase the sample portrait baked into the artwork.
+  const { x, y, w, h } = FRONT.photo
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(x, y, w, h)
+
+  // Driver passport photo — cover-crop into the slot (matches BE Pillow renderer).
   if (photoUrl) {
     try {
       const photo = await loadUrl(photoUrl)
-      const { x, y, w, h } = FRONT.photo
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(x, y, w, h)
-      ctx.drawImage(photo, x, y, w, h)
-    } catch { /* photo load failed — show template placeholder */ }
+      if (isCancelled()) return
+      drawImageCover(ctx, photo, x, y, w, h)
+    } catch (err) {
+      console.warn('Failed to draw driver photo on ID card', err)
+    }
   }
+
+  if (isCancelled()) return
 
   // Values only — no white backing on the front; text sits on the dotted lines
   ctx.font = `700 ${FRONT.fontSize}px ${FRONT.fontFamily}`
@@ -192,6 +242,7 @@ async function drawFront(
   if (qrUrl) {
     try {
       const qr = await loadUrl(qrUrl)
+      if (isCancelled()) return
       const { x, y, w, h } = FRONT.qr
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(x, y, w, h)
@@ -209,13 +260,18 @@ function fmtDate(iso: string | null | undefined): string {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | undefined) {
+async function drawBack(
+  canvas: HTMLCanvasElement,
+  card: DriverCard | null | undefined,
+  isCancelled: CancelCheck = () => false,
+) {
+  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
+  if (isCancelled()) return
+
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   canvas.width = FACE_W
   canvas.height = FACE_H
-
-  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
 
   // Draw left half of template
   ctx.drawImage(tpl, 0, 0, FACE_W, FACE_H, 0, 0, FACE_W, FACE_H)
@@ -245,7 +301,7 @@ async function drawBack(canvas: HTMLCanvasElement, card: DriverCard | null | und
 // ─── React canvas component ───────────────────────────────────────────────────
 
 interface FaceCanvasProps {
-  draw: (canvas: HTMLCanvasElement) => Promise<void>
+  draw: (canvas: HTMLCanvasElement, isCancelled: CancelCheck) => Promise<void>
   label: string
   canvasRef: React.RefObject<HTMLCanvasElement | null>
 }
@@ -254,7 +310,9 @@ function FaceCanvas({ draw, label, canvasRef }: FaceCanvasProps) {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    void draw(canvas)
+    let cancelled = false
+    void draw(canvas, () => cancelled)
+    return () => { cancelled = true }
   }, [draw, canvasRef])
 
   return (
@@ -347,7 +405,8 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
   const backRef  = useRef<HTMLCanvasElement>(null)
 
   const drawFrontCb = useCallback(
-    (canvas: HTMLCanvasElement) => drawFront(canvas, values, photoUrl, qrUrl),
+    (canvas: HTMLCanvasElement, isCancelled: () => boolean) =>
+      drawFront(canvas, values, photoUrl, qrUrl, isCancelled),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [values.fullName, values.fatherName, values.designation, values.licenseNumber,
      values.mobileNumber, values.policeStation, values.city, values.state,
@@ -355,7 +414,8 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
   )
 
   const drawBackCb = useCallback(
-    (canvas: HTMLCanvasElement) => drawBack(canvas, card),
+    (canvas: HTMLCanvasElement, isCancelled: () => boolean) =>
+      drawBack(canvas, card, isCancelled),
     [card],
   )
 
