@@ -7,7 +7,6 @@ interface Member {
   roleHi: string
   nameEn: string
   nameHi: string
-  mobile?: string
 }
 
 const MEMBERS: Member[] = [
@@ -22,63 +21,54 @@ const MEMBERS: Member[] = [
     roleHi: 'प्रदेश अध्यक्ष',
     nameEn: 'Akhilesh Puri Goswami',
     nameHi: 'अखिलेश पुरी गोस्वामी',
-    mobile: '9977282547',
   },
   {
     roleEn: 'Vice President',
     roleHi: 'उपाध्यक्ष',
     nameEn: 'Rajkumar Vishwakarma',
     nameHi: 'राजकुमार विश्वकर्मा',
-    mobile: '9589074870',
   },
   {
     roleEn: 'General Secretary',
     roleHi: 'महासचिव',
     nameEn: 'Subhash Wakodey',
     nameHi: 'सुभाष वाकोड़े',
-    mobile: '9977540136',
   },
   {
     roleEn: 'Joint Secretary',
     roleHi: 'संयुक्त सचिव',
     nameEn: 'Patiram Davre',
     nameHi: 'पतिराम दावरे',
-    mobile: '8085072711',
   },
   {
     roleEn: 'Treasurer',
     roleHi: 'कोषाध्यक्ष',
     nameEn: 'Kanshiram Sen',
     nameHi: 'कांशीराम सेन',
-    mobile: '9131534674',
   },
   {
     roleEn: 'Committee Advisor',
     roleHi: 'कमेटी सलाहकार',
     nameEn: 'Sukbhan Singh Yadav',
     nameHi: 'सुकभान सिंह यादव',
-    mobile: '9131291915',
   },
   {
     roleEn: 'Spokesperson',
     roleHi: 'प्रवक्ता',
     nameEn: 'Abdul Razik',
     nameHi: 'अब्दुल राजिक',
-    mobile: '9893542039',
   },
   {
     roleEn: 'Publicity Minister',
     roleHi: 'प्रचार मंत्री',
     nameEn: 'Vijay Kumar Yadav',
     nameHi: 'विजय कुमार यादव',
-    mobile: '7089107154',
   },
   {
     roleEn: 'Media In-charge',
     roleHi: 'मीडिया प्रभारी',
     nameEn: 'Jitendra Meena',
     nameHi: 'जितेन्द्र मीणा',
-    mobile: '7509777952',
   },
 ]
 
@@ -136,17 +126,6 @@ export default function MembersPage() {
                   {isHi ? m.nameEn : m.nameHi}
                 </p>
               </div>
-
-              {/* Mobile */}
-              {m.mobile && (
-                <a
-                  href={`tel:${m.mobile}`}
-                  className="mt-auto flex items-center gap-2 text-sm text-orange-600 font-semibold hover:text-orange-700 transition-colors"
-                >
-                  <Phone size={14} />
-                  {m.mobile}
-                </a>
-              )}
             </div>
           ))}
         </div>

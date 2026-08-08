@@ -27,21 +27,21 @@ const PATRON = {
 const PRESIDENT = {
   roleEn: 'State President', roleHi: 'प्रदेश अध्यक्ष',
   nameEn: 'Akhilesh Puri Goswami', nameHi: 'अखिलेश पुरी गोस्वामी',
-  mobile: '9977282547', photo: '/members/akhilesh-puri-goswami.jpeg',
+  photo: '/members/akhilesh-puri-goswami.jpeg',
 }
 
 const SENIOR_MEMBERS = [
-  { roleEn: 'Vice President',    roleHi: 'उपाध्यक्ष',      nameEn: 'Rajkumar Vishwakarma', nameHi: 'राजकुमार विश्वकर्मा', mobile: '9589074870', photo: '/members/rajkumar-vishwakarma.jpeg' },
-  { roleEn: 'General Secretary', roleHi: 'महासचिव',        nameEn: 'Subhash Wakodey',      nameHi: 'सुभाष वाकोड़े',        mobile: '9977540136', photo: '/members/subhash-wakode.jpeg' },
-  { roleEn: 'Joint Secretary',   roleHi: 'संयुक्त सचिव',  nameEn: 'Patiram Davre',        nameHi: 'पतिराम दावरे',         mobile: '8085072711', photo: '/members/patiram-daore.jpeg' },
-  { roleEn: 'Treasurer',         roleHi: 'कोषाध्यक्ष',    nameEn: 'Kanshiram Sen',        nameHi: 'कांशीराम सेन',         mobile: '9131534674', photo: '/members/kashiram-sen.jpeg' },
+  { roleEn: 'Vice President',    roleHi: 'उपाध्यक्ष',      nameEn: 'Rajkumar Vishwakarma', nameHi: 'राजकुमार विश्वकर्मा', photo: '/members/rajkumar-vishwakarma.jpeg' },
+  { roleEn: 'General Secretary', roleHi: 'महासचिव',        nameEn: 'Subhash Wakodey',      nameHi: 'सुभाष वाकोड़े',        photo: '/members/subhash-wakode.jpeg' },
+  { roleEn: 'Joint Secretary',   roleHi: 'संयुक्त सचिव',  nameEn: 'Patiram Davre',        nameHi: 'पतिराम दावरे',         photo: '/members/patiram-daore.jpeg' },
+  { roleEn: 'Treasurer',         roleHi: 'कोषाध्यक्ष',    nameEn: 'Kanshiram Sen',        nameHi: 'कांशीराम सेन',         photo: '/members/kashiram-sen.jpeg' },
 ]
 
 const COMMITTEE_MEMBERS = [
-  { roleEn: 'Committee Advisor', roleHi: 'कमेटी सलाहकार', nameEn: 'Sukbhan Singh Yadav',  nameHi: 'सुकभान सिंह यादव',    mobile: '9131291915', photo: '/members/sukhman-singh-yadav.jpeg' },
-  { roleEn: 'Spokesperson',      roleHi: 'प्रवक्ता',       nameEn: 'Abdul Razik',          nameHi: 'अब्दुल राजिक',         mobile: '9893542039', photo: '/members/abdul-rajik.jpeg' },
-  { roleEn: 'Publicity Minister',roleHi: 'प्रचार मंत्री', nameEn: 'Vijay Kumar Yadav',    nameHi: 'विजय कुमार यादव',     mobile: '7089107154', photo: '/members/vijay-singh.jpeg' },
-  { roleEn: 'Media In-charge',   roleHi: 'मीडिया प्रभारी',nameEn: 'Jitendra Meena',       nameHi: 'जितेन्द्र मीणा',       mobile: '7509777952', photo: '/members/jitendra-meena.jpeg' },
+  { roleEn: 'Committee Advisor', roleHi: 'कमेटी सलाहकार', nameEn: 'Sukbhan Singh Yadav',  nameHi: 'सुकभान सिंह यादव',    photo: '/members/sukhman-singh-yadav.jpeg' },
+  { roleEn: 'Spokesperson',      roleHi: 'प्रवक्ता',       nameEn: 'Abdul Razik',          nameHi: 'अब्दुल राजिक',         photo: '/members/abdul-rajik.jpeg' },
+  { roleEn: 'Publicity Minister',roleHi: 'प्रचार मंत्री', nameEn: 'Vijay Kumar Yadav',    nameHi: 'विजय कुमार यादव',     photo: '/members/vijay-singh.jpeg' },
+  { roleEn: 'Media In-charge',   roleHi: 'मीडिया प्रभारी',nameEn: 'Jitendra Meena',       nameHi: 'जितेन्द्र मीणा',       photo: '/members/jitendra-meena.jpeg' },
 ]
 
 function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
@@ -325,9 +325,6 @@ export default function HomePage() {
               <MemberPhoto src={PRESIDENT.photo} name={PRESIDENT.nameEn} size="xl" />
               <p className="mt-4 text-base font-black text-neutral-900 text-center leading-tight">{isHi ? PRESIDENT.nameHi : PRESIDENT.nameEn}</p>
               <p className="text-xs text-neutral-400 text-center mt-0.5">{isHi ? PRESIDENT.nameEn : PRESIDENT.nameHi}</p>
-              <a href={`tel:${PRESIDENT.mobile}`} className="mt-2 flex items-center gap-1.5 text-xs text-blue-700 font-semibold">
-                <Phone size={12} /> {PRESIDENT.mobile}
-              </a>
               <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-blue-200" aria-hidden="true" />
             </div>
           </motion.div>
@@ -336,10 +333,10 @@ export default function HomePage() {
           <motion.div {...fadeInUp} transition={{ delay: 0.14 }} className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {SENIOR_MEMBERS.map((m, i) => {
               const seniorThemes = [
-                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
-                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50', phone: 'text-orange-600 bg-orange-50/50 hover:bg-orange-100 border-orange-100/30' },
-                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50', phone: 'text-green-700 bg-green-50/50 hover:bg-green-100 border-green-100/30' },
-                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50' },
+                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50' },
+                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50' },
               ]
               const theme = seniorThemes[i % seniorThemes.length]
               return (
@@ -352,9 +349,6 @@ export default function HomePage() {
                   </span>
                   <p className="mt-3 text-sm font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
                   <p className="text-xs text-neutral-400 mt-0.5">{isHi ? m.nameEn : m.nameHi}</p>
-                  <a href={`tel:${m.mobile}`} className={cn("mt-3 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors", theme.phone)}>
-                    <Phone size={12} className="shrink-0 text-blue-500" /> {m.mobile}
-                  </a>
                 </motion.div>
               )
             })}
@@ -371,10 +365,10 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {COMMITTEE_MEMBERS.map((m, i) => {
               const committeeThemes = [
-                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
-                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50', phone: 'text-orange-600 bg-orange-50/50 hover:bg-orange-100 border-orange-100/30' },
-                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50', phone: 'text-green-700 bg-green-50/50 hover:bg-green-100 border-green-100/30' },
-                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50', phone: 'text-blue-700 bg-blue-50/50 hover:bg-blue-100 border-blue-100/30' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50' },
+                { border: 'border-orange-100 hover:border-orange-300', tag: 'bg-orange-50 text-orange-600 border-orange-100/50' },
+                { border: 'border-green-100 hover:border-green-300', tag: 'bg-green-50 text-green-700 border-green-100/50' },
+                { border: 'border-blue-100 hover:border-blue-300', tag: 'bg-blue-50 text-blue-700 border-blue-100/50' },
               ]
               const theme = committeeThemes[i % committeeThemes.length]
               return (
@@ -387,9 +381,6 @@ export default function HomePage() {
                   </span>
                   <p className="mt-3 text-sm font-black text-neutral-900 leading-snug">{isHi ? m.nameHi : m.nameEn}</p>
                   <p className="text-xs text-neutral-400 mt-0.5">{isHi ? m.nameEn : m.nameHi}</p>
-                  <a href={`tel:${m.mobile}`} className={cn("mt-3 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors", theme.phone)}>
-                    <Phone size={12} className="shrink-0 text-blue-500" /> {m.mobile}
-                  </a>
                 </motion.div>
               )
             })}
