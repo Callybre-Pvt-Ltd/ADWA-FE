@@ -50,10 +50,10 @@ export const SOCIAL_LINKS = {
 
 export const CONTACT_INFO = {
   phone: '+91 99772 82547',
-  phoneTel: '+91+91 99772 82547',
+  phoneTel: '+919977282547',
   supportPhone: '+91 99772 82547',
   whatsapp: '+91 99772 82547',
-  whatsappTel: '+91 99772 82547',
+  whatsappTel: '+919977282547',
   email: 'alldriverwelfareassociation.mp@gmail.com',
   address:
     'House No. 08, Bhouri, Tehsil Huzur, District Bhopal, Madhya Pradesh – 462030',
@@ -66,3 +66,16 @@ export const CONTACT_INFO = {
   districtsCovered: '55 districts of Madhya Pradesh',
   districtsCoveredHi: 'मध्य प्रदेश के 55 जिले',
 }
+
+/** Membership fee payment details (shown on district forward + public apply help). */
+export const PAYMENT_INFO = {
+  accountHolder: 'KASHIRAM SEN',
+  bankName: 'State Bank of India',
+  accountNumber: '45391987346',
+  accountNumberMasked: '****7346',
+  ifsc: 'SBIN0000519',
+  branch: 'H E Township (Bhopal), Piplani',
+  upiId: '9131534674@sbi',
+  /** UPI QR for scanning (exact payment screenshot asset). */
+  upiQrSrc: '/payment/upi-qr.png?v=2',
+} as const

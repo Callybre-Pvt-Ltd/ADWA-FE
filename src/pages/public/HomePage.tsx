@@ -21,27 +21,27 @@ const ORG_STATS = [
 const PATRON = {
   roleEn: 'Patron', roleHi: 'संरक्षक',
   nameEn: 'Prakash Kumar Singh', nameHi: 'प्रकाश कुमार सिंह',
-  photo: '/members/prakash-kumar-singh.jpeg',
+  photo: '/members/prakash-kumar-singh.webp',
 }
 
 const PRESIDENT = {
   roleEn: 'State President', roleHi: 'प्रदेश अध्यक्ष',
   nameEn: 'Akhilesh Puri Goswami', nameHi: 'अखिलेश पुरी गोस्वामी',
-  photo: '/members/akhilesh-puri-goswami.jpeg',
+  photo: '/members/akhilesh-puri-goswami.webp',
 }
 
 const SENIOR_MEMBERS = [
-  { roleEn: 'Vice President',    roleHi: 'उपाध्यक्ष',      nameEn: 'Rajkumar Vishwakarma', nameHi: 'राजकुमार विश्वकर्मा', photo: '/members/rajkumar-vishwakarma.jpeg' },
-  { roleEn: 'General Secretary', roleHi: 'महासचिव',        nameEn: 'Subhash Wakodey',      nameHi: 'सुभाष वाकोड़े',        photo: '/members/subhash-wakode.jpeg' },
-  { roleEn: 'Joint Secretary',   roleHi: 'संयुक्त सचिव',  nameEn: 'Patiram Davre',        nameHi: 'पतिराम दावरे',         photo: '/members/patiram-daore.jpeg' },
-  { roleEn: 'Treasurer',         roleHi: 'कोषाध्यक्ष',    nameEn: 'Kanshiram Sen',        nameHi: 'कांशीराम सेन',         photo: '/members/kashiram-sen.jpeg' },
+  { roleEn: 'Vice President',    roleHi: 'उपाध्यक्ष',      nameEn: 'Rajkumar Vishwakarma', nameHi: 'राजकुमार विश्वकर्मा', photo: '/members/rajkumar-vishwakarma.webp' },
+  { roleEn: 'General Secretary', roleHi: 'महासचिव',        nameEn: 'Subhash Wakodey',      nameHi: 'सुभाष वाकोड़े',        photo: '/members/subhash-wakode.webp' },
+  { roleEn: 'Joint Secretary',   roleHi: 'संयुक्त सचिव',  nameEn: 'Patiram Davre',        nameHi: 'पतिराम दावरे',         photo: '/members/patiram-daore.webp' },
+  { roleEn: 'Treasurer',         roleHi: 'कोषाध्यक्ष',    nameEn: 'Kanshiram Sen',        nameHi: 'कांशीराम सेन',         photo: '/members/kashiram-sen.webp' },
 ]
 
 const COMMITTEE_MEMBERS = [
-  { roleEn: 'Committee Advisor', roleHi: 'कमेटी सलाहकार', nameEn: 'Sukbhan Singh Yadav',  nameHi: 'सुकभान सिंह यादव',    photo: '/members/sukhman-singh-yadav.jpeg' },
-  { roleEn: 'Spokesperson',      roleHi: 'प्रवक्ता',       nameEn: 'Abdul Razik',          nameHi: 'अब्दुल राजिक',         photo: '/members/abdul-rajik.jpeg' },
-  { roleEn: 'Publicity Minister',roleHi: 'प्रचार मंत्री', nameEn: 'Vijay Kumar Yadav',    nameHi: 'विजय कुमार यादव',     photo: '/members/vijay-singh.jpeg' },
-  { roleEn: 'Media In-charge',   roleHi: 'मीडिया प्रभारी',nameEn: 'Jitendra Meena',       nameHi: 'जितेन्द्र मीणा',       photo: '/members/jitendra-meena.jpeg' },
+  { roleEn: 'Committee Advisor', roleHi: 'कमेटी सलाहकार', nameEn: 'Sukbhan Singh Yadav',  nameHi: 'सुकभान सिंह यादव',    photo: '/members/sukhman-singh-yadav.webp' },
+  { roleEn: 'Spokesperson',      roleHi: 'प्रवक्ता',       nameEn: 'Abdul Razik',          nameHi: 'अब्दुल राजिक',         photo: '/members/abdul-rajik.webp' },
+  { roleEn: 'Publicity Minister',roleHi: 'प्रचार मंत्री', nameEn: 'Vijay Kumar Yadav',    nameHi: 'विजय कुमार यादव',     photo: '/members/vijay-singh.webp' },
+  { roleEn: 'Media In-charge',   roleHi: 'मीडिया प्रभारी',nameEn: 'Jitendra Meena',       nameHi: 'जितेन्द्र मीणा',       photo: '/members/jitendra-meena.webp' },
 ]
 
 function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
@@ -53,6 +53,7 @@ function MemberPhoto({ src, name, size = 'md' }: { src: string; name: string; si
         alt={name}
         className="w-full h-full object-cover object-top transition-transform duration-300 hover:scale-105"
         loading="lazy"
+        decoding="async"
         onError={(e) => {
           const el = e.currentTarget
           el.style.display = 'none'

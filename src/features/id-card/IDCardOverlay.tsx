@@ -130,22 +130,22 @@ const FRONT = {
   valueX: 335,
 
   rows: [
-    { key: 'fullName',      y: 684 },
-    { key: 'fatherName',    y: 732 },
-    { key: 'designation',   y: 779 },
-    { key: 'licenseNumber', y: 827 },
-    { key: 'mobileNumber',  y: 874 },
-    { key: 'policeStation', y: 922 },
-    { key: 'city',          y: 969 },
-    { key: 'state',         y: 1017 },
-    { key: 'bloodGroup',    y: 1064 },
-    { key: 'dateOfBirth',   y: 1112 },
+    { key: 'fullName',      y: 683 },
+    { key: 'fatherName',    y: 731 },
+    { key: 'designation',   y: 778 },
+    { key: 'licenseNumber', y: 826 },
+    { key: 'mobileNumber',  y: 873 },
+    { key: 'policeStation', y: 921 },
+    { key: 'city',          y: 968 },
+    { key: 'state',         y: 1016 },
+    { key: 'bloodGroup',    y: 1063 },
+    { key: 'dateOfBirth',   y: 1111 },
   ] as { key: keyof IdCardFormValues; y: number }[],
 
   // Optional QR / barcode slot (header "बारकोड" box)
   qr: { x: 652, y: 220, w: 99, h: 102 },
 
-  fontSize: 22,
+  fontSize: 26,
   fontFamily: 'Roboto, sans-serif',
   valueColor: '#141414',
 }
@@ -173,7 +173,7 @@ const BACK = {
     },
   ],
 
-  fontSize: 26,
+  fontSize: 30,
   fontFamily: 'Roboto, sans-serif',
 }
 

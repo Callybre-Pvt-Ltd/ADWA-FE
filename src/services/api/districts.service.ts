@@ -13,6 +13,7 @@ function mapDistrict(raw: ApiDistrict): District {
     name: item.name,
     code: item.code ?? '',
     status: item.status === 'INACTIVE' ? 'inactive' : 'active',
+    contactPhone: item.contactPhone ?? null,
   }
 }
 
@@ -50,6 +51,7 @@ export const districtsService = {
         name: dto.name,
         code: dto.code ?? dto.name.toLowerCase().replace(/\s+/g, '-').slice(0, 50),
         status: dto.status === 'inactive' ? 'INACTIVE' : 'ACTIVE',
+        contact_phone: dto.contactPhone?.trim() || null,
       })
       return mapDistrict(unwrapResponse(data))
     } catch (error) {
@@ -59,10 +61,13 @@ export const districtsService = {
 
   async update(id: string, dto: Partial<CreateDistrictDto>): Promise<District> {
     try {
-      const payload: Record<string, string> = {}
+      const payload: Record<string, string | null> = {}
       if (dto.name) payload.name = dto.name
       if (dto.code) payload.code = dto.code
       if (dto.status) payload.status = dto.status === 'inactive' ? 'INACTIVE' : 'ACTIVE'
+      if (dto.contactPhone !== undefined) {
+        payload.contact_phone = dto.contactPhone?.trim() || null
+      }
 
       const { data } = await apiClient.patch<APIResponse<ApiDistrict>>(`/districts/${id}`, payload)
       return mapDistrict(unwrapResponse(data))

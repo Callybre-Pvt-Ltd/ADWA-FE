@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useDriverRequestList,
@@ -21,8 +21,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
 import type { DriverRequest, RequestStatus } from '@/types/driver.types'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Copy, Download } from 'lucide-react'
 import { nameTranslations, districtMapEnToHi } from '@/utils/translations'
+import { PAYMENT_INFO } from '@/constants'
+import { toast } from 'sonner'
+import { cardsService, driversService } from '@/services'
 
 const requestStatusMapEnToHi: Record<string, string> = {
   'PENDING_DISTRICT_REVIEW': 'जिला समीक्षा लंबित',
@@ -43,8 +46,20 @@ export default function RequestsPage() {
   const [rejectReason, setRejectReason] = useState('')
   const [verificationRemarks, setVerificationRemarks] = useState('')
   const [paymentProof, setPaymentProof] = useState<File | null>(null)
+  const [paymentPreviewUrl, setPaymentPreviewUrl] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [downloadingCard, setDownloadingCard] = useState(false)
+
+  useEffect(() => {
+    if (!paymentProof) {
+      setPaymentPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(paymentProof)
+    setPaymentPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [paymentProof])
 
   const filters = {
     status: status === 'all' ? undefined : (status as RequestStatus),
@@ -79,12 +94,16 @@ export default function RequestsPage() {
   }
 
   const handleForward = () => {
-    if (forwardApp.isPending || !selected || selected.registrationConflict || !paymentProof) return
+    if (forwardApp.isPending || !selected || selected.registrationConflict) return
+    if (!paymentProof) {
+      toast.error(isHi ? 'भुगतान स्क्रीनशॉट आवश्यक है' : 'Payment screenshot is required')
+      return
+    }
     forwardApp.mutate(
       {
         id: selected.id,
         verificationRemarks: verificationRemarks.trim() || undefined,
-        paymentProof: paymentProof,
+        paymentProof,
       },
       {
         onSuccess: () => {
@@ -109,6 +128,34 @@ export default function RequestsPage() {
         },
       },
     )
+  }
+
+  const handleDownloadApprovedCard = async () => {
+    if (!selected || selected.status !== 'APPROVED' || downloadingCard) return
+    setDownloadingCard(true)
+    try {
+      const res = await driversService.getAll({ search: selected.mobile, size: 20 })
+      const driver =
+        res.items.find((d) => d.mobile.replace(/\D/g, '') === selected.mobile.replace(/\D/g, ''))
+        ?? res.items.find((d) => d.name.trim().toLowerCase() === selected.name.trim().toLowerCase())
+      if (!driver) {
+        throw new Error(
+          isHi
+            ? 'स्वीकृत ड्राइवर नहीं मिला — Drivers पेज से डाउनलोड करें'
+            : 'Approved driver not found — try Download from Drivers page',
+        )
+      }
+      const card = await driversService.getActiveCard(driver.id)
+      await cardsService.downloadPdf(
+        card.id,
+        `ADWA-${driver.memberNumber || card.cardNumber}.pdf`,
+      )
+      toast.success(isHi ? 'कार्ड डाउनलोड होना शुरू हो गया है' : 'Card download started')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : (isHi ? 'डाउनलोड विफल' : 'Download failed'))
+    } finally {
+      setDownloadingCard(false)
+    }
   }
 
   return (
@@ -155,23 +202,37 @@ export default function RequestsPage() {
       <AppDrawer
         open={!!selectedId}
         onClose={closeDrawer}
-        loading={forwardApp.isPending || rejectApp.isPending}
+        loading={forwardApp.isPending || rejectApp.isPending || downloadingCard}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         description={selected?.referenceNumber}
-        footer={selected?.status === 'PENDING_DISTRICT_REVIEW' && !detailLoading && (
-          <div className="flex gap-2">
-            <Button variant="destructive" className="flex-1 cursor-pointer" onClick={() => setRejectOpen(true)}>
-              {isHi ? 'अस्वीकार करें' : 'Reject'}
-            </Button>
-            <Button
-              className="flex-1 cursor-pointer"
-              onClick={() => setForwardOpen(true)}
-              disabled={Boolean(selected.registrationConflict)}
-            >
-              {isHi ? 'एडमिन को अग्रेषित करें' : 'Forward to Admin'}
-            </Button>
-          </div>
-        )}
+        footer={
+          !detailLoading && selected ? (
+            selected.status === 'PENDING_DISTRICT_REVIEW' ? (
+              <div className="flex gap-2">
+                <Button variant="destructive" className="flex-1 cursor-pointer" onClick={() => setRejectOpen(true)}>
+                  {isHi ? 'अस्वीकार करें' : 'Reject'}
+                </Button>
+                <Button
+                  className="flex-1 cursor-pointer"
+                  onClick={() => setForwardOpen(true)}
+                  disabled={Boolean(selected.registrationConflict)}
+                >
+                  {isHi ? 'एडमिन को अग्रेषित करें' : 'Forward to Admin'}
+                </Button>
+              </div>
+            ) : selected.status === 'APPROVED' ? (
+              <Button
+                className="w-full cursor-pointer gap-2"
+                onClick={() => void handleDownloadApprovedCard()}
+                loading={downloadingCard}
+                loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
+              >
+                <Download className="h-4 w-4" />
+                {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
+              </Button>
+            ) : undefined
+          ) : undefined
+        }
       >
         {detailLoading && <p className="text-sm text-neutral-500">{isHi ? 'आवेदन लोड हो रहा है...' : 'Loading application...'}</p>}
         {selected && !detailLoading && (
@@ -205,30 +266,57 @@ export default function RequestsPage() {
           }
         >
           <div className="space-y-3">
-            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-2">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wide text-blue-800">
-                {isHi ? 'बैंक खाता विवरण (भुगतान के लिए)' : 'Bank account details (for payment)'}
+                {isHi ? 'भुगतान विवरण (UPI / बैंक)' : 'Payment details (UPI / bank)'}
               </p>
-              <dl className="space-y-1.5 text-sm">
+              <div className="flex flex-col items-center gap-3">
+                <img
+                  src={PAYMENT_INFO.upiQrSrc}
+                  alt={`${PAYMENT_INFO.accountHolder} UPI QR`}
+                  width={220}
+                  height={340}
+                  className="w-48 sm:w-56 rounded-xl border border-white shadow-sm bg-white object-contain"
+                  loading="eager"
+                  decoding="async"
+                />
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-blue-900">{PAYMENT_INFO.upiId}</span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 cursor-pointer"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(PAYMENT_INFO.upiId)
+                      toast.success(isHi ? 'UPI ID कॉपी हो गया' : 'UPI ID copied')
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {isHi ? 'कॉपी' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+              <dl className="space-y-1.5 text-sm border-t border-blue-100 pt-3">
                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                   <dt className="text-neutral-500 shrink-0">{isHi ? 'खाताधारक' : 'Account holder'}</dt>
-                  <dd className="font-semibold text-neutral-900 sm:text-right">KASHIRAM SEN</dd>
+                  <dd className="font-semibold text-neutral-900 sm:text-right">{PAYMENT_INFO.accountHolder}</dd>
                 </div>
                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                   <dt className="text-neutral-500 shrink-0">{isHi ? 'बैंक' : 'Bank'}</dt>
-                  <dd className="font-semibold text-neutral-900 sm:text-right">State Bank of India</dd>
+                  <dd className="font-semibold text-neutral-900 sm:text-right">
+                    {PAYMENT_INFO.bankName} {PAYMENT_INFO.accountNumberMasked}
+                  </dd>
                 </div>
                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                   <dt className="text-neutral-500 shrink-0">{isHi ? 'खाता संख्या' : 'Account number'}</dt>
-                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">45391987346</dd>
+                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">{PAYMENT_INFO.accountNumber}</dd>
                 </div>
                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                   <dt className="text-neutral-500 shrink-0">IFSC</dt>
-                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">SBIN0000519</dd>
+                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">{PAYMENT_INFO.ifsc}</dd>
                 </div>
                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                   <dt className="text-neutral-500 shrink-0">{isHi ? 'शाखा' : 'Branch'}</dt>
-                  <dd className="font-medium text-neutral-800 sm:text-right">H E Township (Bhopal), Piplani</dd>
+                  <dd className="font-medium text-neutral-800 sm:text-right">{PAYMENT_INFO.branch}</dd>
                 </div>
               </dl>
             </div>
@@ -241,8 +329,40 @@ export default function RequestsPage() {
               />
             </div>
             <div>
-              <Label>{isHi ? 'भुगतान स्क्रीनशॉट (आवश्यक)' : 'Payment screenshot (required)'}</Label>
-              <Input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)} required />
+              <Label className="flex items-center gap-1">
+                {isHi ? 'भुगतान स्क्रीनशॉट' : 'Payment screenshot'}
+                <span className="text-red-600">*</span>
+                <span className="text-[11px] font-normal text-red-600">
+                  ({isHi ? 'आवश्यक' : 'required'})
+                </span>
+              </Label>
+              <Input
+                type="file"
+                accept="image/*"
+                className="mt-1"
+                onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)}
+                required
+              />
+              {paymentProof ? (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-emerald-700 font-medium">
+                    {isHi ? `चयनित: ${paymentProof.name}` : `Selected: ${paymentProof.name}`}
+                  </p>
+                  {paymentPreviewUrl && (
+                    <img
+                      src={paymentPreviewUrl}
+                      alt="Payment proof preview"
+                      className="max-h-40 rounded-lg border border-neutral-200 object-contain bg-white"
+                    />
+                  )}
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-amber-700">
+                  {isHi
+                    ? 'बिना भुगतान स्क्रीनशॉट के अग्रेषित नहीं कर सकते।'
+                    : 'You cannot forward without uploading the payment screenshot.'}
+                </p>
+              )}
             </div>
           </div>
         </AppDrawer>

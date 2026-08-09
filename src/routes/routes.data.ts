@@ -163,6 +163,18 @@ export const publicRoutes: RouteConfig[] = [
     meta: { title: 'Team' },
   },
   {
+    key: 'gallery',
+    path: '/gallery',
+    label: 'nav.gallery',
+    icon: 'Images',
+    component: lazyPage(() => import('../pages/public/GalleryPage')),
+    layout: 'public',
+    showInNav: true,
+    showInSidebar: false,
+    navOrder: 6,
+    meta: { title: 'Gallery' },
+  },
+  {
     key: 'members',
     path: '/members',
     label: 'nav.members',
@@ -218,7 +230,7 @@ export function getPrimaryNavRoutes(): RouteConfig[] {
 export function getSecondaryPublicRoutes(): RouteConfig[] {
   const secondaryKeys = new Set([
     'renewal', 'status',
-    'about', 'history', 'guidelines', 'rules', 'team', 'notifications', 'verify',
+    'about', 'history', 'guidelines', 'rules', 'team', 'notifications', 'verify', 'gallery',
   ])
   return publicRoutes.filter((r) => secondaryKeys.has(r.key))
 }
@@ -305,17 +317,6 @@ export const adminRoutes: RouteConfig[] = [
     meta: { title: 'Applications', requiresRole: 'admin' },
   },
   {
-    key: 'admin-users',
-    path: '/admin/users',
-    label: 'nav.adminUsers',
-    icon: 'UserCog',
-    component: lazyPage(() => import('../pages/admin/UserManagementPage')),
-    layout: 'admin',
-    showInNav: true,
-    showInSidebar: true,
-    meta: { title: 'User Management', requiresRole: 'admin' },
-  },
-  {
     key: 'admin-districts',
     path: '/admin/districts',
     label: 'nav.adminDistricts',
@@ -324,7 +325,7 @@ export const adminRoutes: RouteConfig[] = [
     layout: 'admin',
     showInNav: true,
     showInSidebar: true,
-    meta: { title: 'District Management', requiresRole: 'admin' },
+    meta: { title: 'Districts', requiresRole: 'admin' },
   },
   {
     key: 'admin-drivers',
@@ -347,6 +348,17 @@ export const adminRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: true,
     meta: { title: 'ID Card Generation', requiresRole: 'admin' },
+  },
+  {
+    key: 'admin-district-id-cards',
+    path: '/admin/district-id-cards',
+    label: 'nav.adminDistrictIdCards',
+    icon: 'IdCard',
+    component: lazyPage(() => import('../pages/admin/DistrictInchargeIdPage')),
+    layout: 'admin',
+    showInNav: false,
+    showInSidebar: true,
+    meta: { title: 'District Incharge ID Cards', requiresRole: 'admin' },
   },
   {
     key: 'admin-payments',

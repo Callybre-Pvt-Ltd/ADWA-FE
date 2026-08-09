@@ -1,10 +1,17 @@
 /* eslint-disable react-hooks/incompatible-library */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { useDistricts, useCreateDistrict, useUpdateDistrict } from '@/hooks/useDistricts'
+import { toast } from 'sonner'
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useResetUserPassword,
+} from '@/hooks/useUsers'
+import { useDistricts } from '@/hooks/useDistricts'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
@@ -14,124 +21,403 @@ import { ErrorState } from '@/components/shared/ErrorState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { District } from '@/types/district.types'
-import { MapPin } from 'lucide-react'
-import { districtMapEnToHi } from '@/utils/translations'
+import type { User } from '@/types/user.types'
+import { formControlClassName, formControlHeightClassName } from '@/utils/formStyles'
+import { cn } from '@/utils/cn'
+import { Copy, Eye, EyeOff, UserCog } from 'lucide-react'
+import { districtMapEnToHi, translateFullName } from '@/utils/translations'
 
 const schema = z.object({
-  name: z.string().min(2),
-  code: z.string().min(2).max(50),
-  status: z.enum(['active', 'inactive']),
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  mobileNumber: z.string().regex(/^[6-9]\d{9}$/),
+  password: z.string().min(3).optional().or(z.literal('')),
+  districtId: z.string().min(1, 'District is required'),
+  status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
 type FormData = z.infer<typeof schema>
+
+function generatePassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#'
+  let out = 'Adwa@'
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)]
+  return out
+}
 
 export default function DistrictManagementPage() {
   "use no memo";
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
-  const { data, isLoading, isError, refetch } = useDistricts()
-  const createDistrict = useCreateDistrict()
-  const updateDistrict = useUpdateDistrict()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  const { data: userRes, isLoading, isError, refetch } = useUsers({
+    page,
+    size: 10,
+    search: search || undefined,
+  })
+  const { data: allUsersRes } = useUsers({ page: 1, size: 100 })
+  const users = userRes?.items ?? []
+  const allUsers = allUsersRes?.items ?? users
+  const { data: districts } = useDistricts()
+  const createUser = useCreateUser()
+  const updateUser = useUpdateUser()
+  const resetPassword = useResetUserPassword()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editing, setEditing] = useState<District | null>(null)
-  const saving = createDistrict.isPending || updateDistrict.isPending
+  const [editing, setEditing] = useState<User | null>(null)
+  const [showPassword, setShowPassword] = useState(true)
+  // Session-only: last passwords set in this page (API never returns plaintext).
+  const [knownPasswords, setKnownPasswords] = useState<Record<string, string>>({})
+  const saving = createUser.isPending || updateUser.isPending || resetPassword.isPending
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { status: 'active', code: '' },
+    defaultValues: { status: 'ACTIVE', districtId: '', password: '' },
   })
+
+  const assignedDistrictIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const u of allUsers) {
+      if (u.status === 'ACTIVE' && u.districtId) {
+        if (editing && u.id === editing.id) continue
+        ids.add(u.districtId)
+      }
+    }
+    return ids
+  }, [allUsers, editing])
+
+  const availableDistricts = useMemo(() => {
+    const list = (districts ?? []).filter((d) => d.status === 'active')
+    if (editing?.districtId) {
+      return list.filter((d) => d.id === editing.districtId || !assignedDistrictIds.has(d.id))
+    }
+    return list.filter((d) => !assignedDistrictIds.has(d.id))
+  }, [districts, assignedDistrictIds, editing])
 
   const openCreate = () => {
     setEditing(null)
-    form.reset({ status: 'active', code: '' })
+    setShowPassword(true)
+    form.reset({
+      status: 'ACTIVE',
+      districtId: availableDistricts[0]?.id ?? '',
+      password: generatePassword(),
+      fullName: '',
+      email: '',
+      mobileNumber: '',
+    })
     setDrawerOpen(true)
   }
 
-  const openEdit = (d: District) => {
-    setEditing(d)
-    form.reset({ name: d.name, code: d.code, status: d.status })
+  const openEdit = (user: User) => {
+    setEditing(user)
+    setShowPassword(true)
+    form.reset({
+      fullName: user.fullName,
+      email: user.email,
+      mobileNumber: user.mobileNumber,
+      districtId: user.districtId ?? '',
+      status: user.status,
+      password: knownPasswords[user.id] ?? '',
+    })
     setDrawerOpen(true)
+  }
+
+  const fillGeneratedPassword = () => {
+    const pwd = generatePassword()
+    form.setValue('password', pwd, { shouldDirty: true, shouldValidate: true })
+    setShowPassword(true)
+  }
+
+  const copyPassword = async (pwd: string) => {
+    try {
+      await navigator.clipboard.writeText(pwd)
+      toast.success(isHi ? 'पासवर्ड कॉपी हुआ' : 'Password copied')
+    } catch {
+      toast.error(isHi ? 'कॉपी नहीं हो सका' : 'Could not copy')
+    }
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (saving) return
+    const nextPassword = values.password?.trim() ?? ''
+
     if (editing) {
-      await updateDistrict.mutateAsync({ id: editing.id, data: values })
-    } else {
-      await createDistrict.mutateAsync(values)
+      await updateUser.mutateAsync({
+        id: editing.id,
+        data: {
+          fullName: values.fullName,
+          email: values.email,
+          mobileNumber: values.mobileNumber,
+          districtId: values.districtId,
+          status: values.status,
+          role: 'DISTRICT_INCHARGE',
+        },
+      })
+      if (nextPassword) {
+        if (nextPassword.length < 3) {
+          form.setError('password', {
+            message: isHi ? 'पासवर्ड कम से कम 3 अक्षर का होना चाहिए' : 'Password must be at least 3 characters',
+          })
+          return
+        }
+        await resetPassword.mutateAsync({ id: editing.id, password: nextPassword })
+        setKnownPasswords((prev) => ({ ...prev, [editing.id]: nextPassword }))
+        form.setValue('password', nextPassword)
+        setShowPassword(true)
+        // Keep drawer open so the new password stays visible to copy.
+        return
+      }
+      setDrawerOpen(false)
+      return
+    }
+
+    if (!nextPassword) {
+      form.setError('password', { message: isHi ? 'पासवर्ड आवश्यक है' : 'Password is required' })
+      return
+    }
+    const created = await createUser.mutateAsync({
+      fullName: values.fullName,
+      email: values.email,
+      mobileNumber: values.mobileNumber,
+      password: nextPassword,
+      role: 'DISTRICT_INCHARGE',
+      districtId: values.districtId,
+    })
+    if (created?.id) {
+      setKnownPasswords((prev) => ({ ...prev, [created.id]: nextPassword }))
     }
     setDrawerOpen(false)
   })
 
   const translateStatus = (status: string) => {
     if (!isHi) return status
-    return status === 'active' ? 'सक्रिय' : 'अक्रिय'
+    return status === 'ACTIVE' ? 'सक्रिय' : 'अक्रिय'
   }
 
-  const columns: ColumnDef<District>[] = [
-    { key: 'name', header: isHi ? 'जिला' : 'District', cell: (d) => isHi ? (districtMapEnToHi[d.name] || d.name) : d.name, sortable: true, sortValue: (d) => d.name },
-    { key: 'code', header: isHi ? 'कोड' : 'Code', cell: (d) => d.code },
-    { key: 'status', header: isHi ? 'स्थिति' : 'Status', cell: (d) => <StatusBadge variant={statusToVariant(d.status)} label={translateStatus(d.status)} /> },
+  const columns: ColumnDef<User>[] = [
+    {
+      key: 'district',
+      header: isHi ? 'जिला' : 'District',
+      cell: (u) => {
+        const dName = districts?.find((d) => d.id === u.districtId)?.name ?? '—'
+        return isHi ? (districtMapEnToHi[dName] || dName) : dName
+      },
+      sortable: true,
+      sortValue: (u) => districts?.find((d) => d.id === u.districtId)?.name ?? '',
+    },
+    {
+      key: 'name',
+      header: isHi ? 'प्रभारी नाम' : 'Incharge name',
+      cell: (u) => translateFullName(u.fullName, isHi),
+      sortable: true,
+      sortValue: (u) => u.fullName,
+    },
+    { key: 'email', header: isHi ? 'ईमेल' : 'Email', cell: (u) => u.email },
+    { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (u) => u.mobileNumber },
+    {
+      key: 'status',
+      header: isHi ? 'स्थिति' : 'Status',
+      cell: (u) => (
+        <StatusBadge variant={statusToVariant(u.status)} label={translateStatus(u.status)} />
+      ),
+    },
   ]
+
+  const passwordValue = form.watch('password') ?? ''
 
   return (
     <div className="w-full space-y-6 pb-6 animate-fade-in">
       <PageHeader
-        title={isHi ? 'जिला प्रबंधन' : 'District Management'}
+        title={isHi ? 'जिले' : 'Districts'}
+        subtitle={
+          isHi
+            ? 'जिला प्रभारी के ईमेल, पासवर्ड और मोबाइल प्रबंधित करें (जिला सूची बदली नहीं जा सकती)'
+            : 'Manage district incharge email, password, and mobile (districts themselves cannot be changed)'
+        }
         action={
-          <Button onClick={openCreate} className="cursor-pointer">
-            <MapPin className="h-4 w-4" /> {isHi ? 'जिला जोड़ें' : 'Add District'}
+          <Button
+            onClick={openCreate}
+            className="cursor-pointer"
+            disabled={availableDistricts.length === 0 && !editing}
+          >
+            <UserCog className="h-4 w-4" />
+            {isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge'}
           </Button>
         }
       />
-      {isLoading && <SkeletonTable />}
+
       {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && (
-        <DataTable data={data ?? []} columns={columns} getRowKey={(d) => d.id} searchable onRowClick={openEdit} />
-      )}
+      {isLoading && !userRes ? (
+        <SkeletonTable />
+      ) : !isError ? (
+        <DataTable
+          data={users}
+          columns={columns}
+          getRowKey={(u) => u.id}
+          searchable
+          searchPlaceholder={
+            isHi ? 'जिला, नाम, ईमेल या मोबाइल खोजें…' : 'Search district, name, email, or mobile…'
+          }
+          onRowClick={openEdit}
+          pagination={{
+            page,
+            pageSize: 10,
+            totalItems: userRes?.total ?? 0,
+            totalPages: userRes?.pages ?? 1,
+            onPageChange: setPage,
+            searchValue: search,
+            onSearchChange: (v) => {
+              setSearch(v)
+              setPage(1)
+            },
+          }}
+        />
+      ) : null}
+
       <AppDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         loading={saving}
-        title={editing ? (isHi ? 'जिला संपादित करें' : 'Edit District') : (isHi ? 'जिला जोड़ें' : 'Add District')}
+        title={
+          editing
+            ? (isHi ? 'जिला प्रभारी संपादित करें' : 'Edit District Incharge')
+            : (isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge')
+        }
         footer={
           <Button
             onClick={onSubmit}
             className="w-full cursor-pointer"
-            loading={saving}
+            loading={createUser.isPending || updateUser.isPending || resetPassword.isPending}
             loadingText={isHi ? 'सहेजा जा रहा है…' : 'Saving…'}
+            disabled={saving}
           >
             {editing ? (isHi ? 'अपडेट करें' : 'Update') : (isHi ? 'बनाएं' : 'Create')}
           </Button>
         }
       >
-        <form className="space-y-4" onSubmit={onSubmit}>
+        <form className="space-y-4">
           <fieldset disabled={saving} className="space-y-4">
-          <div>
-            <Label htmlFor="name">{isHi ? 'नाम' : 'Name'}</Label>
-            <Input id="name" {...form.register('name')} className="mt-1" />
-            {form.formState.errors.name && <p className="text-sm text-red-600 mt-1">{form.formState.errors.name.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="code">{isHi ? 'कोड' : 'Code'}</Label>
-            <Input id="code" {...form.register('code')} className="mt-1" placeholder={isHi ? 'उदा. bhopal' : 'e.g. bhopal'} />
-            {form.formState.errors.code && <p className="text-sm text-red-600 mt-1">{form.formState.errors.code.message}</p>}
-          </div>
-          <div>
-            <Label>{isHi ? 'स्थिति' : 'Status'}</Label>
-            <Select
-              value={form.watch('status')}
-              onValueChange={v => form.setValue('status', v as 'active' | 'inactive')}
-            >
-              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">{isHi ? 'सक्रिय' : 'Active'}</SelectItem>
-                <SelectItem value="inactive">{isHi ? 'अक्रिय' : 'Inactive'}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <Label htmlFor="districtId">{isHi ? 'जिला' : 'District'}</Label>
+              {editing ? (
+                <Input
+                  id="districtId"
+                  className="mt-1 bg-neutral-50"
+                  readOnly
+                  value={(() => {
+                    const dName =
+                      districts?.find((d) => d.id === editing.districtId)?.name ?? '—'
+                    return isHi ? districtMapEnToHi[dName] || dName : dName
+                  })()}
+                />
+              ) : (
+                <>
+                  <select
+                    id="districtId"
+                    {...form.register('districtId')}
+                    className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
+                  >
+                    <option value="">{isHi ? 'जिला चुनें' : 'Select district'}</option>
+                    {availableDistricts.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {isHi ? districtMapEnToHi[d.name] || d.name : d.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {isHi
+                      ? 'केवल वे जिले जिनका सक्रिय प्रभारी खाता नहीं है। जिले स्वयं नहीं जोड़े जा सकते।'
+                      : 'Only districts without an active incharge. Districts themselves cannot be added here.'}
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="fullName">{isHi ? 'पूरा नाम' : 'Full Name'}</Label>
+              <Input id="fullName" {...form.register('fullName')} className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="email">{isHi ? 'ईमेल (लॉगिन)' : 'Email (login)'}</Label>
+              <Input id="email" type="email" {...form.register('email')} className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="mobileNumber">{isHi ? 'मोबाइल' : 'Mobile'}</Label>
+              <Input id="mobileNumber" {...form.register('mobileNumber')} className="mt-1" />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="password">{isHi ? 'पासवर्ड' : 'Password'}</Label>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-blue-700 hover:underline cursor-pointer"
+                  onClick={fillGeneratedPassword}
+                  disabled={saving}
+                >
+                  {isHi ? 'नया जनरेट करें' : 'Generate new'}
+                </button>
+              </div>
+              <div className="mt-1 flex gap-2">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder={
+                    editing
+                      ? (isHi ? 'नया पासवर्ड (खाली = पुराना रखें)' : 'New password (blank = keep current)')
+                      : undefined
+                  }
+                  {...form.register('password')}
+                  className="flex-1 font-mono tracking-wide"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => void copyPassword(passwordValue)}
+                  disabled={!passwordValue}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              {editing && knownPasswords[editing.id] && passwordValue === knownPasswords[editing.id] && (
+                <p className="mt-1 text-xs text-emerald-700">
+                  {isHi
+                    ? 'यह पासवर्ड अभी सेट है — कॉपी करके सुरक्षित रखें।'
+                    : 'This password is set — copy and save it now.'}
+                </p>
+              )}
+              {form.formState.errors.password && (
+                <p className="mt-1 text-xs text-red-600">{form.formState.errors.password.message}</p>
+              )}
+            </div>
+
+            {editing && (
+              <div>
+                <Label htmlFor="status">{isHi ? 'स्थिति' : 'Status'}</Label>
+                <select
+                  id="status"
+                  {...form.register('status')}
+                  className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
+                >
+                  <option value="ACTIVE">{isHi ? 'सक्रिय' : 'Active'}</option>
+                  <option value="INACTIVE">{isHi ? 'अक्रिय' : 'Inactive'}</option>
+                </select>
+              </div>
+            )}
           </fieldset>
         </form>
       </AppDrawer>

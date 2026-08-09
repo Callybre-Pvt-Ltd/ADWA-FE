@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  useForwardedApplications,
+  useDriverRequestList,
   useApproveApplication,
   useRejectApplication,
   useDriverRequest,
 } from '@/hooks/useDriverRequests'
+import { useDistricts } from '@/hooks/useDistricts'
 import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { DriverRequestDetailView } from '@/features/driver-request/DriverRequestDetailView'
 import { normalizeVerifyUrl } from '@/utils/verifyUrl'
@@ -19,28 +21,49 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatDate } from '@/utils/formatters'
-import type { DriverRequest } from '@/types/driver.types'
-import { ClipboardList } from 'lucide-react'
+import type { DriverRequest, RequestStatus } from '@/types/driver.types'
+import { ClipboardList, IdCard } from 'lucide-react'
 
 import { districtMapEnToHi, nameTranslations } from '@/utils/translations'
 
+const STATUS_OPTIONS: Array<{ value: string; en: string; hi: string }> = [
+  { value: 'all', en: 'All statuses', hi: 'सभी स्थितियाँ' },
+  { value: 'PENDING_DISTRICT_REVIEW', en: 'Pending district', hi: 'जिला समीक्षा लंबित' },
+  { value: 'FORWARDED_TO_ADMIN', en: 'Forwarded to admin', hi: 'एडमिन को अग्रेषित' },
+  { value: 'APPROVED', en: 'Approved', hi: 'स्वीकृत' },
+  { value: 'REJECTED_BY_ADMIN', en: 'Rejected by admin', hi: 'एडमिन द्वारा अस्वीकृत' },
+  { value: 'REJECTED_BY_DISTRICT', en: 'Rejected by district', hi: 'जिला द्वारा अस्वीकृत' },
+]
+
 const translateStatusHi = (status: string) => {
   switch (status) {
+    case 'PENDING_DISTRICT_REVIEW': return 'जिला समीक्षा लंबित'
     case 'FORWARDED_TO_ADMIN': return 'अग्रेषित'
     case 'APPROVED': return 'स्वीकृत'
+    case 'REJECTED_BY_ADMIN': return 'एडमिन अस्वीकृत'
+    case 'REJECTED_BY_DISTRICT': return 'जिला अस्वीकृत'
     case 'REJECTED': return 'अस्वीकृत'
     case 'PAYMENT_PENDING': return 'भुगतान लंबित'
     default: return status.replace(/_/g, ' ')
   }
 }
 
+const actionableStatuses = new Set<RequestStatus>([
+  'FORWARDED_TO_ADMIN',
+  'PENDING_DISTRICT_REVIEW',
+])
+
 export default function ApplicationsPage() {
   const { t, i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
+  const { data: districts = [] } = useDistricts()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [rejectReason, setRejectReason] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [districtFilter, setDistrictFilter] = useState('all')
   const [approvedQr, setApprovedQr] = useState<{
     cardId: string
     verificationUrl?: string
@@ -50,15 +73,22 @@ export default function ApplicationsPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
 
-  const { data: appRes, isLoading, isError, refetch } = useForwardedApplications({
+  const { data: appRes, isLoading, isError, refetch } = useDriverRequestList({
     page,
     size: 10,
     search: search || undefined,
+    status: statusFilter === 'all' ? undefined : (statusFilter as RequestStatus),
+    districtId: districtFilter === 'all' ? undefined : districtFilter,
   })
   const applications = appRes?.items ?? []
   const { data: selected, isLoading: detailLoading } = useDriverRequest(selectedId)
   const approve = useApproveApplication()
   const reject = useRejectApplication()
+
+  const sortedDistricts = useMemo(
+    () => [...districts].sort((a, b) => a.name.localeCompare(b.name)),
+    [districts],
+  )
 
   const columns: ColumnDef<DriverRequest>[] = [
     { key: 'ref', header: t('apps.colRef'), cell: (r) => r.referenceNumber ?? r.id.slice(0, 8), sortable: true, sortValue: (r) => r.referenceNumber ?? r.id },
@@ -117,14 +147,50 @@ export default function ApplicationsPage() {
   }
 
   const isPending = approve.isPending || reject.isPending
-  const canAct = selected?.status === 'FORWARDED_TO_ADMIN'
+  const canAct = selected ? actionableStatuses.has(selected.status) : false
   const hasConflict = Boolean(selected?.registrationConflict)
+  const isApproved = selected?.status === 'APPROVED'
 
   return (
     <div className="w-full space-y-6 pb-6">
       <PageHeader
         title={t('apps.title')}
         subtitle={t('apps.subtitle')}
+        action={
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <Select
+              value={districtFilter}
+              onValueChange={(v) => { setDistrictFilter(v); setPage(1) }}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={isHi ? 'जिला' : 'District'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{isHi ? 'सभी जिले' : 'All districts'}</SelectItem>
+                {sortedDistricts.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => { setStatusFilter(v); setPage(1) }}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {isHi ? o.hi : o.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
       />
       {isLoading && !appRes ? (
         <SkeletonTable />
@@ -157,12 +223,18 @@ export default function ApplicationsPage() {
         description={selected?.referenceNumber ? `Ref: ${selected.referenceNumber}` : undefined}
         footer={selected && !detailLoading && !approvedQr && (
           <div className="space-y-3">
-            {!canAct && !hasConflict && (
+            {!canAct && !hasConflict && !isApproved && (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                {selected.status === 'APPROVED'
-                  ? t('apps.alreadyApproved')
-                  : t('apps.cannotApprove', { status: isHi ? translateStatusHi(selected.status) : selected.status.replace(/_/g, ' ') })}
+                {t('apps.cannotApprove', { status: isHi ? translateStatusHi(selected.status) : selected.status.replace(/_/g, ' ') })}
               </p>
+            )}
+            {isApproved && (
+              <Button asChild className="w-full gap-2">
+                <Link to="/admin/id-cards">
+                  <IdCard className="h-4 w-4" />
+                  {isHi ? 'आईडी कार्ड बनाएँ / देखें' : 'Generate / view ID card'}
+                </Link>
+              </Button>
             )}
             {canAct && hasConflict && (
               <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -223,6 +295,12 @@ export default function ApplicationsPage() {
               verificationCode={approvedQr.verificationCode}
               driverName={approvedQr.driverName}
             />
+            <Button asChild variant="outline" className="w-full gap-2">
+              <Link to="/admin/id-cards">
+                <IdCard className="h-4 w-4" />
+                {isHi ? 'आईडी कार्ड पैनल खोलें' : 'Open ID card panel'}
+              </Link>
+            </Button>
             <Button className="w-full" onClick={closeDrawer}>{t('apps.done')}</Button>
           </div>
         )}

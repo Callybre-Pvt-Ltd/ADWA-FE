@@ -4,7 +4,7 @@ import { FormProvider, useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, ArrowRight, User, Car, Images, ClipboardCheck, Printer } from 'lucide-react'
+import { CheckCircle, ArrowRight, User, Car, Images, ClipboardCheck, Printer, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSubmitDriverRequest } from '@/hooks/useDriverRequests'
 import {
@@ -20,6 +20,7 @@ import StepDriverDetails from './StepDriverDetails'
 import StepUploads from './StepUploads'
 import StepReview from './StepReview'
 import { cn } from '@/utils/cn'
+import { CONTACT_INFO } from '@/constants'
 
 const FORM_STEPS: StepConfig[] = [
   { id: 1, labelHi: 'व्यक्तिगत जानकारी', labelEn: 'Personal Info',    icon: User },
@@ -40,6 +41,11 @@ export default function MultiStepForm() {
   const isHi = i18n.language === 'hi'
   const [step, setStep] = useState(0)
   const [referenceNumber, setReferenceNumber] = useState<string | null>(null)
+  const [districtContact, setDistrictContact] = useState<{
+    phone: string
+    name?: string
+    isDistrict: boolean
+  } | null>(null)
   const [declared, setDeclared] = useState(false)
   const submitRequest = useSubmitDriverRequest()
 
@@ -73,6 +79,21 @@ export default function MultiStepForm() {
     try {
       const result = await submitRequest.mutateAsync(data)
       setReferenceNumber(result.referenceNumber ?? result.id)
+      const phone = (result.districtContactPhone || '').trim()
+      if (phone) {
+        setDistrictContact({
+          phone,
+          name: result.districtContactName || undefined,
+          isDistrict: true,
+        })
+      } else {
+        // No district / incharge mobile — fall back to admin helpline + ref number.
+        setDistrictContact({
+          phone: CONTACT_INFO.supportPhone,
+          name: undefined,
+          isDistrict: false,
+        })
+      }
     } catch {
       // The mutation hook displays the API error toast.
     }
@@ -107,6 +128,31 @@ export default function MultiStepForm() {
           <p className="mt-2 text-3xl font-bold text-blue-900 font-mono tracking-widest print:text-2xl">{referenceNumber}</p>
           <p className="mt-2 text-xs text-neutral-500">{t('apply.successSave')}</p>
         </div>
+
+        {districtContact && (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-left">
+            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Phone className="h-3.5 w-3.5" />
+              {districtContact.isDistrict
+                ? t('apply.successDistrictContact')
+                : t('apply.successAdminContact')}
+            </p>
+            {districtContact.name && (
+              <p className="mt-1 text-sm font-medium text-neutral-800">{districtContact.name}</p>
+            )}
+            <a
+              href={`tel:${districtContact.isDistrict ? districtContact.phone.replace(/\s+/g, '') : CONTACT_INFO.phoneTel}`}
+              className="mt-1 inline-block text-lg font-bold text-emerald-900 font-mono tracking-wide hover:underline"
+            >
+              {districtContact.phone}
+            </a>
+            <p className="mt-2 text-xs text-neutral-500">
+              {districtContact.isDistrict
+                ? t('apply.successContactHint')
+                : t('apply.successAdminContactHint', { ref: referenceNumber })}
+            </p>
+          </div>
+        )}
 
         <p className="mt-4 text-sm text-neutral-500 leading-relaxed print:text-xs print:mt-3">{t('apply.successMsg')}</p>
 

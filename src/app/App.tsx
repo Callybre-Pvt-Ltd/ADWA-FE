@@ -79,6 +79,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin/dashboard', element: <Navigate to="/admin/applications" replace /> },
       { path: '/admin/events', element: <Navigate to="/admin/applications" replace /> },
+      { path: '/admin/users', element: <Navigate to="/admin/districts" replace /> },
       ...adminRoutes.map((route) => ({
         path: route.path,
         element: (

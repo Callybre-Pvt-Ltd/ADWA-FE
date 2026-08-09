@@ -76,12 +76,73 @@ const statusTranslations: Record<string, string> = {
 }
 
 const documentTypeTranslations: Record<string, string> = {
+  'DRIVER_PHOTO': 'ड्राइवर फ़ोटो',
   'PROFILE_IMAGE': 'प्रोफ़ाइल छवि',
   'AADHAAR_FRONT': 'आधार कार्ड (सामने)',
   'AADHAAR_BACK': 'आधार कार्ड (पीछे)',
   'LICENSE_FRONT': 'लाइसेंस (सामने)',
   'LICENSE_BACK': 'लाइसेंस (पीछे)',
   'PAYMENT_PROOF': 'भुगतान प्रमाण',
+  'VEHICLE_RC': 'वाहन RC',
+}
+
+const DOC_ORDER = [
+  'DRIVER_PHOTO',
+  'AADHAAR_FRONT',
+  'AADHAAR_BACK',
+  'LICENSE_FRONT',
+  'LICENSE_BACK',
+  'VEHICLE_RC',
+  'PAYMENT_PROOF',
+]
+
+function isLikelyImage(doc: { mimeType?: string | null; fileName?: string | null; downloadUrl?: string | null }): boolean {
+  const mime = (doc.mimeType ?? '').toLowerCase()
+  if (mime.startsWith('image/')) return true
+  const name = `${doc.fileName ?? ''} ${doc.downloadUrl ?? ''}`.toLowerCase()
+  return /\.(jpe?g|png|gif|webp|bmp|heic)(\?|$)/i.test(name)
+}
+
+function DocumentCard({ doc, isHi }: { doc: ApplicationDocument; isHi?: boolean }) {
+  const url = doc.downloadUrl
+  const showImage = Boolean(url && isLikelyImage(doc))
+  const docTypeLabel = isHi
+    ? (documentTypeTranslations[doc.documentType] || formatEnum(doc.documentType))
+    : formatEnum(doc.documentType)
+
+  return (
+    <a
+      href={url ?? undefined}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        'block rounded-lg border border-neutral-200 overflow-hidden bg-white hover:border-blue-400 hover:shadow-md transition-all',
+        !url && 'pointer-events-none opacity-60',
+      )}
+    >
+      {showImage && url ? (
+        <img
+          src={url}
+          alt={docTypeLabel ?? doc.fileName}
+          className="w-full aspect-[4/3] object-contain bg-neutral-50"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex aspect-[4/3] items-center justify-center bg-neutral-50 text-xs text-neutral-500 p-3 text-center">
+          {url
+            ? (isHi ? 'फ़ाइल खोलें' : 'Open file')
+            : (isHi ? 'फ़ाइल उपलब्ध नहीं' : 'File unavailable')}
+          <span className="block mt-1 truncate max-w-full px-2">{doc.fileName}</span>
+        </div>
+      )}
+      <div className="px-2.5 py-2 border-t border-neutral-100">
+        <p className="text-xs font-semibold text-neutral-800 truncate">{docTypeLabel}</p>
+        <p className="text-[10px] text-blue-600 font-medium">
+          {url ? (isHi ? 'बड़ा देखें / डाउनलोड' : 'View full size') : (isHi ? 'URL नहीं मिला' : 'No URL')}
+        </p>
+      </div>
+    </a>
+  )
 }
 
 const conflictMapHi: Record<string, string> = {
@@ -124,40 +185,6 @@ function DetailRowItem({ label, value, isHi }: DetailRow & { isHi?: boolean }) {
       <dt className="text-neutral-500">{translatedLabel}</dt>
       <dd className="font-medium text-neutral-900 break-words">{displayValue}</dd>
     </div>
-  )
-}
-
-function DocumentCard({ doc, isHi }: { doc: ApplicationDocument; isHi?: boolean }) {
-  const url = doc.downloadUrl
-  const isImage = doc.mimeType?.startsWith('image/')
-  const docTypeLabel = isHi ? (documentTypeTranslations[doc.documentType] || formatEnum(doc.documentType)) : formatEnum(doc.documentType)
-
-  return (
-    <a
-      href={url ?? undefined}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        'block rounded-lg border border-neutral-200 overflow-hidden bg-white hover:border-blue-300 transition-colors shadow-sm',
-        !url && 'pointer-events-none opacity-60',
-      )}
-    >
-      {isImage && url ? (
-        <img
-          src={url}
-          alt={doc.fileName}
-          className="w-full aspect-[4/3] object-cover bg-neutral-100"
-        />
-      ) : (
-        <div className="flex aspect-[4/3] items-center justify-center bg-neutral-50 text-xs text-neutral-500 p-3 text-center">
-          {doc.fileName}
-        </div>
-      )}
-      <div className="px-2.5 py-2 border-t border-neutral-100">
-        <p className="text-xs font-semibold text-neutral-800 truncate">{docTypeLabel}</p>
-        <p className="text-[10px] text-neutral-400 truncate">{doc.fileName}</p>
-      </div>
-    </a>
   )
 }
 
@@ -235,9 +262,14 @@ type DriverRequestDetailViewProps = {
 export function DriverRequestDetailView({ request, className }: DriverRequestDetailViewProps) {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
-  const documents = request.documents ?? []
+  const documents = [...(request.documents ?? [])].sort((a, b) => {
+    const ai = DOC_ORDER.indexOf(a.documentType)
+    const bi = DOC_ORDER.indexOf(b.documentType)
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+  })
   const paymentProof = request.paymentProofUrl
   const conflictMessage = formatConflictMessage(request, isHi)
+  const hasDocs = documents.length > 0 || Boolean(paymentProof)
 
   const tSection = (title: string) => {
     if (!isHi) return sectionTitles[title]?.en ?? title
@@ -264,6 +296,41 @@ export function DriverRequestDetailView({ request, className }: DriverRequestDet
         ))}
       </DetailSection>
 
+      <section className="rounded-xl border border-neutral-200 overflow-hidden bg-white shadow-sm">
+        <h3 className="bg-neutral-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
+          {tSection('Documents & images')}
+        </h3>
+        {hasDocs ? (
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {documents.map((doc) => (
+              <DocumentCard key={doc.id} doc={doc} isHi={isHi} />
+            ))}
+            {paymentProof && (
+              <a
+                href={paymentProof}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg border border-neutral-200 overflow-hidden bg-white hover:border-blue-400 hover:shadow-md transition-all"
+              >
+                <img
+                  src={paymentProof}
+                  alt={isHi ? 'भुगतान प्रमाण' : 'Payment proof'}
+                  className="w-full aspect-[4/3] object-contain bg-neutral-50"
+                />
+                <div className="px-2.5 py-2 border-t border-neutral-100">
+                  <p className="text-xs font-semibold text-neutral-800">{isHi ? 'भुगतान प्रमाण' : 'Payment proof'}</p>
+                  <p className="text-[10px] text-blue-600 font-medium">{isHi ? 'बड़ा देखें / डाउनलोड' : 'View full size'}</p>
+                </div>
+              </a>
+            )}
+          </div>
+        ) : (
+          <p className="px-4 py-6 text-sm text-neutral-500 text-center">
+            {isHi ? 'कोई दस्तावेज़ अपलोड नहीं किया गया।' : 'No documents uploaded for this application.'}
+          </p>
+        )}
+      </section>
+
       <DetailSection title={tSection('Address')}>
         {buildAddressRows(request).map((row) => (
           <DetailRowItem key={row.label} {...row} isHi={isHi} />
@@ -281,36 +348,6 @@ export function DriverRequestDetailView({ request, className }: DriverRequestDet
           <DetailRowItem key={row.label} {...row} isHi={isHi} />
         ))}
       </DetailSection>
-
-      {(documents.length > 0 || paymentProof) && (
-        <section className="rounded-xl border border-neutral-200 overflow-hidden bg-white shadow-sm">
-          <h3 className="bg-neutral-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
-            {tSection('Documents & images')}
-          </h3>
-          <div className="p-4 grid grid-cols-2 gap-3">
-            {documents.map((doc) => (
-              <DocumentCard key={doc.id} doc={doc} isHi={isHi} />
-            ))}
-            {paymentProof && (
-              <a
-                href={paymentProof}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-lg border border-neutral-200 overflow-hidden bg-white hover:border-blue-300 shadow-sm"
-              >
-                <img
-                  src={paymentProof}
-                  alt={isHi ? 'भुगतान प्रमाण' : 'Payment proof'}
-                  className="w-full aspect-[4/3] object-cover bg-neutral-100"
-                />
-                <div className="px-2.5 py-2 border-t border-neutral-100">
-                  <p className="text-xs font-semibold text-neutral-800">{isHi ? 'भुगतान प्रमाण' : 'Payment proof'}</p>
-                </div>
-              </a>
-            )}
-          </div>
-        </section>
-      )}
 
       {request.statusHistory && request.statusHistory.length > 0 && (
         <DetailSection title={tSection('Status history')}>

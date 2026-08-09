@@ -4,10 +4,10 @@ import { toast } from 'sonner'
 
 export const CARDS_QUERY_KEY = ['cards'] as const
 
-export function useCards() {
+export function useCards(params?: { status?: 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'REPLACED'; size?: number }) {
   return useQuery({
-    queryKey: CARDS_QUERY_KEY,
-    queryFn: () => cardsService.list({ size: 100 }),
+    queryKey: [...CARDS_QUERY_KEY, params],
+    queryFn: () => cardsService.list({ size: params?.size ?? 100, status: params?.status }),
     staleTime: 1000 * 60 * 2,
   })
 }

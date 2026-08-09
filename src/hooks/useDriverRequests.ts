@@ -84,7 +84,7 @@ export function useForwardApplication() {
     }: {
       id: string
       verificationRemarks?: string
-      paymentProof?: File
+      paymentProof: File
       diNotes?: string
     }) => driverRequestsService.forward(id, verificationRemarks, paymentProof, diNotes),
     onSuccess: () => {

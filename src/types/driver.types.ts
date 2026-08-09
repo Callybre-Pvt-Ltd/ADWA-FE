@@ -141,6 +141,8 @@ export type DriverRequest = {
   registrationConflict?: string
   conflictMemberNumber?: string
   conflictReferenceNumber?: string
+  districtContactPhone?: string
+  districtContactName?: string
   documents?: ApplicationDocument[]
   statusHistory?: ApplicationStatusHistory[]
 }

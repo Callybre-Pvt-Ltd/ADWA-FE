@@ -40,7 +40,7 @@ export function useUpdateDistrict() {
       districtsService.update(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: DISTRICTS_QUERY_KEY })
-      toast.success('District updated')
+      toast.success('Contact number saved')
     },
     onError: (err: Error) => toast.error(`Failed: ${err.message}`),
   })

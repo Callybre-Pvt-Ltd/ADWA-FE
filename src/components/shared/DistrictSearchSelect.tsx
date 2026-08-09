@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronDown, Search } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { Input } from '@/components/ui/input'
+import { districtMapEnToHi, matchesLocalizedSearch } from '@/utils/translations'
 
 export type DistrictOption = {
   id: string
@@ -31,17 +33,26 @@ export function DistrictSearchSelect({
   disabled = false,
   className,
 }: DistrictSearchSelectProps) {
+  const { i18n } = useTranslation()
+  const isHi = i18n.language === 'hi'
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
 
+  const labelFor = (name: string) => (isHi ? districtMapEnToHi[name] || name : name)
+
   const selected = districts.find((d) => d.id === value)
-  const displayName = selected?.name || selectedName
+  const displayName = selected
+    ? labelFor(selected.name)
+    : selectedName
+      ? labelFor(selectedName)
+      : undefined
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return districts
-    return districts.filter((d) => d.name.toLowerCase().includes(q))
+    if (!query.trim()) return districts
+    return districts.filter((d) =>
+      matchesLocalizedSearch([d.name, districtMapEnToHi[d.name]], query),
+    )
   }, [districts, query])
 
   useEffect(() => {
@@ -115,7 +126,7 @@ export function DistrictSearchSelect({
                       d.id === value && 'bg-blue-50 text-blue-800',
                     )}
                   >
-                    <span>{d.name}</span>
+                    <span>{labelFor(d.name)}</span>
                     {d.id === value && <Check size={15} className="shrink-0" />}
                   </button>
                 </li>

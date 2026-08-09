@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { matchesLocalizedSearch, normalizeSearchForApi } from '@/utils/translations'
 
 export interface ColumnDef<T> {
   key: string
@@ -77,7 +78,8 @@ export function DataTable<T>({
     if (serverDraft === committedSearchRef.current) return
     const timer = window.setTimeout(() => {
       committedSearchRef.current = serverDraft
-      onSearchChangeRef.current?.(serverDraft)
+      // Hindi UI labels → English DB values so server search still matches
+      onSearchChangeRef.current?.(normalizeSearchForApi(serverDraft))
     }, SERVER_SEARCH_DEBOUNCE_MS)
     return () => window.clearTimeout(timer)
   }, [serverDraft, isServer])
@@ -96,13 +98,14 @@ export function DataTable<T>({
   const filtered = useMemo(() => {
     let result = [...data]
     if (!isServer && search) {
-      const q = search.toLowerCase()
-      result = result.filter((row) =>
-        columns.some((col) => {
-          const val = col.sortValue?.(row) ?? String(col.cell(row))
-          return String(val).toLowerCase().includes(q)
-        }),
-      )
+      result = result.filter((row) => {
+        const fields = columns.map((col) => {
+          if (col.sortValue) return col.sortValue(row)
+          const rendered = col.cell(row)
+          return typeof rendered === 'string' || typeof rendered === 'number' ? rendered : ''
+        })
+        return matchesLocalizedSearch(fields, search)
+      })
     }
     if (sortKey) {
       const col = columns.find((c) => c.key === sortKey)

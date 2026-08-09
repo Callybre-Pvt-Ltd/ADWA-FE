@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Printer, Download, Upload, IdCard } from 'lucide-react'
@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { IDCardOverlay } from '@/features/id-card/IDCardOverlay'
 import { IdCardFormFields } from '@/features/id-card/IdCardFormFields'
 import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features/id-card/idCardForm'
-import { useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto } from '@/hooks/useCards'
+import { useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto, useDownloadCard } from '@/hooks/useCards'
 import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { useAuth } from '@/context/AuthContext'
 import { nameTranslations } from '@/utils/translations'
@@ -31,20 +31,17 @@ export function IdCardGenerationPanel() {
   const { user } = useAuth()
   const isDistrict = user?.role === 'district'
 
-  const { data: cardRes, isLoading, isError, refetch } = useCards()
+  const { data: cardRes, isLoading, isError, refetch } = useCards({ status: 'ACTIVE', size: 100 })
   const allCards = cardRes?.items ?? []
-
-  // District portal: only print cards for admin-approved drivers (ACTIVE).
-  const cards = useMemo(() => {
-    if (!isDistrict) return allCards
-    return allCards.filter((c) => c.status === 'ACTIVE')
-  }, [allCards, isDistrict])
+  // API already scopes district users to their district.
+  const cards = allCards
 
   const [selectedCardId, setSelectedCardId] = useState('')
   const selectedCard = cards.find((c) => c.id === selectedCardId) ?? cards[0]
 
   const { data: snapshot, isLoading: snapshotLoading } = useCardSnapshot(selectedCard?.id ?? null)
   const generate = useGenerateIdCard()
+  const downloadCard = useDownloadCard()
   const uploadPhoto = useUploadCardPhoto()
   const photoInputRef = useRef<HTMLInputElement>(null)
 
@@ -135,7 +132,7 @@ export function IdCardGenerationPanel() {
   }
 
   const handleGenerate = () => {
-    if (isDistrict || generate.isPending || !selectedCard || !form) return
+    if (generate.isPending || !selectedCard || !form) return
     generate.mutate(
       { cardId: selectedCard.id, payload: formToPayload(form) },
       { onSuccess: () => { toast.success(d('idCard.idGenerated')); void refetch() } },
@@ -207,11 +204,22 @@ export function IdCardGenerationPanel() {
         >
           <Download size={15} /> {d('idCard.downloadPng')}
         </Button>
+        <Button
+          className="flex-1 gap-2 cursor-pointer w-full"
+          onClick={() => {
+            if (!selectedCard || downloadCard.isPending) return
+            downloadCard.mutate(selectedCard.id)
+          }}
+          loading={downloadCard.isPending}
+          loadingText={d('idCard.generating')}
+          disabled={!selectedCard}
+        >
+          <Download size={15} /> {d('idCard.downloadPdf')}
+        </Button>
       </div>
 
-      {/* Admin only: edit fields, photo upload, generate PDF */}
-      {!isDistrict && (
-        <div className="space-y-4">
+      {/* Edit fields, photo upload, generate PDF — admin and district */}
+      <div className="space-y-4">
           <h3 className="text-sm font-semibold text-neutral-900">{d('idCard.cardInfo')}</h3>
           {snapshotLoading || !form ? (
             <SkeletonCard />
@@ -271,7 +279,6 @@ export function IdCardGenerationPanel() {
             {d('idCard.generatePdf')}
           </Button>
         </div>
-      )}
     </div>
   )
 }
