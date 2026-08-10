@@ -27,8 +27,11 @@ export type DriverPublicInfo = {
 
 export type CardVerificationStatus = 'VALID' | 'EXPIRED' | 'REVOKED' | 'NOT_FOUND'
 
+export type VerificationCardType = 'DRIVER' | 'DISTRICT_INCHARGE'
+
 export type CardVerificationResult = {
   status: CardVerificationStatus
+  cardType?: VerificationCardType
   driverName?: string
   memberNumber?: string
   district?: string
@@ -50,6 +53,7 @@ export type CardVerificationResult = {
     policeStation?: string
     designation?: string
     driverStatus?: string
+    districtCode?: string
   }
 }
 

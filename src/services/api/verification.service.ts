@@ -10,6 +10,7 @@ function mapVerification(raw: ApiVerification): CardVerificationResult {
   const item = toCamelCase<ApiVerification>(raw)
   return {
     status: item.status,
+    cardType: item.cardType ?? undefined,
     driverName: item.driverName ?? undefined,
     memberNumber: item.memberNumber ?? undefined,
     district: item.district ?? undefined,
@@ -32,6 +33,7 @@ function mapVerification(raw: ApiVerification): CardVerificationResult {
           policeStation: item.metadata.policeStation,
           designation: item.metadata.designation,
           driverStatus: item.metadata.driverStatus,
+          districtCode: item.metadata.districtCode,
         }
       : undefined,
   }

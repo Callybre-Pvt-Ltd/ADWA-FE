@@ -500,13 +500,15 @@
       "groups": {
         "membership": "Membership details",
         "driving": "Driving details",
-        "personal": "Personal details"
+        "personal": "Personal details",
+        "districtCard": "District incharge card"
       },
       "fields": {
         "cardNumber": "Card number",
         "issueDate": "Issue date",
         "validUntil": "Valid until",
         "designation": "Designation",
+        "districtCode": "District code",
         "license": "License number",
         "vehicle": "Vehicle number",
         "vehicleType": "Vehicle type",
@@ -518,6 +520,19 @@
         "city": "City / village",
         "tehsil": "Tehsil / PS",
         "state": "State"
+      },
+      "districtStatus": {
+        "VALID": "Verified district incharge",
+        "EXPIRED": "Card expired",
+        "REVOKED": "Card suspended",
+        "NOT_FOUND": "Not found"
+      },
+      "districtMessage": {
+        "VALID": "This person is a verified ADWA district incharge / padadhikari.",
+        "EXPIRED": "This district incharge card has expired and is no longer valid.",
+        "EXPIRED_ON": "This district incharge card expired on {{date}} and is no longer valid.",
+        "REVOKED": "This district incharge card has been suspended or revoked by ADWA.",
+        "NOT_FOUND": "No district incharge card matches this verification code."
       }
     }
   },

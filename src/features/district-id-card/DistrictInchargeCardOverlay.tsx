@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react'
+import QRCode from 'qrcode'
 import {
   G,
+  buildDistrictQrPayload,
   formatCardDate,
   type DistrictInchargeCardForm,
 } from './districtInchargeCardGeometry'
@@ -14,6 +16,10 @@ const NAME_FONT =
 let _tpl: HTMLImageElement | null = null
 let _tplSrc = ''
 let _tplPromise: Promise<HTMLImageElement> | null = null
+
+let _seal: HTMLImageElement | null = null
+let _sealSrc = ''
+let _sealPromise: Promise<HTMLImageElement | null> | null = null
 
 function loadTemplate(): Promise<HTMLImageElement> {
   if (_tpl && _tplSrc === G.template) return Promise.resolve(_tpl)
@@ -31,6 +37,24 @@ function loadTemplate(): Promise<HTMLImageElement> {
     img.src = G.template
   })
   return _tplPromise
+}
+
+function loadSeal(): Promise<HTMLImageElement | null> {
+  if (_seal && _sealSrc === G.seal.src) return Promise.resolve(_seal)
+  if (_sealPromise && _sealSrc === G.seal.src) return _sealPromise
+  _sealSrc = G.seal.src
+  _seal = null
+  _sealPromise = new Promise((resolve) => {
+    const img = new window.Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      _seal = img
+      resolve(img)
+    }
+    img.onerror = () => resolve(null)
+    img.src = G.seal.src
+  })
+  return _sealPromise
 }
 
 function loadBlobUrl(url: string): Promise<HTMLImageElement> {
@@ -79,6 +103,28 @@ function erase(ctx: CanvasRenderingContext2D, box: { x: number; y: number; w: nu
   ctx.fillRect(box.x, box.y, box.w, box.h)
 }
 
+async function drawQr(
+  ctx: CanvasRenderingContext2D,
+  payload: string,
+  box: { x: number; y: number; w: number; h: number },
+) {
+  erase(ctx, box)
+  if (!payload.trim()) return
+  try {
+    const dataUrl = await QRCode.toDataURL(payload, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: Math.max(box.w, box.h) * 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    })
+    const qr = await loadBlobUrl(dataUrl)
+    const pad = 2
+    ctx.drawImage(qr, box.x + pad, box.y + pad, box.w - pad * 2, box.h - pad * 2)
+  } catch {
+    /* leave blank slot */
+  }
+}
+
 export type DistrictInchargeCardActions = {
   print: () => void
   downloadPng: () => void
@@ -87,12 +133,14 @@ export type DistrictInchargeCardActions = {
 type Props = {
   values: DistrictInchargeCardForm
   photoUrl: string | null
+  verificationUrl?: string | null
   onActionsReady?: (actions: DistrictInchargeCardActions) => void
 }
 
 export function DistrictInchargeCardOverlay({
   values,
   photoUrl,
+  verificationUrl = null,
   onActionsReady,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -114,13 +162,22 @@ export function DistrictInchargeCardOverlay({
       } catch { /* ignore */ }
     }
 
-    const template = await loadTemplate()
-    canvas.width = G.width
-    canvas.height = G.height
+    const [template, seal] = await Promise.all([loadTemplate(), loadSeal()])
+
+    // Render at 2× so the seal/text stay sharp on retina screens and when printed
+    const dpr = 2
+    canvas.width = G.width * dpr
+    canvas.height = G.height * dpr
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
     ctx.clearRect(0, 0, G.width, G.height)
     ctx.drawImage(template, 0, 0, G.width, G.height)
 
-    // Front: photo + name only. Leave designation (पदाधिकारी) exactly as on the template.
+    // QR over the template "बारकोड" box — opens /verify/{code} details page
+    await drawQr(ctx, buildDistrictQrPayload(verificationUrl), G.qr)
+
+    // Front: photo + name
     ctx.fillStyle = '#ffffff'
     roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
     ctx.fill()
@@ -151,7 +208,33 @@ export function DistrictInchargeCardOverlay({
       ctx.fillText(name, G.name.cx, G.name.baseline, 280)
     }
 
-    // Back: card no / dates only
+    // Seal after name wipe — draw from high-res asset with high-quality scaling
+    if (seal) {
+      ctx.save()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(
+        seal,
+        Math.round(G.seal.x),
+        Math.round(G.seal.y),
+        Math.round(G.seal.w),
+        Math.round(G.seal.h),
+      )
+      ctx.restore()
+    }
+
+    // Keep "पदाधिकारी :-" from template; paint admin role on the right
+    erase(ctx, G.designation.erase)
+    const role = values.designation.trim()
+    if (role) {
+      ctx.fillStyle = G.designation.color
+      ctx.font = `500 ${G.designation.size}px ${NAME_FONT}`
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillText(role, G.designation.x, G.designation.baseline, G.designation.erase.w - 4)
+    }
+
+    // Back: card no / dates
     const paint = (
       field: { erase: { x: number; y: number; w: number; h: number }; x: number; baseline: number; size: number; color: string },
       text: string,
@@ -159,7 +242,7 @@ export function DistrictInchargeCardOverlay({
       erase(ctx, field.erase)
       if (!text) return
       ctx.fillStyle = field.color
-      ctx.font = `600 ${field.size}px "Noto Sans", ${FONT}`
+      ctx.font = `700 ${field.size}px "Noto Sans", ${FONT}`
       ctx.textAlign = 'left'
       ctx.textBaseline = 'alphabetic'
       ctx.fillText(text, field.x, field.baseline, field.erase.w - 6)
@@ -168,7 +251,7 @@ export function DistrictInchargeCardOverlay({
     paint(G.cardNumber, values.cardNumber.trim())
     paint(G.issueDate, formatCardDate(values.issueDate))
     paint(G.expiryDate, formatCardDate(values.expiryDate))
-  }, [photoUrl, values])
+  }, [photoUrl, values, verificationUrl])
 
   useEffect(() => {
     void render()

@@ -87,6 +87,7 @@ export default function VerificationResult({ result, className }: VerificationRe
   const style = STATUS_STYLES[result.status]
   const Icon = style.icon
   const meta = result.metadata
+  const isDistrict = result.cardType === 'DISTRICT_INCHARGE'
 
   if (result.status === 'NOT_FOUND') {
     return (
@@ -107,11 +108,20 @@ export default function VerificationResult({ result, className }: VerificationRe
     )
   }
 
-  const statusLabel = t(`verify.result.status.${result.status}`)
+  const statusLabel = isDistrict
+    ? t(`verify.result.districtStatus.${result.status}`)
+    : t(`verify.result.status.${result.status}`)
   const statusMessage =
     result.status === 'EXPIRED' && result.expiryDate
-      ? t('verify.result.message.EXPIRED_ON', { date: formatDate(result.expiryDate) })
-      : t(`verify.result.message.${result.status}`)
+      ? t(
+          isDistrict ? 'verify.result.districtMessage.EXPIRED_ON' : 'verify.result.message.EXPIRED_ON',
+          { date: formatDate(result.expiryDate) },
+        )
+      : t(
+          isDistrict
+            ? `verify.result.districtMessage.${result.status}`
+            : `verify.result.message.${result.status}`,
+        )
 
   return (
     <div className={cn('surface-card overflow-hidden', className)}>
@@ -147,9 +157,19 @@ export default function VerificationResult({ result, className }: VerificationRe
             <h2 className="mt-2 text-xl sm:text-2xl font-bold leading-tight truncate text-white">
               {result.driverName}
             </h2>
-            {result.memberNumber && (
+            {isDistrict && meta?.designation && (
+              <p className={cn('mt-1 text-sm font-medium', style.bannerMuted)}>
+                {meta.designation}
+              </p>
+            )}
+            {!isDistrict && result.memberNumber && (
               <p className={cn('mt-1 text-sm font-medium', style.bannerMuted)}>
                 {t('verify.result.memberNo', { number: result.memberNumber })}
+              </p>
+            )}
+            {isDistrict && result.memberNumber && (
+              <p className={cn('mt-1 text-sm font-medium', style.bannerMuted)}>
+                {t('verify.result.fields.cardNumber')}: {result.memberNumber}
               </p>
             )}
             {result.district && (
@@ -173,7 +193,11 @@ export default function VerificationResult({ result, className }: VerificationRe
         </div>
 
         <DetailGroup
-          title={t('verify.result.groups.membership')}
+          title={
+            isDistrict
+              ? t('verify.result.groups.districtCard')
+              : t('verify.result.groups.membership')
+          }
           rows={[
             { label: t('verify.result.fields.cardNumber'), value: meta?.cardNumber },
             {
@@ -185,32 +209,40 @@ export default function VerificationResult({ result, className }: VerificationRe
               value: result.expiryDate ? formatDate(result.expiryDate) : undefined,
             },
             { label: t('verify.result.fields.designation'), value: meta?.designation },
-          ]}
-        />
-
-        <DetailGroup
-          title={t('verify.result.groups.driving')}
-          rows={[
-            { label: t('verify.result.fields.license'), value: meta?.licenseNumber },
-          ]}
-        />
-
-        <DetailGroup
-          title={t('verify.result.groups.personal')}
-          rows={[
-            { label: t('verify.result.fields.fatherOrSpouse'), value: meta?.fatherOrSpouseName },
             {
-              label: t('verify.result.fields.dateOfBirth'),
-              value: meta?.dateOfBirth ? formatDate(meta.dateOfBirth) : undefined,
+              label: t('verify.result.fields.districtCode'),
+              value: meta?.districtCode,
             },
-            { label: t('verify.result.fields.bloodGroup'), value: meta?.bloodGroup },
-            { label: t('verify.result.fields.mobile'), value: meta?.phoneNumber },
-            { label: t('verify.result.fields.email'), value: meta?.email },
-            { label: t('verify.result.fields.city'), value: meta?.city },
-            { label: t('verify.result.fields.tehsil'), value: meta?.policeStation },
-            { label: t('verify.result.fields.state'), value: meta?.state },
           ]}
         />
+
+        {!isDistrict && (
+          <>
+            <DetailGroup
+              title={t('verify.result.groups.driving')}
+              rows={[
+                { label: t('verify.result.fields.license'), value: meta?.licenseNumber },
+              ]}
+            />
+
+            <DetailGroup
+              title={t('verify.result.groups.personal')}
+              rows={[
+                { label: t('verify.result.fields.fatherOrSpouse'), value: meta?.fatherOrSpouseName },
+                {
+                  label: t('verify.result.fields.dateOfBirth'),
+                  value: meta?.dateOfBirth ? formatDate(meta.dateOfBirth) : undefined,
+                },
+                { label: t('verify.result.fields.bloodGroup'), value: meta?.bloodGroup },
+                { label: t('verify.result.fields.mobile'), value: meta?.phoneNumber },
+                { label: t('verify.result.fields.email'), value: meta?.email },
+                { label: t('verify.result.fields.city'), value: meta?.city },
+                { label: t('verify.result.fields.tehsil'), value: meta?.policeStation },
+                { label: t('verify.result.fields.state'), value: meta?.state },
+              ]}
+            />
+          </>
+        )}
 
         <p className="text-center text-xs text-neutral-500 leading-relaxed px-2">
           {t('verify.result.footerNote')}
