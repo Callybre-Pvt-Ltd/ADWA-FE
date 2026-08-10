@@ -70,9 +70,12 @@ export function AdminFooter() {
                   className="h-4.5 w-4.5 md:h-5 md:w-5 shrink-0 text-blue-300 group-hover:text-orange-400 transition-colors mt-0.5"
                   aria-hidden="true"
                 />
-                <span className="leading-normal font-medium">
+                <a
+                  href={`tel:${CONTACT_INFO.phoneTel}`}
+                  className="leading-normal font-medium hover:underline"
+                >
                   {CONTACT_INFO.phone}
-                </span>
+                </a>
               </li>
               <li className="group flex items-start gap-3">
                 <Mail
@@ -91,7 +94,9 @@ export function AdminFooter() {
                   className="group flex items-start gap-3 font-bold transition-colors"
                 >
                   <WhatsAppLogo className="h-4.5 w-4.5 md:h-5 md:w-5 shrink-0 text-green-400 group-hover:text-orange-400 transition-colors mt-0.5" />
-                  <span className="leading-normal">{t("whatsappHelp")}</span>
+                  <span className="leading-normal hover:underline">
+                    {CONTACT_INFO.whatsapp}
+                  </span>
                 </a>
               </li>
               <li>
