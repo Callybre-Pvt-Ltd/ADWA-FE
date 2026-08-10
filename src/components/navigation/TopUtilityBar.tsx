@@ -3,6 +3,7 @@ import { CONTACT_INFO, SOCIAL_LINKS } from '@/constants'
 
 const SOCIAL = [
   { key: 'facebook', url: SOCIAL_LINKS.facebook, label: 'FB' },
+  { key: 'instagram', url: SOCIAL_LINKS.instagram, label: 'IG' },
   { key: 'youtube', url: SOCIAL_LINKS.youtube, label: 'YT' },
 ].filter((s) => Boolean(s.url))
 

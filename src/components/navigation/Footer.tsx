@@ -35,6 +35,22 @@ const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
 export function Footer() {
   const { t, i18n } = useTranslation("nav");
   const { t: th } = useTranslation("home");
@@ -154,6 +170,17 @@ export function Footer() {
                     aria-label="Facebook"
                   >
                     <FacebookIcon className="h-4.5 w-4.5" />
+                  </a>
+                  )}
+                  {SOCIAL_LINKS.instagram && (
+                  <a
+                    href={SOCIAL_LINKS.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-center h-8.5 w-8.5 rounded-full bg-white/5 text-white/60 hover:bg-orange-500 hover:text-white transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon className="h-4.5 w-4.5" />
                   </a>
                   )}
                   {SOCIAL_LINKS.youtube && (

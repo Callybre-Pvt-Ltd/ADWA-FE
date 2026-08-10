@@ -43,7 +43,7 @@ export const API_DELAY = 800
 export const SOCIAL_LINKS = {
   facebook: 'https://www.facebook.com/share/18uRHiSyQX/',
   twitter: '',
-  instagram: '',
+  instagram: 'https://www.instagram.com/alldriverswelfareassociation/',
   youtube: 'https://youtube.com/@driverkasanghrshsw358',
   whatsapp: 'https://wa.me/919407240690',
 }
