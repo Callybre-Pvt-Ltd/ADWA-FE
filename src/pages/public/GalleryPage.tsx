@@ -40,12 +40,12 @@ export default function GalleryPage() {
             </p>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mt-10 columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
             {images.map((img) => (
               <button
                 key={img.src}
                 type="button"
-                className="group overflow-hidden rounded-2xl bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="group mb-4 block w-full overflow-hidden rounded-2xl bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 break-inside-avoid"
                 onClick={() => setActive(img.src)}
               >
                 <img
@@ -55,7 +55,7 @@ export default function GalleryPage() {
                   height={img.height ?? 600}
                   loading="lazy"
                   decoding="async"
-                  className="h-56 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 />
                 {(img.captionEn || img.captionHi) && (
                   <p className="px-3 py-2 text-left text-sm text-neutral-700 bg-white">
