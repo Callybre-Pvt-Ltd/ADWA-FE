@@ -191,7 +191,7 @@ const BACK = {
     },
   ],
 
-  fontSize: 75,
+  fontSize: 58,
   fontFamily: 'Roboto, sans-serif',
 }
 

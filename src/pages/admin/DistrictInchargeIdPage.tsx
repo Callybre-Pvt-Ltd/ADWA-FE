@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DistrictInchargeIdPanel } from '@/features/district-id-card/DistrictInchargeIdPanel'
+import { DistrictInchargeCardsList } from '@/features/district-id-card/DistrictInchargeCardsList'
 
 export default function DistrictInchargeIdPage() {
   const { i18n } = useTranslation()
@@ -17,6 +18,7 @@ export default function DistrictInchargeIdPage() {
         }
       />
       <DistrictInchargeIdPanel />
+      <DistrictInchargeCardsList />
     </div>
   )
 }

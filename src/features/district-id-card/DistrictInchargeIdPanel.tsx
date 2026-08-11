@@ -219,10 +219,10 @@ export function DistrictInchargeIdPanel() {
             variant="outline"
             className="flex-1 gap-2"
             disabled={(!canIssue && !canExport) || issuing}
-            onClick={() => void ensureIssuedThen(() => actionsRef.current?.downloadPng())}
+            onClick={() => void ensureIssuedThen(() => actionsRef.current?.downloadPdf())}
           >
             <Download className="h-4 w-4" />
-            {isHi ? 'PNG डाउनलोड' : 'Download PNG'}
+            {isHi ? 'PDF डाउनलोड' : 'Download PDF'}
           </Button>
         </div>
         {verificationUrl ? (

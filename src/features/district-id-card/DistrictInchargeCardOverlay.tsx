@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
+import { jsPDF } from 'jspdf'
 import {
   G,
   buildDistrictQrPayload,
   formatCardDate,
   type DistrictInchargeCardForm,
 } from './districtInchargeCardGeometry'
+
+// Template is baked at 600dpi (see districtInchargeCardGeometry.ts) — convert
+// the canvas's pixel size to its true physical size so the PDF page matches
+// print dimensions exactly, instead of an arbitrary page size.
+const MM_PER_INCH = 25.4
+const CARD_DPI = 600
+const PDF_WIDTH_MM = (G.width / CARD_DPI) * MM_PER_INCH
+const PDF_HEIGHT_MM = (G.height / CARD_DPI) * MM_PER_INCH
 
 const FONT =
   '"Noto Sans Devanagari", "Noto Sans", "Mangal", "Kohinoor Devanagari", system-ui, sans-serif'
@@ -60,6 +69,10 @@ function loadSeal(): Promise<HTMLImageElement | null> {
 function loadBlobUrl(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new window.Image()
+    // No-op for blob:/data: URLs (already same-origin); required for remote photo
+    // URLs (e.g. admin viewing an already-issued card) so the canvas isn't tainted
+    // and toDataURL()/download still works.
+    img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = reject
     img.src = url
@@ -128,6 +141,7 @@ async function drawQr(
 export type DistrictInchargeCardActions = {
   print: () => void
   downloadPng: () => void
+  downloadPdf: () => void
 }
 
 type Props = {
@@ -290,6 +304,18 @@ export function DistrictInchargeCardOverlay({
         a.href = canvas.toDataURL('image/png')
         a.download = `${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.png`
         a.click()
+      },
+      downloadPdf: () => {
+        const canvas = canvasRef.current
+        if (!canvas) return
+        const slug = (values.fullName || 'district-id').trim().replace(/\s+/g, '-').slice(0, 40)
+        const doc = new jsPDF({
+          orientation: PDF_WIDTH_MM >= PDF_HEIGHT_MM ? 'landscape' : 'portrait',
+          unit: 'mm',
+          format: [PDF_WIDTH_MM, PDF_HEIGHT_MM],
+        })
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, PDF_WIDTH_MM, PDF_HEIGHT_MM)
+        doc.save(`${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`)
       },
     })
   }, [onActionsReady, values.fullName, values.cardNumber])

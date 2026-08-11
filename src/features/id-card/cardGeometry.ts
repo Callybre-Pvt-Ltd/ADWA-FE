@@ -9,7 +9,7 @@ export const CARD_GEOMETRY = {
   },
   "faceWidth": 1426,
   "photo": {
-    "x": 1609,
+    "x": 1998,
     "y": 800,
     "width": 283,
     "height": 283
