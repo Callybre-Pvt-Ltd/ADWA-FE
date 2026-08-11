@@ -21,17 +21,20 @@ import type { IdCardFormValues } from './idCardForm'
 import type { DriverCard } from '@/services/api/cards.service'
 import { CARD_GEOMETRY } from './cardGeometry'
 
-// Cache-busted so browsers with the old artwork cached pick up the redesign.
-const TEMPLATE_PATH = '/id_card/id_card.png?v=4'
+// Cache-busted so browsers/CDN always pick up the latest print artwork after deploy.
+const TEMPLATE_PATH = '/id_card/id_card.png?v=20260811-seal'
+
 
 // ─── Template image singleton (load once) ────────────────────────────────────
 
 let _templateImg: HTMLImageElement | null = null
 let _templatePromise: Promise<HTMLImageElement> | null = null
+let _templateSrc = ''
 
 function loadTemplate(): Promise<HTMLImageElement> {
-  if (_templateImg) return Promise.resolve(_templateImg)
-  if (_templatePromise) return _templatePromise
+  if (_templateImg && _templateSrc === TEMPLATE_PATH) return Promise.resolve(_templateImg)
+  _templateSrc = TEMPLATE_PATH
+  _templateImg = null
   _templatePromise = new Promise((resolve, reject) => {
     const img = new window.Image()
     img.crossOrigin = 'anonymous'
@@ -43,13 +46,15 @@ function loadTemplate(): Promise<HTMLImageElement> {
 }
 
 // ADWA seal stamped near the photo — same asset/pattern as the district card.
-const SEAL_PATH = '/id_card/adwa_seal.png?v=1'
+const SEAL_PATH = '/id_card/adwa_seal.png?v=20260811'
 let _sealImg: HTMLImageElement | null = null
 let _sealPromise: Promise<HTMLImageElement | null> | null = null
+let _sealSrc = ''
 
 function loadSeal(): Promise<HTMLImageElement | null> {
-  if (_sealImg) return Promise.resolve(_sealImg)
-  if (_sealPromise) return _sealPromise
+  if (_sealImg && _sealSrc === SEAL_PATH) return Promise.resolve(_sealImg)
+  _sealSrc = SEAL_PATH
+  _sealImg = null
   _sealPromise = new Promise((resolve) => {
     const img = new window.Image()
     img.crossOrigin = 'anonymous'

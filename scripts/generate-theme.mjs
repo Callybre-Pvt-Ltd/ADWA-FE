@@ -1,8 +1,8 @@
-import { writeFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const theme = `@theme {
   --color-blue-50: #EFF6FF;
@@ -78,8 +78,8 @@ const theme = `@theme {
   --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.04);
   --font-family-sans: 'Noto Sans', 'Noto Sans Devanagari', system-ui, sans-serif;
 }
-`;
+`
 
-const outPath = resolve(__dirname, '../src/styles/theme.generated.css');
-writeFileSync(outPath, theme, 'utf-8');
-console.log('Theme generated:', outPath);
+const outPath = resolve(__dirname, '../src/styles/theme.generated.css')
+writeFileSync(outPath, theme, 'utf-8')
+console.log('Theme generated:', outPath)

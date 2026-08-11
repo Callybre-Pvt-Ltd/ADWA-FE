@@ -9,9 +9,9 @@
     "pnpm": ">=11"
   },
   "scripts": {
-    "generate-theme": "tsx scripts/generate-theme.ts",
-    "predev": "npm run generate-theme",
-    "prebuild": "npm run generate-theme",
+    "generate-theme": "node scripts/generate-theme.mjs",
+    "predev": "pnpm run generate-theme",
+    "prebuild": "pnpm run generate-theme",
     "dev": "vite",
     "build": "vite build",
     "typecheck": "tsc -b",

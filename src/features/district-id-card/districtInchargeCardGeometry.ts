@@ -2,12 +2,12 @@
 export const G = {
   width: 2875,
   height: 2213,
-  template: '/id_card/district_incharge_card.png?v=13',
+  template: '/id_card/district_incharge_card.png?v=20260811',
   /** Sample portrait slot on the front panel */
   photo: { x: 1860, y: 931, w: 538, h: 556, r: 58 },
   /** Official ADWA seal stamped near the photo (bottom-right corner, half on/off) */
   seal: {
-    src: '/id_card/adwa_seal.png?v=2',
+    src: '/id_card/adwa_seal.png?v=20260811',
     x: 2350,
     y: 1260,
     w: 200,
