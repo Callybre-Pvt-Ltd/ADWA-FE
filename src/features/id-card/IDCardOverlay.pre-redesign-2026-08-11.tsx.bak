@@ -1,9 +1,9 @@
 /**
  * IDCardOverlay — Canvas-based renderer.
  *
- * The template is a 2852×2108px print image (600dpi, see cardGeometry.ts):
- *   Left  half (x 0–1426)    = Back face
- *   Right half (x 1426–2852) = Front face
+ * The template is a 1600×1255px landscape print image (see cardGeometry.ts):
+ *   Left  half (x 0–800)   = Back face
+ *   Right half (x 800–1600) = Front face
  *
  * We draw each face onto its own <canvas> by:
  *   1. drawImage the full template shifted so the correct half fills the canvas
@@ -21,8 +21,7 @@ import type { IdCardFormValues } from './idCardForm'
 import type { DriverCard } from '@/services/api/cards.service'
 import { CARD_GEOMETRY } from './cardGeometry'
 
-// Cache-busted so browsers with the old artwork cached pick up the redesign.
-const TEMPLATE_PATH = '/id_card/id_card.png?v=4'
+const TEMPLATE_PATH = '/id_card/id_card.png'
 
 // ─── Template image singleton (load once) ────────────────────────────────────
 
@@ -90,20 +89,6 @@ function drawImageCover(
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
 }
 
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number, r: number,
-) {
-  const rad = Math.min(r, w / 2, h / 2)
-  ctx.beginPath()
-  ctx.moveTo(x + rad, y)
-  ctx.arcTo(x + w, y, x + w, y + h, rad)
-  ctx.arcTo(x + w, y + h, x, y + h, rad)
-  ctx.arcTo(x, y + h, x, y, rad)
-  ctx.arcTo(x, y, x + w, y, rad)
-  ctx.closePath()
-}
-
 // The backend renders card text with Roboto (assets/fonts/Roboto-Regular.ttf).
 // The canvas uses the same family so previews match the generated PDF; we must
 // wait for the webfont before drawing or the canvas silently falls back.
@@ -142,28 +127,25 @@ const FRONT = {
   },
 
   // After the dotted colon on each label row (calibrated on id_card.png)
-  valueX: 610,
-  // Right margin before the card's outer border — kept tight so long values
-  // truncate before ever touching the border line.
-  maxValueWidth: 714,
+  valueX: 335,
 
   rows: [
-    { key: 'fullName',      y: 1148 },
-    { key: 'fatherName',    y: 1224 },
-    { key: 'designation',   y: 1301 },
-    { key: 'licenseNumber', y: 1378 },
-    { key: 'mobileNumber',  y: 1454 },
-    { key: 'policeStation', y: 1531 },
-    { key: 'city',          y: 1607 },
-    { key: 'state',         y: 1684 },
-    { key: 'bloodGroup',    y: 1761 },
-    { key: 'dateOfBirth',   y: 1837 },
+    { key: 'fullName',      y: 683 },
+    { key: 'fatherName',    y: 731 },
+    { key: 'designation',   y: 778 },
+    { key: 'licenseNumber', y: 826 },
+    { key: 'mobileNumber',  y: 873 },
+    { key: 'policeStation', y: 921 },
+    { key: 'city',          y: 968 },
+    { key: 'state',         y: 1016 },
+    { key: 'bloodGroup',    y: 1063 },
+    { key: 'dateOfBirth',   y: 1111 },
   ] as { key: keyof IdCardFormValues; y: number }[],
 
-  // Barcode / QR slot (header "बारकोड" box)
-  qr: { x: 1140, y: 400, w: 159, h: 162 },
+  // Optional QR / barcode slot (header "बारकोड" box)
+  qr: { x: 652, y: 220, w: 99, h: 102 },
 
-  fontSize: 55,
+  fontSize: 26,
   fontFamily: 'Roboto, sans-serif',
   valueColor: '#141414',
 }
@@ -175,23 +157,23 @@ const BACK = {
   // right border) so every template zero disappears without clipping the label.
   rows: [
     {
-      erase: { x: 612, y: 921, w: 592, h: 96 },
-      textX: 645, textY: 969, color: '#2E3092',
+      erase: { x: 322, y: 548, w: 370, h: 52 },
+      textX: 330, textY: 574, color: '#113478',
       key: 'cardNumber' as const,
     },
     {
-      erase: { x: 612, y: 1067, w: 592, h: 94 },
-      textX: 645, textY: 1114, color: '#135F24',
+      erase: { x: 322, y: 635, w: 370, h: 58 },
+      textX: 330, textY: 664, color: '#005C33',
       key: 'issueDate' as const,
     },
     {
-      erase: { x: 612, y: 1216, w: 592, h: 95 },
-      textX: 645, textY: 1264, color: '#EF4224',
+      erase: { x: 322, y: 728, w: 370, h: 58 },
+      textX: 330, textY: 757, color: '#B41E1E',
       key: 'expiryDate' as const,
     },
   ],
 
-  fontSize: 75,
+  fontSize: 30,
   fontFamily: 'Roboto, sans-serif',
 }
 
@@ -218,29 +200,21 @@ async function drawFront(
   // Draw right half of template
   ctx.drawImage(tpl, FACE_W, 0, FACE_W, FACE_H, 0, 0, FACE_W, FACE_H)
 
-  // Photo slot sits in a blank gap on the artwork (no printed box there), so we
-  // frame it ourselves — rounded corners + a thin border, matching the BE Pillow renderer.
+  // Always erase the sample portrait baked into the artwork.
   const { x, y, w, h } = FRONT.photo
   ctx.fillStyle = '#ffffff'
-  roundRect(ctx, x, y, w, h, 12)
-  ctx.fill()
+  ctx.fillRect(x, y, w, h)
+
+  // Driver passport photo — cover-crop into the slot (matches BE Pillow renderer).
   if (photoUrl) {
     try {
       const photo = await loadUrl(photoUrl)
       if (isCancelled()) return
-      ctx.save()
-      roundRect(ctx, x, y, w, h, 12)
-      ctx.clip()
       drawImageCover(ctx, photo, x, y, w, h)
-      ctx.restore()
     } catch (err) {
       console.warn('Failed to draw driver photo on ID card', err)
     }
   }
-  roundRect(ctx, x, y, w, h, 12)
-  ctx.strokeStyle = 'rgba(0,0,0,0.3)'
-  ctx.lineWidth = 4
-  ctx.stroke()
 
   if (isCancelled()) return
 
@@ -250,7 +224,7 @@ async function drawFront(
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
 
-  const maxW = FRONT.maxValueWidth
+  const maxW = FACE_W - FRONT.valueX - 40
   for (const row of FRONT.rows) {
     const raw = String(form[row.key] || '')
     if (!raw) continue

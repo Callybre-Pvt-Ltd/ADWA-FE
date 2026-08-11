@@ -164,10 +164,8 @@ export function DistrictInchargeCardOverlay({
 
     const [template, seal] = await Promise.all([loadTemplate(), loadSeal()])
 
-    // Template artwork is already baked at 600dpi (print quality), so no extra
-    // multiplier is needed here — doubling a canvas this size would blow past
-    // Safari's canvas-area ceiling for no visual gain.
-    const dpr = 1
+    // Render at 2× so the seal/text stay sharp on retina screens and when printed
+    const dpr = 2
     canvas.width = G.width * dpr
     canvas.height = G.height * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -206,8 +204,8 @@ export function DistrictInchargeCardOverlay({
       ctx.fillStyle = G.name.color
       ctx.font = `600 ${G.name.size}px ${NAME_FONT}`
       ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(name, G.name.cx, G.name.baseline, G.name.erase.w - 20)
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillText(name, G.name.cx, G.name.baseline, 280)
     }
 
     // Seal after name wipe — draw from high-res asset with high-quality scaling
@@ -232,11 +230,11 @@ export function DistrictInchargeCardOverlay({
       ctx.fillStyle = G.designation.color
       ctx.font = `500 ${G.designation.size}px ${NAME_FONT}`
       ctx.textAlign = 'left'
-      ctx.textBaseline = 'middle'
+      ctx.textBaseline = 'alphabetic'
       ctx.fillText(role, G.designation.x, G.designation.baseline, G.designation.erase.w - 4)
     }
 
-    // Back: card no / dates — shrink font to fit box; `size` is a ceiling, not fixed.
+    // Back: card no / dates
     const paint = (
       field: { erase: { x: number; y: number; w: number; h: number }; x: number; baseline: number; size: number; color: string },
       text: string,
@@ -244,16 +242,10 @@ export function DistrictInchargeCardOverlay({
       erase(ctx, field.erase)
       if (!text) return
       ctx.fillStyle = field.color
-      const maxW = field.erase.w - 6
-      let size = field.size
-      ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
-      while (size > 10 && ctx.measureText(text).width > maxW) {
-        size -= 1
-        ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
-      }
+      ctx.font = `700 ${field.size}px "Noto Sans", ${FONT}`
       ctx.textAlign = 'left'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(text, field.x, field.baseline, maxW)
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillText(text, field.x, field.baseline, field.erase.w - 6)
     }
 
     paint(G.cardNumber, values.cardNumber.trim())

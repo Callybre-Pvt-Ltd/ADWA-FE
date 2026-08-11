@@ -1,59 +1,59 @@
-/** Template: public/id_card/district_incharge_card.png (1024×717) */
+/** Template: public/id_card/district_incharge_card.png (2875×2213, 600dpi) */
 export const G = {
-  width: 1024,
-  height: 717,
-  template: '/id_card/district_incharge_card.png?v=10',
+  width: 2875,
+  height: 2213,
+  template: '/id_card/district_incharge_card.png?v=13',
   /** Sample portrait slot on the front panel */
-  photo: { x: 661, y: 297, w: 196, h: 202, r: 16 },
-  /** Official ADWA seal stamped near the photo (bottom-right, on photo) */
+  photo: { x: 1860, y: 931, w: 538, h: 556, r: 58 },
+  /** Official ADWA seal stamped near the photo (bottom-right corner, half on/off) */
   seal: {
     src: '/id_card/adwa_seal.png?v=2',
-    x: 808,
-    y: 420,
-    w: 74,
-    h: 74,
+    x: 2350,
+    y: 1260,
+    w: 200,
+    h: 200,
   },
   /** "बारकोड" placeholder — replaced with a scannable QR */
-  qr: { x: 585, y: 106, w: 70, h: 72 },
-  /** Sample name slot — below photo, above orange divider */
+  qr: { x: 2511, y: 391, w: 214, h: 219 },
+  /** Sample name slot — below photo, above orange divider. `baseline` is a vertical CENTER (textBaseline is 'middle'). */
   name: {
-    erase: { x: 640, y: 500, w: 260, h: 53 },
-    cx: 760,
-    baseline: 536,
-    size: 32,
-    color: '#002366',
+    erase: { x: 1601, y: 1498, w: 1058, h: 167 },
+    cx: 2130,
+    baseline: 1581,
+    size: 108,
+    color: '#2E3092',
   },
   /**
    * Keep template label "पदाधिकारी :-" on the left; erase + paint only the role
    * on the right (tight box around the text line).
    */
   designation: {
-    erase: { x: 732, y: 578, w: 210, h: 34 },
-    x: 738,
-    baseline: 602,
-    size: 24,
-    color: '#002366',
+    erase: { x: 2101, y: 1700, w: 650, h: 184 },
+    x: 2134,
+    baseline: 1793,
+    size: 83,
+    color: '#2E3092',
   },
   cardNumber: {
-    erase: { x: 248, y: 308, w: 200, h: 30 },
-    x: 256,
-    baseline: 329,
-    size: 16,
-    color: '#0B2F8A',
+    erase: { x: 593, y: 948, w: 641, h: 104 },
+    x: 626,
+    baseline: 1000,
+    size: 72,
+    color: '#2E3092',
   },
   issueDate: {
-    erase: { x: 248, y: 354, w: 200, h: 34 },
-    x: 256,
-    baseline: 382,
-    size: 20,
-    color: '#2D5A27',
+    erase: { x: 593, y: 1098, w: 641, h: 98 },
+    x: 626,
+    baseline: 1147,
+    size: 74,
+    color: '#135F24',
   },
   expiryDate: {
-    erase: { x: 248, y: 404, w: 200, h: 34 },
-    x: 256,
-    baseline: 434,
-    size: 20,
-    color: '#E03A1A',
+    erase: { x: 593, y: 1248, w: 641, h: 98 },
+    x: 626,
+    baseline: 1297,
+    size: 74,
+    color: '#EF4224',
   },
 } as const
 
