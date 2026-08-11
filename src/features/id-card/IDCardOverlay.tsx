@@ -42,6 +42,24 @@ function loadTemplate(): Promise<HTMLImageElement> {
   return _templatePromise
 }
 
+// ADWA seal stamped near the photo — same asset/pattern as the district card.
+const SEAL_PATH = '/id_card/adwa_seal.png?v=1'
+let _sealImg: HTMLImageElement | null = null
+let _sealPromise: Promise<HTMLImageElement | null> | null = null
+
+function loadSeal(): Promise<HTMLImageElement | null> {
+  if (_sealImg) return Promise.resolve(_sealImg)
+  if (_sealPromise) return _sealPromise
+  _sealPromise = new Promise((resolve) => {
+    const img = new window.Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => { _sealImg = img; resolve(img) }
+    img.onerror = () => resolve(null)
+    img.src = SEAL_PATH
+  })
+  return _sealPromise
+}
+
 function loadUrl(url: string): Promise<HTMLImageElement> {
   // Fetch as blob so the canvas is never CORS-tainted and signed/local URLs
   // load reliably (same pattern as the QR blob).
@@ -141,6 +159,11 @@ const FRONT = {
     h: CARD_GEOMETRY.photo.height,
   },
 
+  // ADWA seal stamped on the photo's bottom-right corner (half on/off —
+  // mirrors the district-incharge card's seal treatment). Must stay in sync
+  // with the backend's "seal" entry in card_generation/layout.py.
+  seal: { x: 775, y: 950, w: 160, h: 160 },
+
   // After the dotted colon on each label row (calibrated on id_card.png)
   valueX: 610,
   // Right margin before the card's outer border — kept tight so long values
@@ -206,7 +229,7 @@ async function drawFront(
   qrUrl: string | null | undefined,
   isCancelled: CancelCheck = () => false,
 ) {
-  const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
+  const [tpl, , seal] = await Promise.all([loadTemplate(), ensureCardFonts(), loadSeal()])
   if (isCancelled()) return
 
   const ctx = canvas.getContext('2d')
@@ -241,6 +264,12 @@ async function drawFront(
   ctx.strokeStyle = 'rgba(0,0,0,0.3)'
   ctx.lineWidth = 4
   ctx.stroke()
+
+  // ADWA seal stamped on the photo's corner (half on/off)
+  if (seal) {
+    const s = FRONT.seal
+    ctx.drawImage(seal, s.x, s.y, s.w, s.h)
+  }
 
   if (isCancelled()) return
 
