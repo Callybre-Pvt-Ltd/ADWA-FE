@@ -29,7 +29,7 @@ export const G = {
    */
   designation: {
     erase: { x: 2101, y: 1700, w: 650, h: 184 },
-    x: 2134,
+    x: 2095,
     baseline: 1793,
     size: 83,
     color: '#2E3092',

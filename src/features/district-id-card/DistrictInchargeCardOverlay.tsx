@@ -116,6 +116,92 @@ function erase(ctx: CanvasRenderingContext2D, box: { x: number; y: number; w: nu
   ctx.fillRect(box.x, box.y, box.w, box.h)
 }
 
+// Canvas's native fillText `maxWidth` param only asks the UA to *compress*
+// glyphs to fit — support is inconsistent (some engines ignore it outright),
+// so long values can still draw past the card's printed vertical border. We
+// measure and truncate/shrink ourselves instead, which is reliable everywhere.
+
+/** Center-aligned single line: shrink font toward a floor, then ellipsis-truncate. */
+function paintFitCentered(
+  ctx: CanvasRenderingContext2D,
+  opts: { cx: number; baseline: number; maxW: number; size: number; floor: number; font: string; weight: number },
+  text: string,
+) {
+  const { cx, baseline, maxW, size: startSize, floor, font, weight } = opts
+  let size = startSize
+  const setFont = (s: number) => { ctx.font = `${weight} ${s}px ${font}` }
+  setFont(size)
+  while (size > floor && ctx.measureText(text).width > maxW) {
+    size -= 2
+    setFont(size)
+  }
+  let display = text
+  if (ctx.measureText(display).width > maxW) {
+    while (display.length > 1 && ctx.measureText(`${display}…`).width > maxW) {
+      display = display.slice(0, -1)
+    }
+    display = `${display}…`
+  }
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(display, cx, baseline)
+}
+
+/** Left-aligned, up to 2 lines: shrink to fit one line, else word-wrap and shrink both lines to fit. */
+function paintFitWrapped(
+  ctx: CanvasRenderingContext2D,
+  opts: { x: number; baseline: number; maxW: number; size: number; floor: number; font: string; weight: number },
+  text: string,
+) {
+  const { x, baseline, maxW, size: startSize, floor, font, weight } = opts
+  let size = startSize
+  const setFont = (s: number) => { ctx.font = `${weight} ${s}px ${font}` }
+  setFont(size)
+
+  let lines = [text]
+  if (ctx.measureText(text).width > maxW) {
+    while (size > floor && ctx.measureText(text).width > maxW) {
+      size -= 1
+      setFont(size)
+    }
+    if (ctx.measureText(text).width > maxW) {
+      // Doesn't fit on one line even at the floor size — word-wrap to 2 lines.
+      size = startSize
+      setFont(size)
+      const words = text.split(/\s+/)
+      let line1 = ''
+      let splitAt = words.length
+      for (let i = 0; i < words.length; i++) {
+        const attempt = line1 ? `${line1} ${words[i]}` : words[i]
+        if (!line1 || ctx.measureText(attempt).width <= maxW) {
+          line1 = attempt
+        } else {
+          splitAt = i
+          break
+        }
+      }
+      const line2 = words.slice(splitAt).join(' ')
+      lines = line2 ? [line1, line2] : [line1]
+      while (size > floor && lines.some((l) => ctx.measureText(l).width > maxW)) {
+        size -= 1
+        setFont(size)
+      }
+      lines = lines.map((l) => {
+        if (ctx.measureText(l).width <= maxW) return l
+        let t = l
+        while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1)
+        return `${t}…`
+      })
+    }
+  }
+
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  const lineH = size * 1.12
+  const startY = lines.length === 2 ? baseline - lineH / 2 : baseline
+  lines.forEach((line, i) => ctx.fillText(line, x, startY + i * lineH))
+}
+
 async function drawQr(
   ctx: CanvasRenderingContext2D,
   payload: string,
@@ -218,10 +304,11 @@ export function DistrictInchargeCardOverlay({
     const name = values.fullName.trim()
     if (name) {
       ctx.fillStyle = G.name.color
-      ctx.font = `600 ${G.name.size}px ${NAME_FONT}`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(name, G.name.cx, G.name.baseline, G.name.erase.w - 20)
+      paintFitCentered(
+        ctx,
+        { cx: G.name.cx, baseline: G.name.baseline, maxW: G.name.erase.w - 20, size: G.name.size, floor: 50, font: NAME_FONT, weight: 600 },
+        name,
+      )
     }
 
     // Seal after name wipe — draw from high-res asset with high-quality scaling
@@ -239,15 +326,19 @@ export function DistrictInchargeCardOverlay({
       ctx.restore()
     }
 
-    // Keep "पदाधिकारी :-" from template; paint admin role on the right
+    // Keep "पदाधिकारी :-" from template; paint admin role on the right.
+    // Wraps to a 2nd line (and shrinks) instead of overrunning the card's
+    // printed vertical border when the role is long.
     erase(ctx, G.designation.erase)
     const role = values.designation.trim()
     if (role) {
       ctx.fillStyle = G.designation.color
-      ctx.font = `500 ${G.designation.size}px ${NAME_FONT}`
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(role, G.designation.x, G.designation.baseline, G.designation.erase.w - 4)
+      const maxW = G.designation.erase.x + G.designation.erase.w - G.designation.x - 6
+      paintFitWrapped(
+        ctx,
+        { x: G.designation.x, baseline: G.designation.baseline, maxW, size: G.designation.size, floor: 46, font: NAME_FONT, weight: 500 },
+        role,
+      )
     }
 
     // Back: card no / dates — shrink font to fit box; `size` is a ceiling, not fixed.
