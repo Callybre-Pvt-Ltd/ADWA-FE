@@ -1,5 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { toast } from 'sonner'
 import type { APIResponse } from '@/types/api.types'
+import { decodeJwtPayload } from '@/utils/jwt'
 
 export const ACCESS_TOKEN_KEY = 'adwa_access_token'
 export const REFRESH_TOKEN_KEY = 'adwa_refresh_token'
@@ -16,24 +18,59 @@ export const apiClient = axios.create({
 })
 
 let refreshPromise: Promise<string | null> | null = null
+let proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null
+
+// Backing store for tokens. localStorage (not sessionStorage) so a login
+// survives closing the tab/browser — required for the 7-day session to
+// actually mean 7 days, not "until you close this tab".
+const store = {
+  get: (key: string) => localStorage.getItem(key),
+  set: (key: string, value: string) => localStorage.setItem(key, value),
+  remove: (key: string) => localStorage.removeItem(key),
+}
+
+// Fired when a refresh permanently fails (dead/expired refresh token) — the
+// only way, previously, to notice this was every subsequent request 401ing
+// forever until the user manually hit Logout. AuthContext subscribes to this
+// to clear its user state so route guards redirect to login immediately.
+type SessionExpiredListener = () => void
+let sessionExpiredListener: SessionExpiredListener | null = null
+export function onSessionExpired(listener: SessionExpiredListener) {
+  sessionExpiredListener = listener
+}
 
 export function getAccessToken(): string | null {
-  return sessionStorage.getItem(ACCESS_TOKEN_KEY)
+  return store.get(ACCESS_TOKEN_KEY)
 }
 
 export function getRefreshToken(): string | null {
-  return sessionStorage.getItem(REFRESH_TOKEN_KEY)
+  return store.get(REFRESH_TOKEN_KEY)
+}
+
+/** Refresh ~60s before the access token actually expires, so most requests never hit a 401 at all. */
+function scheduleProactiveRefresh(accessToken: string) {
+  if (proactiveRefreshTimer) clearTimeout(proactiveRefreshTimer)
+  const payload = decodeJwtPayload(accessToken)
+  if (!payload?.exp) return
+  const msUntilExpiry = payload.exp * 1000 - Date.now()
+  const fireIn = Math.max(msUntilExpiry - 60_000, 5_000)
+  proactiveRefreshTimer = setTimeout(() => { void triggerRefresh() }, fireIn)
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  store.set(ACCESS_TOKEN_KEY, accessToken)
+  store.set(REFRESH_TOKEN_KEY, refreshToken)
+  scheduleProactiveRefresh(accessToken)
 }
 
 export function clearTokens() {
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY)
-  sessionStorage.removeItem(REFRESH_TOKEN_KEY)
-  sessionStorage.removeItem(USER_STORAGE_KEY)
+  if (proactiveRefreshTimer) {
+    clearTimeout(proactiveRefreshTimer)
+    proactiveRefreshTimer = null
+  }
+  store.remove(ACCESS_TOKEN_KEY)
+  store.remove(REFRESH_TOKEN_KEY)
+  store.remove(USER_STORAGE_KEY)
 }
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -51,10 +88,37 @@ async function refreshAccessToken(): Promise<string | null> {
     setTokens(data.data.access_token, data.data.refresh_token)
     return data.data.access_token
   } catch {
-    clearTokens()
     return null
   }
 }
+
+// Single entry point for refreshing, used by both the 401 interceptor and the
+// proactive timer, so concurrent callers share one in-flight request instead
+// of racing separate /auth/refresh calls. On a genuine, permanent failure
+// (dead/expired refresh token) this is also the one place that clears state
+// and tells the rest of the app the session is over — previously nothing
+// did, so the UI kept rendering "logged in" while every request 401ed.
+function triggerRefresh(): Promise<string | null> {
+  if (!getRefreshToken()) return Promise.resolve(null)
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken()
+      .then((token) => {
+        if (!token) {
+          clearTokens()
+          sessionExpiredListener?.()
+          toast.error('Session expired. Please log in again.')
+        }
+        return token
+      })
+      .finally(() => { refreshPromise = null })
+  }
+  return refreshPromise
+}
+
+// Page reload with an existing session — re-arm the proactive timer so it's
+// not purely reactive-on-401 until the next login/refresh happens to set it.
+const existingAccessToken = getAccessToken()
+if (existingAccessToken) scheduleProactiveRefresh(existingAccessToken)
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken()
@@ -82,17 +146,11 @@ apiClient.interceptors.response.use(
 
     original._retry = true
 
-    if (!refreshPromise) {
-      refreshPromise = refreshAccessToken().finally(() => {
-        refreshPromise = null
-      })
-    }
-
-    const newToken = await refreshPromise
+    const newToken = await triggerRefresh()
     if (!newToken) {
-      clearTokens()
       return Promise.reject(error)
     }
+    
 
     original.headers.Authorization = `Bearer ${newToken}`
     return apiClient(original)

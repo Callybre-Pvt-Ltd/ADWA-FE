@@ -1,6 +1,8 @@
 import {
   apiClient,
   clearTokens,
+  getAccessToken,
+  getRefreshToken,
   setTokens,
   unwrapResponse,
   USER_STORAGE_KEY,
@@ -74,12 +76,12 @@ export const authService = {
     }
 
     setTokens(login.tokens.access_token, login.tokens.refresh_token)
-    sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
     return user
   },
 
   async refresh(): Promise<void> {
-    const refreshToken = sessionStorage.getItem('adwa_refresh_token')
+    const refreshToken = getRefreshToken()
     if (!refreshToken) throw new Error('No refresh token')
 
     const { data } = await apiClient.post<APIResponse<TokenPair>>('/auth/refresh', {
@@ -147,10 +149,10 @@ export const authService = {
 
   restoreUser(): AuthUser | null {
     try {
-      const accessToken = sessionStorage.getItem('adwa_access_token')
+      const accessToken = getAccessToken()
       if (!accessToken) return null
 
-      const raw = sessionStorage.getItem(USER_STORAGE_KEY)
+      const raw = localStorage.getItem(USER_STORAGE_KEY)
       const stored = raw ? (JSON.parse(raw) as AuthUser) : null
       return buildAuthUserFromToken(accessToken, stored)
     } catch {
