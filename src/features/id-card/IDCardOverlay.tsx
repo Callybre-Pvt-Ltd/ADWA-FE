@@ -432,23 +432,6 @@ function printCanvases(front: HTMLCanvasElement, back: HTMLCanvasElement, driver
   win.document.close()
 }
 
-function downloadBothCanvases(front: HTMLCanvasElement, back: HTMLCanvasElement, driverName: string) {
-  // Merge front + back side-by-side into one PNG
-  const merged = document.createElement('canvas')
-  merged.width  = front.width + back.width
-  merged.height = Math.max(front.height, back.height)
-  const ctx = merged.getContext('2d')!
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, merged.width, merged.height)
-  ctx.drawImage(front, 0, 0)
-  ctx.drawImage(back, front.width, 0)
-
-  const a = document.createElement('a')
-  a.href = merged.toDataURL('image/png')
-  a.download = `${driverName}-id-card.png`
-  a.click()
-}
-
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export interface IDCardOverlayProps {
@@ -458,8 +441,8 @@ export interface IDCardOverlayProps {
   qrUrl?: string | null
   loading?: boolean
   className?: string
-  /** Called with print/download handlers once canvases are ready */
-  onActionsReady?: (actions: { print: () => void; downloadFront: () => void; downloadBack: () => void }) => void
+  /** Called with the print handler once canvases are ready */
+  onActionsReady?: (actions: { print: () => void }) => void
 }
 
 export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, className, onActionsReady }: IDCardOverlayProps) {
@@ -491,11 +474,6 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
         const f = frontRef.current; const b = backRef.current
         if (f && b) printCanvases(f, b, name)
       },
-      downloadFront: () => {
-        const f = frontRef.current; const b = backRef.current
-        if (f && b) downloadBothCanvases(f, b, name)
-      },
-      downloadBack: () => {},
     })
   }, [onActionsReady, values.fullName])
 

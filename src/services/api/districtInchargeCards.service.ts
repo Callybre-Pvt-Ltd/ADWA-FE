@@ -39,6 +39,13 @@ export type ListDistrictInchargeCardsFilters = {
   size?: number
 }
 
+export type UpdateDistrictInchargeCardInput = {
+  fullName?: string
+  designation?: string
+  issuedAt?: string
+  expiresAt?: string
+}
+
 export const districtInchargeCardsService = {
   async issue(input: IssueDistrictInchargeCardInput): Promise<IssueDistrictInchargeCardResult> {
     try {
@@ -76,6 +83,39 @@ export const districtInchargeCardsService = {
         ...res,
         items: res.items.map((item) => toCamelCase<DistrictInchargeCard>(item)),
       }
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async update(id: string, input: UpdateDistrictInchargeCardInput): Promise<DistrictInchargeCard> {
+    try {
+      const payload: Record<string, string | undefined> = {
+        full_name: input.fullName,
+        designation: input.designation,
+        issued_at: input.issuedAt,
+        expires_at: input.expiresAt,
+      }
+      const { data } = await apiClient.patch<APIResponse<Record<string, unknown>>>(
+        `/district-incharge-cards/${id}`,
+        payload,
+      )
+      return toCamelCase<DistrictInchargeCard>(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async uploadPhoto(id: string, file: File): Promise<DistrictInchargeCard> {
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      const { data } = await apiClient.post<APIResponse<Record<string, unknown>>>(
+        `/district-incharge-cards/${id}/photo`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+      return toCamelCase<DistrictInchargeCard>(unwrapResponse(data))
     } catch (error) {
       throw await extractError(error)
     }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Printer, Download, Upload, IdCard } from 'lucide-react'
+import { Printer, Download, Upload, IdCard, Pencil, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -48,10 +48,18 @@ export function IdCardGenerationPanel() {
   const [form, setForm] = useState<IdCardFormValues | null>(null)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  // Switching to a different driver's card mid-edit shouldn't carry the edit
+  // gate over — reset during render (not an effect) when the selection changes.
+  const [editingForCardId, setEditingForCardId] = useState(selectedCardId)
+  if (selectedCardId !== editingForCardId) {
+    setEditingForCardId(selectedCardId)
+    setIsEditing(false)
+  }
 
-  const actionsRef = useRef<{ print: () => void; downloadFront: () => void; downloadBack: () => void } | null>(null)
+  const actionsRef = useRef<{ print: () => void } | null>(null)
   const handleActionsReady = useCallback(
-    (actions: { print: () => void; downloadFront: () => void; downloadBack: () => void }) => {
+    (actions: { print: () => void }) => {
       actionsRef.current = actions
     },
     [],
@@ -135,8 +143,13 @@ export function IdCardGenerationPanel() {
     if (generate.isPending || !selectedCard || !form) return
     generate.mutate(
       { cardId: selectedCard.id, payload: formToPayload(form) },
-      { onSuccess: () => { toast.success(d('idCard.idGenerated')); void refetch() } },
+      { onSuccess: () => { toast.success(d('idCard.idGenerated')); setIsEditing(false); void refetch() } },
     )
+  }
+
+  const cancelEdit = () => {
+    if (snapshot) setForm(snapshotToForm(snapshot))
+    setIsEditing(false)
   }
 
   if (isLoading) return <SkeletonCard />
@@ -196,15 +209,6 @@ export function IdCardGenerationPanel() {
           <Printer size={15} /> {d('idCard.printCard')}
         </Button>
         <Button
-          variant="outline"
-          className="flex-1 gap-2 cursor-pointer w-full"
-          onClick={() => actionsRef.current?.downloadFront()}
-          loading={snapshotLoading}
-          loadingText={d('idCard.generating')}
-        >
-          <Download size={15} /> {d('idCard.downloadPng')}
-        </Button>
-        <Button
           className="flex-1 gap-2 cursor-pointer w-full"
           onClick={() => {
             if (!selectedCard || downloadCard.isPending) return
@@ -218,16 +222,29 @@ export function IdCardGenerationPanel() {
         </Button>
       </div>
 
-      {/* Edit fields, photo upload, generate PDF — admin and district */}
+      {/* Edit fields, photo upload, save — admin and district */}
       <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-neutral-900">{d('idCard.cardInfo')}</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-neutral-900">{d('idCard.cardInfo')}</h3>
+            {!isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 cursor-pointer"
+                onClick={() => setIsEditing(true)}
+                disabled={!form}
+              >
+                <Pencil size={14} /> {d('idCard.edit')}
+              </Button>
+            )}
+          </div>
           {snapshotLoading || !form ? (
             <SkeletonCard />
           ) : (
             <IdCardFormFields
               values={form}
               onChange={onFieldChange}
-              disabled={generate.isPending}
+              disabled={!isEditing || generate.isPending}
             />
           )}
           {!snapshotLoading && snapshot && !snapshot.hasPhoto && (
@@ -269,15 +286,49 @@ export function IdCardGenerationPanel() {
               </div>
             </div>
           )}
-          <Button
-            className="w-full cursor-pointer"
-            onClick={handleGenerate}
-            loading={generate.isPending}
-            loadingText={d('idCard.generating')}
-            disabled={!form || !snapshot?.hasPhoto}
-          >
-            {d('idCard.generatePdf')}
-          </Button>
+          {!snapshotLoading && snapshot?.hasPhoto && isEditing && (
+            <div className="space-y-2">
+              <Label htmlFor="card-photo-replace" className="text-sm text-neutral-700">
+                {d('idCard.changePhoto')}
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="card-photo-replace"
+                  type="file"
+                  accept="image/*"
+                  className="flex-1"
+                  disabled={uploadPhoto.isPending}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file && selectedCard) {
+                      uploadPhoto.mutate({ cardId: selectedCard.id, file })
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {isEditing && (
+            <div className="flex gap-3">
+              <Button
+                className="flex-1 cursor-pointer"
+                onClick={handleGenerate}
+                loading={generate.isPending}
+                loadingText={d('idCard.generating')}
+                disabled={!form || !snapshot?.hasPhoto}
+              >
+                {d('idCard.save')}
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 cursor-pointer"
+                onClick={cancelEdit}
+                disabled={generate.isPending}
+              >
+                <X size={15} /> {d('idCard.cancel')}
+              </Button>
+            </div>
+          )}
         </div>
     </div>
   )

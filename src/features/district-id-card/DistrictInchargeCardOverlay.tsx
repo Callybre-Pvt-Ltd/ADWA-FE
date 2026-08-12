@@ -226,7 +226,6 @@ async function drawQr(
 
 export type DistrictInchargeCardActions = {
   print: () => void
-  downloadPng: () => void
   downloadPdf: () => void
 }
 
@@ -386,15 +385,6 @@ export function DistrictInchargeCardOverlay({
           <body><img src="${dataUrl}" onload="setTimeout(()=>window.print(),200)"/></body></html>`,
         )
         win.document.close()
-      },
-      downloadPng: () => {
-        const canvas = canvasRef.current
-        if (!canvas) return
-        const a = document.createElement('a')
-        const slug = (values.fullName || 'district-id').trim().replace(/\s+/g, '-').slice(0, 40)
-        a.href = canvas.toDataURL('image/png')
-        a.download = `${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.png`
-        a.click()
       },
       downloadPdf: () => {
         const canvas = canvasRef.current
