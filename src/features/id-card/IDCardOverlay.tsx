@@ -127,16 +127,19 @@ function roundRect(
   ctx.closePath()
 }
 
-// The backend renders card text with Roboto (assets/fonts/Roboto-Regular.ttf).
-// The canvas uses the same family so previews match the generated PDF; we must
-// wait for the webfont before drawing or the canvas silently falls back.
+// The backend renders card text with Noto Sans Devanagari
+// (assets/fonts/NotoSansDevanagari.ttf) — Roboto has no Devanagari glyphs, so
+// a Hindi name/city/police-station value rendered as tofu (missing-glyph
+// boxes). The canvas uses the same family so the preview matches the
+// generated PDF; we must wait for the webfont before drawing or the canvas
+// silently falls back.
 async function ensureCardFonts(): Promise<void> {
   const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
   if (!fonts) return
   try {
     await Promise.all([
-      fonts.load(`700 ${FRONT.fontSize}px Roboto`),
-      fonts.load(`700 ${BACK.fontSize}px Roboto`),
+      fonts.load(`700 ${FRONT.fontSize}px "Noto Sans Devanagari"`),
+      fonts.load(`700 ${BACK.fontSize}px "Noto Sans Devanagari"`),
     ])
   } catch { /* font load failed — canvas falls back to sans-serif */ }
 }
@@ -192,7 +195,7 @@ const FRONT = {
   qr: { x: 1140, y: 400, w: 159, h: 162 },
 
   fontSize: 55,
-  fontFamily: 'Roboto, sans-serif',
+  fontFamily: '"Noto Sans Devanagari", "Noto Sans", sans-serif',
   valueColor: '#141414',
 }
 
@@ -220,7 +223,7 @@ const BACK = {
   ],
 
   fontSize: 58,
-  fontFamily: 'Roboto, sans-serif',
+  fontFamily: '"Noto Sans Devanagari", "Noto Sans", sans-serif',
 }
 
 type CancelCheck = () => boolean
