@@ -49,12 +49,20 @@ export function IdCardGenerationPanel() {
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  // A replacement photo is staged locally (preview only) until Save — it must
+  // NOT hit the server on file-select, or Cancel has nothing left to revert.
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null)
+  const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
   // Switching to a different driver's card mid-edit shouldn't carry the edit
-  // gate over — reset during render (not an effect) when the selection changes.
+  // gate (or a staged, unsaved photo) over — reset during render (not an
+  // effect) when the selection changes.
   const [editingForCardId, setEditingForCardId] = useState(selectedCardId)
   if (selectedCardId !== editingForCardId) {
     setEditingForCardId(selectedCardId)
     setIsEditing(false)
+    if (editPhotoPreviewUrl) URL.revokeObjectURL(editPhotoPreviewUrl)
+    setEditPhotoFile(null)
+    setEditPhotoPreviewUrl(null)
   }
 
   const actionsRef = useRef<{ print: () => void } | null>(null)
@@ -139,16 +147,31 @@ export function IdCardGenerationPanel() {
     setForm((prev) => (prev ? { ...prev, [field]: value } : prev))
   }
 
-  const handleGenerate = () => {
-    if (generate.isPending || !selectedCard || !form) return
-    generate.mutate(
-      { cardId: selectedCard.id, payload: formToPayload(form) },
-      { onSuccess: () => { toast.success(d('idCard.idGenerated')); setIsEditing(false); void refetch() } },
-    )
+  const handleGenerate = async () => {
+    if (generate.isPending || uploadPhoto.isPending || !selectedCard || !form) return
+    try {
+      // Staged photo replacement only actually uploads now, on Save — not
+      // when the file was picked — so Cancel can still fully revert it.
+      if (editPhotoFile) {
+        await uploadPhoto.mutateAsync({ cardId: selectedCard.id, file: editPhotoFile })
+      }
+      await generate.mutateAsync({ cardId: selectedCard.id, payload: formToPayload(form) })
+      toast.success(d('idCard.idGenerated'))
+      setIsEditing(false)
+      if (editPhotoPreviewUrl) URL.revokeObjectURL(editPhotoPreviewUrl)
+      setEditPhotoFile(null)
+      setEditPhotoPreviewUrl(null)
+      void refetch()
+    } catch {
+      /* mutation hooks already toast the error */
+    }
   }
 
   const cancelEdit = () => {
     if (snapshot) setForm(snapshotToForm(snapshot))
+    if (editPhotoPreviewUrl) URL.revokeObjectURL(editPhotoPreviewUrl)
+    setEditPhotoFile(null)
+    setEditPhotoPreviewUrl(null)
     setIsEditing(false)
   }
 
@@ -192,7 +215,7 @@ export function IdCardGenerationPanel() {
       <IDCardOverlay
         values={form ?? emptyForm}
         card={selectedCard}
-        photoUrl={photoUrl}
+        photoUrl={editPhotoPreviewUrl || photoUrl}
         qrUrl={qrUrl}
         loading={snapshotLoading}
         onActionsReady={handleActionsReady}
@@ -297,23 +320,34 @@ export function IdCardGenerationPanel() {
                   type="file"
                   accept="image/*"
                   className="flex-1"
-                  disabled={uploadPhoto.isPending}
                   onChange={(e) => {
                     const file = e.target.files?.[0]
-                    if (file && selectedCard) {
-                      uploadPhoto.mutate({ cardId: selectedCard.id, file })
+                    if (!file) return
+                    if (!file.type.startsWith('image/')) {
+                      toast.error(isHi ? 'कृपया एक छवि फ़ाइल चुनें' : 'Please choose an image file')
+                      return
                     }
+                    // Stage only — this must not upload until Save, or
+                    // Cancel would have nothing left to revert.
+                    if (editPhotoPreviewUrl) URL.revokeObjectURL(editPhotoPreviewUrl)
+                    setEditPhotoFile(file)
+                    setEditPhotoPreviewUrl(URL.createObjectURL(file))
                   }}
                 />
               </div>
+              {editPhotoFile && (
+                <p className="text-xs text-neutral-500">
+                  {isHi ? 'सहेजने पर लागू होगा।' : 'Applied when you Save.'}
+                </p>
+              )}
             </div>
           )}
           {isEditing && (
             <div className="flex gap-3">
               <Button
                 className="flex-1 cursor-pointer"
-                onClick={handleGenerate}
-                loading={generate.isPending}
+                onClick={() => void handleGenerate()}
+                loading={generate.isPending || uploadPhoto.isPending}
                 loadingText={d('idCard.generating')}
                 disabled={!form || !snapshot?.hasPhoto}
               >
@@ -323,7 +357,7 @@ export function IdCardGenerationPanel() {
                 variant="outline"
                 className="flex-1 gap-2 cursor-pointer"
                 onClick={cancelEdit}
-                disabled={generate.isPending}
+                disabled={generate.isPending || uploadPhoto.isPending}
               >
                 <X size={15} /> {d('idCard.cancel')}
               </Button>
