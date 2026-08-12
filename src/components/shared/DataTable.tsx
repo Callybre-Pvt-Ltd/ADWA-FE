@@ -5,6 +5,7 @@ import { cn } from '@/utils/cn'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { matchesLocalizedSearch, normalizeSearchForApi } from '@/utils/translations'
+import { useDebouncedValue } from '@/hooks/useDebounce'
 
 export interface ColumnDef<T> {
   key: string
@@ -42,7 +43,10 @@ export interface DataTableProps<T> {
 }
 
 const PAGE_SIZE = 10
-const SERVER_SEARCH_DEBOUNCE_MS = 50
+// Fires the API call this long after the user stops typing. 50ms used to be
+// well under a typical inter-keystroke gap, so it fired a request on nearly
+// every keystroke anyway — this is a real debounce window.
+const SERVER_SEARCH_DEBOUNCE_MS = 350
 
 export function DataTable<T>({
   data,
@@ -66,23 +70,22 @@ export function DataTable<T>({
   const [localPage, setLocalPage] = useState(0)
 
   const isServer = Boolean(pagination)
-  // Keep the input local while typing; only notify the parent after a short pause
-  // so each keystroke does not remount/refetch and steal focus.
+  // Keep the input local while typing; only notify the parent (and thus fire
+  // the API call) once typing pauses, so a search word doesn't cost one
+  // request per keystroke.
   const [serverDraft, setServerDraft] = useState(pagination?.searchValue ?? '')
+  const debouncedServerDraft = useDebouncedValue(serverDraft, SERVER_SEARCH_DEBOUNCE_MS)
   const onSearchChangeRef = useRef(pagination?.onSearchChange)
   onSearchChangeRef.current = pagination?.onSearchChange
   const committedSearchRef = useRef(pagination?.searchValue ?? '')
 
   useEffect(() => {
     if (!isServer || !onSearchChangeRef.current) return
-    if (serverDraft === committedSearchRef.current) return
-    const timer = window.setTimeout(() => {
-      committedSearchRef.current = serverDraft
-      // Hindi UI labels → English DB values so server search still matches
-      onSearchChangeRef.current?.(normalizeSearchForApi(serverDraft))
-    }, SERVER_SEARCH_DEBOUNCE_MS)
-    return () => window.clearTimeout(timer)
-  }, [serverDraft, isServer])
+    if (debouncedServerDraft === committedSearchRef.current) return
+    committedSearchRef.current = debouncedServerDraft
+    // Hindi UI labels → English DB values so server search still matches
+    onSearchChangeRef.current?.(normalizeSearchForApi(debouncedServerDraft))
+  }, [debouncedServerDraft, isServer])
 
   const search = isServer ? serverDraft : localSearch
 
