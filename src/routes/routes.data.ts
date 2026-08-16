@@ -94,18 +94,6 @@ export const publicRoutes: RouteConfig[] = [
     navOrder: 6,
     meta: { title: 'Download Center' },
   },
-  {
-    key: 'support',
-    path: '/support',
-    label: 'nav.support',
-    icon: 'Headphones',
-    component: lazyPage(() => import('../pages/public/ContactPage')),
-    layout: 'public',
-    showInNav: true,
-    showInSidebar: false,
-    navOrder: 7,
-    meta: { title: 'Support' },
-  },
   // Secondary pages — accessible via footer / services, not navbar
   {
     key: 'about',
