@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { IDCardOverlay } from '@/features/id-card/IDCardOverlay'
 import { IdCardFormFields } from '@/features/id-card/IdCardFormFields'
 import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features/id-card/idCardForm'
+import { plusOneYearIso, todayIso } from '@/utils/cardDates'
 import { useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto, useDownloadCard } from '@/hooks/useCards'
 import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { useAuth } from '@/context/AuthContext'
@@ -144,11 +145,20 @@ export function IdCardGenerationPanel() {
   }, [selectedCard?.id, snapshot?.hasPhoto, snapshot?.photoUrl])
 
   const onFieldChange = (field: keyof IdCardFormValues, value: string) => {
-    setForm((prev) => (prev ? { ...prev, [field]: value } : prev))
+    setForm((prev) => {
+      if (!prev) return prev
+      const next = { ...prev, [field]: value }
+      if (field === 'issueDate') next.expiryDate = plusOneYearIso(value)
+      return next
+    })
   }
 
   const handleGenerate = async () => {
     if (generate.isPending || uploadPhoto.isPending || !selectedCard || !form) return
+    if (form.issueDate && form.expiryDate && form.expiryDate < form.issueDate) {
+      toast.error(isHi ? 'समाप्ति तिथि जारी तिथि के बाद होनी चाहिए' : 'Expiry date must be on or after the issue date.')
+      return
+    }
     try {
       // Staged photo replacement only actually uploads now, on Save — not
       // when the file was picked — so Cancel can still fully revert it.
@@ -194,7 +204,7 @@ export function IdCardGenerationPanel() {
   const emptyForm: IdCardFormValues = {
     fullName: '', fatherName: '', designation: '', mobileNumber: '',
     licenseNumber: '', policeStation: '', city: '', state: '',
-    bloodGroup: '', dateOfBirth: '',
+    bloodGroup: '', dateOfBirth: '', issueDate: todayIso(), expiryDate: plusOneYearIso(todayIso()),
   }
 
   return (

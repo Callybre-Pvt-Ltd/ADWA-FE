@@ -11,17 +11,7 @@ import { districtInchargeCardsService } from '@/services'
 import { DistrictInchargeCardOverlay, type DistrictInchargeCardActions } from './DistrictInchargeCardOverlay'
 import { type DistrictInchargeCardForm } from './districtInchargeCardGeometry'
 import { districtMapEnToHi } from '@/utils/translations'
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function plusOneYearIso(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  d.setFullYear(d.getFullYear() + 1)
-  return d.toISOString().slice(0, 10)
-}
+import { plusOneYearIso, todayIso } from '@/utils/cardDates'
 
 export function DistrictInchargeIdPanel() {
   const { i18n } = useTranslation()
@@ -130,6 +120,10 @@ export function DistrictInchargeIdPanel() {
     async (opts?: { silent?: boolean }) => {
       if (issued && verificationUrl) return verificationUrl
       if (!canIssue || !photoFile || !districtId) return null
+      if (form.issueDate && form.expiryDate && form.expiryDate < form.issueDate) {
+        toast.error(isHi ? 'समाप्ति तिथि जारी तिथि के बाद होनी चाहिए' : 'Expiry date must be on or after the issue date.')
+        return null
+      }
 
       setIssuing(true)
       try {
@@ -336,6 +330,7 @@ export function DistrictInchargeIdPanel() {
               type="date"
               className="mt-1"
               value={form.expiryDate}
+              min={form.issueDate || undefined}
               disabled={issued}
               onChange={(e) => setField('expiryDate', e.target.value)}
             />

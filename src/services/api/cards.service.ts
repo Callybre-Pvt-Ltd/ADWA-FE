@@ -35,6 +35,8 @@ export type CardSnapshot = {
   state?: string | null
   bloodGroup?: string | null
   dateOfBirth?: string | null
+  issueDate?: string | null
+  expiryDate?: string | null
   generatedAt?: string | null
   hasPdf: boolean
   photoUrl?: string | null

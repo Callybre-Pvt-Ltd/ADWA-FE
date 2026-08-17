@@ -318,6 +318,8 @@ async function drawFront(
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return ''
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  if (match) return `${match[3]}/${match[2]}/${match[1]}`
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -326,6 +328,7 @@ function fmtDate(iso: string | null | undefined): string {
 async function drawBack(
   canvas: HTMLCanvasElement,
   card: DriverCard | null | undefined,
+  form: IdCardFormValues,
   isCancelled: CancelCheck = () => false,
 ) {
   const [tpl] = await Promise.all([loadTemplate(), ensureCardFonts()])
@@ -345,8 +348,8 @@ async function drawBack(
 
   const values: Record<string, string> = {
     cardNumber: card?.cardNumber ?? '',
-    issueDate:  fmtDate(card?.issuedAt),
-    expiryDate: fmtDate(card?.expiresAt),
+    issueDate: fmtDate(form.issueDate || card?.issuedAt),
+    expiryDate: fmtDate(form.expiryDate || card?.expiresAt),
   }
 
   for (const row of BACK.rows) {
@@ -461,8 +464,8 @@ export function IDCardOverlay({ values, card, photoUrl, qrUrl, loading = false, 
 
   const drawBackCb = useCallback(
     (canvas: HTMLCanvasElement, isCancelled: () => boolean) =>
-      drawBack(canvas, card, isCancelled),
-    [card],
+      drawBack(canvas, card, values, isCancelled),
+    [card, values.issueDate, values.expiryDate],
   )
 
   // Expose actions to parent after first render

@@ -26,6 +26,7 @@ import {
 import { formatDate } from '@/utils/formatters'
 import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { districtMapEnToHi } from '@/utils/translations'
+import { plusOneYearIso, toDateInputValue } from '@/utils/cardDates'
 import type { DistrictInchargeCard } from '@/services/api/districtInchargeCards.service'
 
 /** Public, unauthenticated — same endpoint the QR verify page uses. `version`
@@ -83,11 +84,12 @@ export function DistrictInchargeCardsList() {
   )
 
   const startEdit = (card: DistrictInchargeCard) => {
+    const issuedAt = toDateInputValue(card.issuedAt)
     setEditForm({
       fullName: card.fullName,
       designation: card.designation || '',
-      issuedAt: card.issuedAt || '',
-      expiresAt: card.expiresAt || '',
+      issuedAt,
+      expiresAt: toDateInputValue(card.expiresAt) || (issuedAt ? plusOneYearIso(issuedAt) : ''),
     })
     setEditPhotoFile(null)
     setEditPhotoPreviewUrl(null)
@@ -121,6 +123,10 @@ export function DistrictInchargeCardsList() {
     const fullName = editForm.fullName.trim()
     if (!fullName) {
       toast.error(isHi ? 'नाम आवश्यक है' : 'Name is required')
+      return
+    }
+    if (editForm.issuedAt && editForm.expiresAt && editForm.expiresAt < editForm.issuedAt) {
+      toast.error(isHi ? 'समाप्ति तिथि जारी तिथि के बाद होनी चाहिए' : 'Expiry date must be on or after the issue date.')
       return
     }
     try {
@@ -274,8 +280,8 @@ export function DistrictInchargeCardsList() {
                   districtName: viewCard.districtNameSnapshot,
                   districtCode: viewCard.districtCodeSnapshot,
                   cardNumber: viewCard.cardNumber,
-                  issueDate: isEditing ? editForm.issuedAt : (viewCard.issuedAt || ''),
-                  expiryDate: isEditing ? editForm.expiresAt : (viewCard.expiresAt || ''),
+                  issueDate: isEditing ? editForm.issuedAt : toDateInputValue(viewCard.issuedAt),
+                  expiryDate: isEditing ? editForm.expiresAt : toDateInputValue(viewCard.expiresAt),
                 }}
                 photoUrl={editPhotoPreviewUrl || cardPhotoUrl(viewCard.verificationCode, photoVersions[viewCard.id])}
                 verificationUrl={normalizeVerifyUrl('', viewCard.verificationCode)}
@@ -340,7 +346,14 @@ export function DistrictInchargeCardsList() {
                         type="date"
                         className="mt-1"
                         value={editForm.issuedAt}
-                        onChange={(e) => setEditForm((prev) => ({ ...prev, issuedAt: e.target.value }))}
+                        onChange={(e) => {
+                          const issuedAt = e.target.value
+                          setEditForm((prev) => ({
+                            ...prev,
+                            issuedAt,
+                            expiresAt: plusOneYearIso(issuedAt) || prev.expiresAt,
+                          }))
+                        }}
                       />
                     </div>
                     <div>
@@ -350,6 +363,7 @@ export function DistrictInchargeCardsList() {
                         type="date"
                         className="mt-1"
                         value={editForm.expiresAt}
+                        min={editForm.issuedAt || undefined}
                         onChange={(e) => setEditForm((prev) => ({ ...prev, expiresAt: e.target.value }))}
                       />
                     </div>

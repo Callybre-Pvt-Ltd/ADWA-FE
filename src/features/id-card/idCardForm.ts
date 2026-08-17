@@ -1,4 +1,5 @@
 import type { CardSnapshot } from '@/services/api/cards.service'
+import { plusOneYearIso, todayIso, toDateInputValue } from '@/utils/cardDates'
 
 export type IdCardFormValues = {
   fullName: string
@@ -11,9 +12,13 @@ export type IdCardFormValues = {
   state: string
   bloodGroup: string
   dateOfBirth: string
+  issueDate: string
+  expiryDate: string
 }
 
 export function snapshotToForm(snapshot: CardSnapshot): IdCardFormValues {
+  const issueDate = toDateInputValue(snapshot.issueDate) || todayIso()
+  const expiryDate = toDateInputValue(snapshot.expiryDate) || plusOneYearIso(issueDate)
   return {
     fullName: snapshot.fullName ?? '',
     fatherName: snapshot.fatherName ?? '',
@@ -24,7 +29,9 @@ export function snapshotToForm(snapshot: CardSnapshot): IdCardFormValues {
     city: snapshot.city ?? '',
     state: snapshot.state ?? '',
     bloodGroup: snapshot.bloodGroup ?? '',
-    dateOfBirth: snapshot.dateOfBirth ?? '',
+    dateOfBirth: toDateInputValue(snapshot.dateOfBirth),
+    issueDate,
+    expiryDate,
   }
 }
 
@@ -40,5 +47,7 @@ export function formToPayload(values: IdCardFormValues) {
     state: values.state || undefined,
     blood_group: values.bloodGroup || undefined,
     date_of_birth: values.dateOfBirth || undefined,
+    issue_date: values.issueDate || undefined,
+    expiry_date: values.expiryDate || undefined,
   }
 }
