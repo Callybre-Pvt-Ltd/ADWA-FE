@@ -14,12 +14,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { DOBPicker } from "@/components/shared/DOBPicker";
 import { DistrictSearchSelect } from "@/components/shared/DistrictSearchSelect";
 import { usePublicDistricts } from "@/hooks/useDistricts";
+import { INDIA_STATE_NAMES } from "@/data/indiaGeo";
 import type { DriverRequestFormData } from "@/utils/validators";
 import { FormField, FormSection } from "./FormField";
 import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { Button } from "@/components/ui/button";
-
-const MP_STATE = "Madhya Pradesh";
+import { stateMapEnToHi } from "@/utils/translations";
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"] as const;
 
@@ -35,6 +35,7 @@ export default function StepPersonal() {
     watch,
     formState: { errors },
   } = useFormContext<DriverRequestFormData>();
+  const state = watch("state");
   const districtId = watch("districtId");
   const {
     data: districts,
@@ -42,17 +43,33 @@ export default function StepPersonal() {
     isFetching,
     isError,
     refetch,
-  } = usePublicDistricts();
+  } = usePublicDistricts(state ?? "");
 
-  useEffect(() => {
-    setValue("state", MP_STATE, { shouldValidate: true });
-  }, [setValue]);
+  const handleStateChange = (nextState: string) => {
+    setValue("state", nextState, { shouldValidate: true });
+    // Clear district so we never keep a district from the previous state
+    setValue("districtId", "", { shouldValidate: true });
+    setValue("district", "", { shouldValidate: false });
+  };
 
   const handleDistrictChange = (id: string) => {
     const selected = districts?.find((d) => d.id === id);
     setValue("districtId", id, { shouldValidate: true });
     setValue("district", selected?.name ?? "", { shouldValidate: false });
   };
+
+  // If selected district is not in the current state's list, clear it
+  useEffect(() => {
+    if (!state || !districtId || !districts) return;
+    const stillValid = districts.some((d) => d.id === districtId);
+    if (!stillValid) {
+      setValue("districtId", "", { shouldValidate: true });
+      setValue("district", "", { shouldValidate: false });
+    }
+  }, [state, districtId, districts, setValue]);
+
+  const stateLabel = (name: string) =>
+    isHi ? stateMapEnToHi[name] || name : name;
 
   return (
     <div className="space-y-8">
@@ -187,7 +204,45 @@ export default function StepPersonal() {
         icon={<MapPin size={16} />}
         title={t("apply.addressDetails")}
       >
-        {isLoading ? (
+        <FormField label={f("state")} required error={errors.state?.message}>
+          <Select value={state || undefined} onValueChange={handleStateChange}>
+            <SelectTrigger>
+              <SelectValue
+                placeholder={isHi ? "राज्य चुनें" : "Select state"}
+              />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {INDIA_STATE_NAMES.map((name) => (
+                <SelectItem key={name} value={name}>
+                  {stateLabel(name)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {!state ? (
+          <FormField
+            label={f("district")}
+            required
+            error={errors.districtId?.message}
+          >
+            <DistrictSearchSelect
+              districts={[]}
+              value={districtId}
+              selectedName={watch("district")}
+              onChange={handleDistrictChange}
+              disabled
+              placeholder={
+                isHi
+                  ? "पहले राज्य चुनें"
+                  : "Select state first"
+              }
+              searchPlaceholder={f("searchDistrict")}
+              emptyText={f("noDistrictFound")}
+            />
+          </FormField>
+        ) : isLoading ? (
           <SkeletonCard />
         ) : isError ? (
           <div className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
@@ -225,15 +280,6 @@ export default function StepPersonal() {
             />
           </FormField>
         )}
-
-        <FormField label={f("state")}>
-          <Input
-            value={isHi ? "मध्य प्रदेश" : "Madhya Pradesh"}
-            readOnly
-            disabled
-            className="bg-neutral-50 text-neutral-700"
-          />
-        </FormField>
 
         <FormField
           label={f("village")}

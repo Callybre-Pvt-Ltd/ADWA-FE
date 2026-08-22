@@ -12,6 +12,7 @@ function mapDistrict(raw: ApiDistrict): District {
     id: item.id,
     name: item.name,
     code: item.code ?? '',
+    state: item.state ?? '',
     status: item.status === 'INACTIVE' ? 'inactive' : 'active',
     contactPhone: item.contactPhone ?? null,
   }
@@ -27,9 +28,11 @@ export const districtsService = {
     }
   },
 
-  async getPublic(): Promise<District[]> {
+  async getPublic(state?: string): Promise<District[]> {
     try {
-      const { data } = await apiClient.get<APIResponse<ApiDistrict[]>>('/districts/public')
+      const { data } = await apiClient.get<APIResponse<ApiDistrict[]>>('/districts/public', {
+        params: state ? { state } : undefined,
+      })
       return (unwrapResponse(data) ?? []).map(mapDistrict)
     } catch (error) {
       throw await extractError(error)
@@ -50,6 +53,7 @@ export const districtsService = {
       const { data } = await apiClient.post<APIResponse<ApiDistrict>>('/districts', {
         name: dto.name,
         code: dto.code ?? dto.name.toLowerCase().replace(/\s+/g, '-').slice(0, 50),
+        state: dto.state,
         status: dto.status === 'inactive' ? 'INACTIVE' : 'ACTIVE',
         contact_phone: dto.contactPhone?.trim() || null,
       })
@@ -64,6 +68,7 @@ export const districtsService = {
       const payload: Record<string, string | null> = {}
       if (dto.name) payload.name = dto.name
       if (dto.code) payload.code = dto.code
+      if (dto.state) payload.state = dto.state
       if (dto.status) payload.status = dto.status === 'inactive' ? 'INACTIVE' : 'ACTIVE'
       if (dto.contactPhone !== undefined) {
         payload.contact_phone = dto.contactPhone?.trim() || null

@@ -66,7 +66,7 @@ export default function StepReview({ goToStep, declared, setDeclared, submitting
   const { t } = useTranslation('pages')
   const f = (key: string, fallback?: string) => t(`apply.fields.${key}`, fallback ?? key)
   const data = getValues()
-  const { data: districts } = usePublicDistricts()
+  const { data: districts } = usePublicDistricts(data.state || undefined)
   const districtName = districts?.find(d => d.id === data.districtId)?.name ?? '—'
 
   const genderLabel = data.gender

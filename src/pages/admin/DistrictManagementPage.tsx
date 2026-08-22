@@ -24,14 +24,17 @@ import { Label } from '@/components/ui/label'
 import type { User } from '@/types/user.types'
 import { formControlClassName, formControlHeightClassName } from '@/utils/formStyles'
 import { cn } from '@/utils/cn'
-import { Copy, Eye, EyeOff, UserCog } from 'lucide-react'
-import { districtMapEnToHi, translateFullName } from '@/utils/translations'
+import { Copy, Eye, EyeOff, MapPinned, UserCog } from 'lucide-react'
+import { districtMapEnToHi, stateMapEnToHi, translateFullName } from '@/utils/translations'
+import { INDIA_STATE_NAMES } from '@/data/indiaGeo'
+import { DistrictSearchSelect } from '@/components/shared/DistrictSearchSelect'
 
 const schema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
   mobileNumber: z.string().regex(/^[6-9]\d{9}$/),
   password: z.string().min(3).optional().or(z.literal('')),
+  state: z.string().min(1, 'State is required'),
   districtId: z.string().min(1, 'District is required'),
   status: z.enum(['ACTIVE', 'INACTIVE']),
 })
@@ -51,13 +54,14 @@ export default function DistrictManagementPage() {
   const isHi = i18n.language === 'hi'
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [filterState, setFilterState] = useState('')
 
   const { data: userRes, isLoading, isError, refetch } = useUsers({
     page,
-    size: 10,
+    size: 15,
     search: search || undefined,
   })
-  const { data: allUsersRes } = useUsers({ page: 1, size: 100 })
+  const { data: allUsersRes } = useUsers({ page: 1, size: 500 })
   const users = userRes?.items ?? []
   const allUsers = allUsersRes?.items ?? users
   const { data: districts } = useDistricts()
@@ -67,14 +71,26 @@ export default function DistrictManagementPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [showPassword, setShowPassword] = useState(true)
-  // Session-only: last passwords set in this page (API never returns plaintext).
   const [knownPasswords, setKnownPasswords] = useState<Record<string, string>>({})
   const saving = createUser.isPending || updateUser.isPending || resetPassword.isPending
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { status: 'ACTIVE', districtId: '', password: '' },
+    defaultValues: { status: 'ACTIVE', state: '', districtId: '', password: '' },
   })
+
+  const formState = form.watch('state')
+
+  const districtById = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof districts>[number]>()
+    for (const d of districts ?? []) map.set(d.id, d)
+    return map
+  }, [districts])
+
+  const statesWithDistricts = useMemo(() => {
+    const present = new Set((districts ?? []).map((d) => d.state).filter(Boolean))
+    return INDIA_STATE_NAMES.filter((s) => present.has(s))
+  }, [districts])
 
   const assignedDistrictIds = useMemo(() => {
     const ids = new Set<string>()
@@ -87,20 +103,46 @@ export default function DistrictManagementPage() {
     return ids
   }, [allUsers, editing])
 
-  const availableDistricts = useMemo(() => {
-    const list = (districts ?? []).filter((d) => d.status === 'active')
+  const availableDistrictsForForm = useMemo(() => {
+    const list = (districts ?? []).filter(
+      (d) => d.status === 'active' && (!formState || d.state === formState),
+    )
     if (editing?.districtId) {
       return list.filter((d) => d.id === editing.districtId || !assignedDistrictIds.has(d.id))
     }
     return list.filter((d) => !assignedDistrictIds.has(d.id))
-  }, [districts, assignedDistrictIds, editing])
+  }, [districts, assignedDistrictIds, editing, formState])
+
+  const filteredUsers = useMemo(() => {
+    if (!filterState) return users
+    return users.filter((u) => {
+      const d = u.districtId ? districtById.get(u.districtId) : undefined
+      return d?.state === filterState
+    })
+  }, [users, filterState, districtById])
+
+  const stats = useMemo(() => {
+    const activeDistricts = (districts ?? []).filter((d) => d.status === 'active')
+    const states = new Set(activeDistricts.map((d) => d.state))
+    const withIncharge = new Set(
+      allUsers.filter((u) => u.status === 'ACTIVE' && u.districtId).map((u) => u.districtId),
+    )
+    return {
+      states: states.size,
+      districts: activeDistricts.length,
+      incharges: allUsers.filter((u) => u.status === 'ACTIVE').length,
+      uncovered: activeDistricts.filter((d) => !withIncharge.has(d.id)).length,
+    }
+  }, [districts, allUsers])
 
   const openCreate = () => {
     setEditing(null)
     setShowPassword(true)
+    const defaultState = filterState || statesWithDistricts[0] || ''
     form.reset({
       status: 'ACTIVE',
-      districtId: availableDistricts[0]?.id ?? '',
+      state: defaultState,
+      districtId: '',
       password: generatePassword(),
       fullName: '',
       email: '',
@@ -112,15 +154,22 @@ export default function DistrictManagementPage() {
   const openEdit = (user: User) => {
     setEditing(user)
     setShowPassword(true)
+    const d = user.districtId ? districtById.get(user.districtId) : undefined
     form.reset({
       fullName: user.fullName,
       email: user.email,
       mobileNumber: user.mobileNumber,
+      state: d?.state ?? '',
       districtId: user.districtId ?? '',
       status: user.status,
       password: knownPasswords[user.id] ?? '',
     })
     setDrawerOpen(true)
+  }
+
+  const handleFormStateChange = (nextState: string) => {
+    form.setValue('state', nextState, { shouldValidate: true })
+    form.setValue('districtId', '', { shouldValidate: true })
   }
 
   const fillGeneratedPassword = () => {
@@ -165,7 +214,6 @@ export default function DistrictManagementPage() {
         setKnownPasswords((prev) => ({ ...prev, [editing.id]: nextPassword }))
         form.setValue('password', nextPassword)
         setShowPassword(true)
-        // Keep drawer open so the new password stays visible to copy.
         return
       }
       setDrawerOpen(false)
@@ -195,16 +243,35 @@ export default function DistrictManagementPage() {
     return status === 'ACTIVE' ? 'सक्रिय' : 'अक्रिय'
   }
 
+  const labelState = (name: string) => (isHi ? stateMapEnToHi[name] || name : name)
+  const labelDistrict = (name: string) => (isHi ? districtMapEnToHi[name] || name : name)
+
   const columns: ColumnDef<User>[] = [
+    {
+      key: 'state',
+      header: isHi ? 'राज्य' : 'State',
+      cell: (u) => {
+        const d = u.districtId ? districtById.get(u.districtId) : undefined
+        return d?.state ? labelState(d.state) : '—'
+      },
+      sortable: true,
+      sortValue: (u) => districtById.get(u.districtId ?? '')?.state ?? '',
+    },
     {
       key: 'district',
       header: isHi ? 'जिला' : 'District',
       cell: (u) => {
-        const dName = districts?.find((d) => d.id === u.districtId)?.name ?? '—'
-        return isHi ? (districtMapEnToHi[dName] || dName) : dName
+        const d = u.districtId ? districtById.get(u.districtId) : undefined
+        if (!d) return '—'
+        return (
+          <span className="inline-flex flex-col">
+            <span>{labelDistrict(d.name)}</span>
+            <span className="font-mono text-[11px] text-neutral-500">{d.code}</span>
+          </span>
+        )
       },
       sortable: true,
-      sortValue: (u) => districts?.find((d) => d.id === u.districtId)?.name ?? '',
+      sortValue: (u) => districtById.get(u.districtId ?? '')?.name ?? '',
     },
     {
       key: 'name',
@@ -229,17 +296,16 @@ export default function DistrictManagementPage() {
   return (
     <div className="w-full space-y-6 pb-6 animate-fade-in">
       <PageHeader
-        title={isHi ? 'जिले' : 'Districts'}
+        title={isHi ? 'जिला प्रभारी' : 'District Incharges'}
         subtitle={
           isHi
-            ? 'जिला प्रभारी के ईमेल, पासवर्ड और मोबाइल प्रबंधित करें (जिला सूची बदली नहीं जा सकती)'
-            : 'Manage district incharge email, password, and mobile (districts themselves cannot be changed)'
+            ? 'सभी राज्यों / केंद्रशासित प्रदेशों के जिला प्रभारी प्रबंधित करें'
+            : 'Manage district incharges across all states and union territories'
         }
         action={
           <Button
             onClick={openCreate}
             className="cursor-pointer"
-            disabled={availableDistricts.length === 0 && !editing}
           >
             <UserCog className="h-4 w-4" />
             {isHi ? 'जिला प्रभारी जोड़ें' : 'Add District Incharge'}
@@ -247,24 +313,77 @@ export default function DistrictManagementPage() {
         }
       />
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: isHi ? 'राज्य / UT' : 'States / UTs', value: stats.states },
+          { label: isHi ? 'सक्रिय जिले' : 'Active districts', value: stats.districts },
+          { label: isHi ? 'सक्रिय प्रभारी' : 'Active incharges', value: stats.incharges },
+          { label: isHi ? 'बिना प्रभारी' : 'Unassigned', value: stats.uncovered },
+        ].map((card) => (
+          <div
+            key={card.label}
+            className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              {card.label}
+            </p>
+            <p className="mt-1 text-2xl font-bold text-neutral-900 tabular-nums">{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="sm:w-72">
+          <Label htmlFor="filterState" className="text-xs text-neutral-500">
+            {isHi ? 'राज्य से फ़िल्टर' : 'Filter by state'}
+          </Label>
+          <select
+            id="filterState"
+            value={filterState}
+            onChange={(e) => {
+              setFilterState(e.target.value)
+              setPage(1)
+            }}
+            className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
+          >
+            <option value="">{isHi ? 'सभी राज्य' : 'All states'}</option>
+            {statesWithDistricts.map((s) => (
+              <option key={s} value={s}>
+                {labelState(s)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="flex items-center gap-1.5 text-xs text-neutral-500 sm:pb-2">
+          <MapPinned className="h-3.5 w-3.5" />
+          {isHi
+            ? 'जिला सूची सीड से आती है — यहाँ केवल प्रभारी असाइन करें।'
+            : 'Districts come from the geo seed — assign incharges here.'}
+        </p>
+      </div>
+
       {isError && <ErrorState onRetry={() => refetch()} />}
       {isLoading && !userRes ? (
         <SkeletonTable />
       ) : !isError ? (
         <DataTable
-          data={users}
+          data={filteredUsers}
           columns={columns}
           getRowKey={(u) => u.id}
           searchable
           searchPlaceholder={
-            isHi ? 'जिला, नाम, ईमेल या मोबाइल खोजें…' : 'Search district, name, email, or mobile…'
+            isHi
+              ? 'राज्य, जिला, नाम, ईमेल या मोबाइल खोजें…'
+              : 'Search state, district, name, email, or mobile…'
           }
           onRowClick={openEdit}
           pagination={{
             page,
-            pageSize: 10,
-            totalItems: userRes?.total ?? 0,
-            totalPages: userRes?.pages ?? 1,
+            pageSize: 15,
+            totalItems: filterState ? filteredUsers.length : (userRes?.total ?? 0),
+            totalPages: filterState
+              ? Math.max(1, Math.ceil(filteredUsers.length / 15))
+              : (userRes?.pages ?? 1),
             onPageChange: setPage,
             searchValue: search,
             onSearchChange: (v) => {
@@ -298,41 +417,84 @@ export default function DistrictManagementPage() {
       >
         <form className="space-y-4">
           <fieldset disabled={saving} className="space-y-4">
-            <div>
-              <Label htmlFor="districtId">{isHi ? 'जिला' : 'District'}</Label>
-              {editing ? (
-                <Input
-                  id="districtId"
-                  className="mt-1 bg-neutral-50"
-                  readOnly
-                  value={(() => {
-                    const dName =
-                      districts?.find((d) => d.id === editing.districtId)?.name ?? '—'
-                    return isHi ? districtMapEnToHi[dName] || dName : dName
-                  })()}
-                />
-              ) : (
-                <>
-                  <select
+            {editing ? (
+              <div className="space-y-3">
+                <div>
+                  <Label>{isHi ? 'राज्य' : 'State'}</Label>
+                  <Input
+                    className="mt-1 bg-neutral-50"
+                    readOnly
+                    value={labelState(formState || '—')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="districtId">{isHi ? 'जिला' : 'District'}</Label>
+                  <Input
                     id="districtId"
-                    {...form.register('districtId')}
+                    className="mt-1 bg-neutral-50"
+                    readOnly
+                    value={(() => {
+                      const d = districtById.get(editing.districtId ?? '')
+                      if (!d) return '—'
+                      return `${labelDistrict(d.name)} (${d.code})`
+                    })()}
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="formState">{isHi ? 'राज्य / UT' : 'State / UT'}</Label>
+                  <select
+                    id="formState"
+                    value={formState}
+                    onChange={(e) => handleFormStateChange(e.target.value)}
                     className={cn(formControlClassName, formControlHeightClassName, 'mt-1 w-full')}
                   >
-                    <option value="">{isHi ? 'जिला चुनें' : 'Select district'}</option>
-                    {availableDistricts.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {isHi ? districtMapEnToHi[d.name] || d.name : d.name}
+                    <option value="">{isHi ? 'राज्य चुनें' : 'Select state'}</option>
+                    {statesWithDistricts.map((s) => (
+                      <option key={s} value={s}>
+                        {labelState(s)}
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <Label>{isHi ? 'जिला' : 'District'}</Label>
+                  <div className="mt-1">
+                    <DistrictSearchSelect
+                      districts={availableDistrictsForForm}
+                      value={form.watch('districtId')}
+                      onChange={(id) =>
+                        form.setValue('districtId', id, { shouldValidate: true })
+                      }
+                      disabled={!formState}
+                      placeholder={
+                        formState
+                          ? (isHi ? 'जिला चुनें' : 'Select district')
+                          : (isHi ? 'पहले राज्य चुनें' : 'Select state first')
+                      }
+                      searchPlaceholder={isHi ? 'जिला खोजें…' : 'Search district…'}
+                      emptyText={
+                        isHi
+                          ? 'इस राज्य में उपलब्ध जिला नहीं'
+                          : 'No free districts in this state'
+                      }
+                    />
+                  </div>
                   <p className="mt-1 text-xs text-neutral-500">
                     {isHi
-                      ? 'केवल वे जिले जिनका सक्रिय प्रभारी खाता नहीं है। जिले स्वयं नहीं जोड़े जा सकते।'
-                      : 'Only districts without an active incharge. Districts themselves cannot be added here.'}
+                      ? 'केवल वे जिले जिनका सक्रिय प्रभारी नहीं है। राज्य बदलने पर जिला साफ़ हो जाता है।'
+                      : 'Only districts without an active incharge. Changing state clears the district.'}
                   </p>
-                </>
-              )}
-            </div>
+                  {form.formState.errors.districtId && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {form.formState.errors.districtId.message}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
 
             <div>
               <Label htmlFor="fullName">{isHi ? 'पूरा नाम' : 'Full Name'}</Label>

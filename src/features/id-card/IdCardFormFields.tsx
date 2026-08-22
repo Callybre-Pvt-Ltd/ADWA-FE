@@ -16,7 +16,7 @@ const labelTranslations: Record<string, { en: string; hi: string }> = {
   licenseNumber: { en: 'License number', hi: 'लाइसेंस संख्या' },
   policeStation: { en: 'Tehsil / PS', hi: 'तहसील / थाना' },
   city: { en: 'City / village', hi: 'शहर / गाँव' },
-  state: { en: 'State', hi: 'राज्य' },
+  state: { en: 'State–District', hi: 'राज्य–जिला' },
   bloodGroup: { en: 'Blood group', hi: 'रक्त समूह' },
   dateOfBirth: { en: 'Date of birth', hi: 'जन्म तिथि' },
   issueDate: { en: 'Issue date', hi: 'जारी तिथि' },

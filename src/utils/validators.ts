@@ -38,7 +38,7 @@ export const driverPersonalSchema = z.object({
   district: z.string().optional(),
   tehsil: z.string().min(1, msg('Enter tehsil', 'तहसील दर्ज करें')),
   village: z.string().min(1, msg('Enter village / town', 'गाँव / शहर दर्ज करें')),
-  state: z.literal('Madhya Pradesh').default('Madhya Pradesh'),
+  state: z.string().min(1, msg('Select your state', 'राज्य चुनें')),
   pincode: z
     .string()
     .regex(/^\d{6}$/, msg('Enter a valid 6-digit pincode', 'सही 6 अंकों का पिनकोड डालें')),

@@ -62,7 +62,9 @@ export default function MultiStepForm() {
       email: '',
       altMobile: '',
       dateOfBirth: '',
-      state: 'Madhya Pradesh',
+      state: '',
+      districtId: '',
+      district: '',
       experienceYears: 0,
     },
   })

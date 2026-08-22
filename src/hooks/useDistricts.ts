@@ -13,11 +13,14 @@ export function useDistricts() {
   })
 }
 
-export function usePublicDistricts() {
+export function usePublicDistricts(state?: string) {
+  // `undefined` → all active districts; `''` → wait (e.g. state not chosen yet)
+  const skipped = state === ''
   return useQuery({
-    queryKey: [...DISTRICTS_QUERY_KEY, 'public'],
-    queryFn: () => districtsService.getPublic(),
+    queryKey: [...DISTRICTS_QUERY_KEY, 'public', skipped ? 'skip' : (state ?? 'all')],
+    queryFn: () => districtsService.getPublic(state || undefined),
     staleTime: 1000 * 60 * 30,
+    enabled: !skipped,
   })
 }
 
