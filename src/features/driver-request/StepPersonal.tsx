@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { User, Phone, Mail, Calendar, MapPin } from "lucide-react";
@@ -13,12 +13,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DOBPicker } from "@/components/shared/DOBPicker";
 import { DistrictSearchSelect } from "@/components/shared/DistrictSearchSelect";
-import { usePublicDistricts } from "@/hooks/useDistricts";
-import { INDIA_STATE_NAMES } from "@/data/indiaGeo";
+import { getDistrictsForState, INDIA_STATE_NAMES } from "@/data/indiaGeo";
 import type { DriverRequestFormData } from "@/utils/validators";
 import { FormField, FormSection } from "./FormField";
-import { SkeletonCard } from "@/components/shared/SkeletonCard";
-import { Button } from "@/components/ui/button";
 import { stateMapEnToHi } from "@/utils/translations";
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"] as const;
@@ -36,37 +33,21 @@ export default function StepPersonal() {
     formState: { errors },
   } = useFormContext<DriverRequestFormData>();
   const state = watch("state");
-  const districtId = watch("districtId");
-  const {
-    data: districts,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = usePublicDistricts(state ?? "");
+  const district = watch("district");
+
+  const districtOptions = useMemo(
+    () => getDistrictsForState(state).map((name) => ({ id: name, name })),
+    [state],
+  );
 
   const handleStateChange = (nextState: string) => {
     setValue("state", nextState, { shouldValidate: true });
-    // Clear district so we never keep a district from the previous state
-    setValue("districtId", "", { shouldValidate: true });
-    setValue("district", "", { shouldValidate: false });
+    setValue("district", "", { shouldValidate: true });
   };
 
-  const handleDistrictChange = (id: string) => {
-    const selected = districts?.find((d) => d.id === id);
-    setValue("districtId", id, { shouldValidate: true });
-    setValue("district", selected?.name ?? "", { shouldValidate: false });
+  const handleDistrictChange = (name: string) => {
+    setValue("district", name, { shouldValidate: true });
   };
-
-  // If selected district is not in the current state's list, clear it
-  useEffect(() => {
-    if (!state || !districtId || !districts) return;
-    const stillValid = districts.some((d) => d.id === districtId);
-    if (!stillValid) {
-      setValue("districtId", "", { shouldValidate: true });
-      setValue("district", "", { shouldValidate: false });
-    }
-  }, [state, districtId, districts, setValue]);
 
   const stateLabel = (name: string) =>
     isHi ? stateMapEnToHi[name] || name : name;
@@ -221,65 +202,28 @@ export default function StepPersonal() {
           </Select>
         </FormField>
 
-        {!state ? (
-          <FormField
-            label={f("district")}
-            required
-            error={errors.districtId?.message}
-          >
-            <DistrictSearchSelect
-              districts={[]}
-              value={districtId}
-              selectedName={watch("district")}
-              onChange={handleDistrictChange}
-              disabled
-              placeholder={
-                isHi
+        <FormField
+          label={f("district")}
+          required
+          error={errors.district?.message}
+        >
+          <DistrictSearchSelect
+            districts={districtOptions}
+            value={district}
+            selectedName={district}
+            onChange={handleDistrictChange}
+            disabled={!state}
+            placeholder={
+              state
+                ? f("selectDistrict")
+                : isHi
                   ? "पहले राज्य चुनें"
                   : "Select state first"
-              }
-              searchPlaceholder={f("searchDistrict")}
-              emptyText={f("noDistrictFound")}
-            />
-          </FormField>
-        ) : isLoading ? (
-          <SkeletonCard />
-        ) : isError ? (
-          <div className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-4 text-center">
-            <p className="text-sm font-semibold text-red-800">
-              {isHi
-                ? "जिलों की सूची लोड नहीं हो सकी।"
-                : "Could not load the district list."}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={() => refetch()}
-              loading={isFetching}
-              loadingText={isHi ? "फिर कोशिश हो रही है…" : "Trying again…"}
-            >
-              {isHi ? "फिर कोशिश करें" : "Try again"}
-            </Button>
-          </div>
-        ) : (
-          <FormField
-            label={f("district")}
-            required
-            error={errors.districtId?.message}
-          >
-            <DistrictSearchSelect
-              districts={districts ?? []}
-              value={districtId}
-              selectedName={watch("district")}
-              onChange={handleDistrictChange}
-              placeholder={f("selectDistrict")}
-              searchPlaceholder={f("searchDistrict")}
-              emptyText={f("noDistrictFound")}
-            />
-          </FormField>
-        )}
+            }
+            searchPlaceholder={f("searchDistrict")}
+            emptyText={f("noDistrictFound")}
+          />
+        </FormField>
 
         <FormField
           label={f("village")}

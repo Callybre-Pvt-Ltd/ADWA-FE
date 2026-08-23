@@ -63,7 +63,6 @@ export default function MultiStepForm() {
       altMobile: '',
       dateOfBirth: '',
       state: '',
-      districtId: '',
       district: '',
       experienceYears: 0,
     },

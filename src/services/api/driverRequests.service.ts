@@ -13,7 +13,7 @@ import type { DriverRequestFormData } from '@/utils/validators'
 
 export function buildSubmitFormData(data: DriverRequestFormData): FormData {
   const fd = new FormData()
-  fd.append('district_id', data.districtId)
+  fd.append('district', data.district)
   fd.append('full_name', data.name)
   fd.append('father_name', data.fatherName)
   fd.append('date_of_birth', data.dateOfBirth)

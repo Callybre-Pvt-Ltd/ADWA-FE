@@ -34,8 +34,7 @@ export const driverPersonalSchema = z.object({
     .optional()
     .or(z.literal('')),
   dateOfBirth: z.string().min(1, msg('Select your date of birth', 'जन्म तिथि चुनें')),
-  districtId: z.string().min(1, msg('Select your district', 'जिला चुनें')),
-  district: z.string().optional(),
+  district: z.string().min(1, msg('Select your district', 'जिला चुनें')),
   tehsil: z.string().min(1, msg('Enter tehsil', 'तहसील दर्ज करें')),
   village: z.string().min(1, msg('Enter village / town', 'गाँव / शहर दर्ज करें')),
   state: z.string().min(1, msg('Select your state', 'राज्य चुनें')),
@@ -93,7 +92,7 @@ export type DriverRequestFormData = DriverPersonalFormData &
 
 export function buildDriverRequestFormData(data: DriverRequestFormData): FormData {
   const formData = new FormData()
-  formData.append('district_id', data.districtId)
+  formData.append('district', data.district)
   formData.append('full_name', data.name)
   formData.append('father_name', data.fatherName)
   formData.append('date_of_birth', data.dateOfBirth)

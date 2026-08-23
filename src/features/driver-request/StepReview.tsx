@@ -3,7 +3,6 @@ import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { User, MapPin, IdCard, Pencil, Images, FileText } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
-import { usePublicDistricts } from '@/hooks/useDistricts'
 import type { DriverRequestFormData } from '@/utils/validators'
 
 const DOCUMENT_FIELDS: { field: keyof DriverRequestFormData; labelKey: string }[] = [
@@ -66,8 +65,7 @@ export default function StepReview({ goToStep, declared, setDeclared, submitting
   const { t } = useTranslation('pages')
   const f = (key: string, fallback?: string) => t(`apply.fields.${key}`, fallback ?? key)
   const data = getValues()
-  const { data: districts } = usePublicDistricts(data.state || undefined)
-  const districtName = districts?.find(d => d.id === data.districtId)?.name ?? '—'
+  const districtName = data.district || '—'
 
   const genderLabel = data.gender
     ? t(`apply.fields.gender${data.gender.charAt(0)}${data.gender.slice(1).toLowerCase()}`, data.gender)
