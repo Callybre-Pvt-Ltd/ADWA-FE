@@ -58,6 +58,7 @@ export function DistrictInchargeCardsList() {
   const isHi = i18n.language === 'hi'
   const { data: districts = [] } = useDistricts()
   const [districtFilter, setDistrictFilter] = useState('all')
+  const [stateFilter, setStateFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [viewCard, setViewCard] = useState<DistrictInchargeCard | null>(null)
@@ -78,10 +79,16 @@ export function DistrictInchargeCardsList() {
   })
   const cards = data?.items ?? []
 
-  const sortedDistricts = useMemo(
-    () => [...districts].sort((a, b) => a.name.localeCompare(b.name)),
+  const stateOptions = useMemo(
+    () => [...new Set(districts.map((d) => d.state).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
     [districts],
   )
+  const sortedDistricts = useMemo(() => {
+    const list = stateFilter === 'all'
+      ? districts
+      : districts.filter((d) => d.state === stateFilter)
+    return [...list].sort((a, b) => a.name.localeCompare(b.name))
+  }, [districts, stateFilter])
 
   const startEdit = (card: DistrictInchargeCard) => {
     const issuedAt = toDateInputValue(card.issuedAt)
@@ -193,25 +200,45 @@ export function DistrictInchargeCardsList() {
             {isHi ? 'जारी किए गए कार्ड' : 'Issued cards'}
           </h2>
         </div>
-        <Select
-          value={districtFilter}
-          onValueChange={(v) => {
-            setDistrictFilter(v)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger className="w-56">
-            <SelectValue placeholder={isHi ? 'जिला चुनें' : 'Filter by district'} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{isHi ? 'सभी जिले' : 'All districts'}</SelectItem>
-            {sortedDistricts.map((d) => (
-              <SelectItem key={d.id} value={d.id}>
-                {isHi ? districtMapEnToHi[d.name] || d.name : d.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={stateFilter}
+            onValueChange={(v) => {
+              setStateFilter(v)
+              setDistrictFilter('all')
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={isHi ? 'राज्य' : 'State'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{isHi ? 'सभी राज्य' : 'All states'}</SelectItem>
+              {stateOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={districtFilter}
+            onValueChange={(v) => {
+              setDistrictFilter(v)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder={isHi ? 'जिला चुनें' : 'Filter by district'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{isHi ? 'सभी जिले' : 'All districts'}</SelectItem>
+              {sortedDistricts.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {isHi ? districtMapEnToHi[d.name] || d.name : d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading && !data ? (

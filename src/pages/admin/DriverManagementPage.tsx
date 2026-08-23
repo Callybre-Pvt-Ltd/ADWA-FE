@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -40,6 +40,7 @@ export default function DriverManagementPage() {
   const isHi = i18n.language === 'hi'
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<DriverStatus | 'all'>('all')
+  const [stateFilter, setStateFilter] = useState('all')
   const [districtId, setDistrictId] = useState<string>('all')
   const [selected, setSelected] = useState<Driver | null>(null)
   const [suspendOpen, setSuspendOpen] = useState(false)
@@ -47,15 +48,27 @@ export default function DriverManagementPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
 
-  const { data: districts } = useDistricts()
+  const { data: districts = [] } = useDistricts()
   const { data: driverRes, isLoading, isError, refetch } = useDrivers({
     status: status === 'all' ? undefined : status,
+    state: stateFilter === 'all' ? undefined : stateFilter,
     districtId: districtId === 'all' ? undefined : districtId,
     page,
     size: 10,
     search: search || undefined,
   })
   const drivers = driverRes?.items ?? []
+
+  const stateOptions = useMemo(
+    () => [...new Set(districts.map((d) => d.state).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
+    [districts],
+  )
+  const filteredDistricts = useMemo(() => {
+    const list = stateFilter === 'all'
+      ? districts
+      : districts.filter((d) => d.state === stateFilter)
+    return [...list].sort((a, b) => a.name.localeCompare(b.name))
+  }, [districts, stateFilter])
   const suspend = useSuspendDriver()
   const activate = useActivateDriver()
   const { data: activeCard, isLoading: isLoadingCard } = useDriverActiveCard(selected?.id ?? null)
@@ -132,7 +145,7 @@ export default function DriverManagementPage() {
             onSearchChange: (v) => { setSearch(v); setPage(1) },
           }}
           actions={
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:flex-wrap">
               <Select value={status} onValueChange={(v) => { setStatus(v as typeof status); setPage(1) }} className="w-full sm:w-auto">
                 <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'स्थिति' : 'Status'} /></SelectTrigger>
                 <SelectContent>
@@ -142,11 +155,28 @@ export default function DriverManagementPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select
+                value={stateFilter}
+                onValueChange={(v) => {
+                  setStateFilter(v)
+                  setDistrictId('all')
+                  setPage(1)
+                }}
+                className="w-full sm:w-auto"
+              >
+                <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'राज्य' : 'State'} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{isHi ? 'सभी राज्य' : 'All States'}</SelectItem>
+                  {stateOptions.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={districtId} onValueChange={(v) => { setDistrictId(v); setPage(1) }} className="w-full sm:w-auto">
                 <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder={isHi ? 'जिला' : 'District'} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{isHi ? 'सभी जिले' : 'All Districts'}</SelectItem>
-                  {(districts ?? []).map((d) => (
+                  {filteredDistricts.map((d) => (
                     <SelectItem key={d.id} value={d.id}>{isHi ? (districtMapEnToHi[d.name] || d.name) : d.name}</SelectItem>
                   ))}
                 </SelectContent>

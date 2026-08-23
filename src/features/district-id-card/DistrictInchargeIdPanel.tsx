@@ -28,6 +28,7 @@ export function DistrictInchargeIdPanel() {
     expiryDate: plusOneYearIso(todayIso()),
   })
   const [districtId, setDistrictId] = useState<string>('')
+  const [stateFilter, setStateFilter] = useState('')
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null)
@@ -63,6 +64,7 @@ export function DistrictInchargeIdPanel() {
     setDistrictId(id)
     const d = districts.find((x) => x.id === id)
     if (!d) return
+    if (d.state && d.state !== stateFilter) setStateFilter(d.state)
     const name = isHi ? (districtMapEnToHi[d.name] || d.name) : d.name
     const code = (d.code || '').toUpperCase()
     setForm((prev) => ({
@@ -170,10 +172,28 @@ export function DistrictInchargeIdPanel() {
     action()
   }
 
-  const sortedDistricts = useMemo(
-    () => [...districts].sort((a, b) => a.name.localeCompare(b.name)),
+  const stateOptions = useMemo(
+    () => [...new Set(districts.map((d) => d.state).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
     [districts],
   )
+  const sortedDistricts = useMemo(() => {
+    const list = stateFilter
+      ? districts.filter((d) => d.state === stateFilter)
+      : districts
+    return [...list].sort((a, b) => a.name.localeCompare(b.name))
+  }, [districts, stateFilter])
+
+  const onStateChange = (state: string) => {
+    if (issued) return
+    setStateFilter(state)
+    setDistrictId('')
+    setForm((prev) => ({
+      ...prev,
+      districtName: '',
+      districtCode: '',
+      cardNumber: '',
+    }))
+  }
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
@@ -252,11 +272,29 @@ export function DistrictInchargeIdPanel() {
         )}
 
         <div>
+          <Label>{isHi ? 'राज्य' : 'State'}</Label>
+          <Select
+            value={stateFilter}
+            onValueChange={onStateChange}
+            disabled={districtsLoading || issued}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder={isHi ? 'राज्य चुनें' : 'Select state'} />
+            </SelectTrigger>
+            <SelectContent>
+              {stateOptions.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
           <Label>{isHi ? 'जिला' : 'District'}</Label>
           <Select
             value={districtId}
             onValueChange={onDistrictChange}
-            disabled={districtsLoading || issued}
+            disabled={districtsLoading || issued || !stateFilter}
           >
             <SelectTrigger className="mt-1">
               <SelectValue placeholder={isHi ? 'जिला चुनें' : 'Select district'} />

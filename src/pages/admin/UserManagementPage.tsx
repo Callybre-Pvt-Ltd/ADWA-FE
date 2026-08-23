@@ -56,9 +56,7 @@ export default function UserManagementPage() {
     size: 10,
     search: search || undefined,
   })
-  const { data: allUsersRes } = useUsers({ page: 1, size: 100 })
   const users = userRes?.items ?? []
-  const allUsers = allUsersRes?.items ?? users
   const { data: districts } = useDistricts()
   const createUser = useCreateUser()
   const updateUser = useUpdateUser()
@@ -77,24 +75,8 @@ export default function UserManagementPage() {
     defaultValues: { status: 'ACTIVE', districtId: '', password: '' },
   })
 
-  const assignedDistrictIds = useMemo(() => {
-    const ids = new Set<string>()
-    for (const u of allUsers) {
-      if (u.status === 'ACTIVE' && u.districtId) {
-        if (editing && u.id === editing.id) continue
-        ids.add(u.districtId)
-      }
-    }
-    return ids
-  }, [allUsers, editing])
-
-  const availableDistricts = useMemo(() => {
-    const list = districts ?? []
-    if (editing?.districtId) {
-      return list.filter((d) => d.id === editing.districtId || !assignedDistrictIds.has(d.id))
-    }
-    return list.filter((d) => !assignedDistrictIds.has(d.id))
-  }, [districts, assignedDistrictIds, editing])
+  // BE enforces one active incharge per district — list all districts here.
+  const availableDistricts = useMemo(() => districts ?? [], [districts])
 
   const openCreate = () => {
     setEditing(null)

@@ -5,6 +5,7 @@ export type RequestStatus =
   | 'FORWARDED_TO_ADMIN'
   | 'REJECTED_BY_ADMIN'
   | 'APPROVED'
+  | 'CANCELLED'
 
 export type DriverStatus =
   | 'APPROVED'
@@ -155,6 +156,7 @@ export type DriverFilters = {
   status?: DriverStatus | RequestStatus | 'all'
   district?: string
   districtId?: string
+  state?: string
   search?: string
   dateFrom?: string
   dateTo?: string

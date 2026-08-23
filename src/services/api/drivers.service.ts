@@ -40,6 +40,7 @@ export const driversService = {
       const params: Record<string, string | number | undefined> = {
         search: filters?.search,
         district_id: filters?.districtId ?? filters?.district,
+        state: filters?.state,
         page: filters?.page ?? 1,
         size: filters?.size ?? 10,
       }

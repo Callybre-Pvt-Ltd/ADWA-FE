@@ -101,6 +101,9 @@ export const driverRequestsService = {
       if (filters?.districtId) {
         params.district_id = filters.districtId
       }
+      if (filters?.state) {
+        params.state = filters.state
+      }
       const { data } = await apiClient.get<APIResponse<ApiDriverRequest[]>>(
         `/driver-requests${buildQueryParams(params)}`,
       )
@@ -138,7 +141,7 @@ export const driverRequestsService = {
   async forward(
     id: string,
     verificationRemarks: string | undefined,
-    paymentProof: File,
+    paymentProof?: File | null,
     diNotes?: string,
   ): Promise<DriverRequest> {
     try {
@@ -146,7 +149,7 @@ export const driverRequestsService = {
       // Always send remarks so FastAPI multipart parsing stays valid when other fields are empty.
       formData.append('verification_remarks', verificationRemarks?.trim() ?? '')
       if (diNotes?.trim()) formData.append('di_notes', diNotes.trim())
-      formData.append('payment_proof', paymentProof)
+      if (paymentProof) formData.append('payment_proof', paymentProof)
 
       const { data } = await apiClient.post<APIResponse<ApiDriverRequest>>(
         `/driver-requests/${id}/forward`,

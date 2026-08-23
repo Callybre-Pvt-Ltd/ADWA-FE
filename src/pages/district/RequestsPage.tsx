@@ -21,9 +21,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
 import type { DriverRequest, RequestStatus } from '@/types/driver.types'
-import { ClipboardList, Copy, Download } from 'lucide-react'
+import { ClipboardList, Download } from 'lucide-react'
 import { nameTranslations, districtMapEnToHi } from '@/utils/translations'
-import { PAYMENT_INFO } from '@/constants'
 import { toast } from 'sonner'
 import { cardsService, driversService } from '@/services'
 
@@ -33,7 +32,8 @@ const requestStatusMapEnToHi: Record<string, string> = {
   'REJECTED_BY_DISTRICT': 'जिला द्वारा अस्वीकृत',
   'APPROVED': 'स्वीकृत',
   'REJECTED': 'अस्वीकृत',
-  'PAYMENT_PENDING': 'भुगतान लंबित',
+  'REJECTED_BY_ADMIN': 'एडमिन द्वारा अस्वीकृत',
+  'CANCELLED': 'रद्द',
 }
 
 export default function RequestsPage() {
@@ -95,10 +95,6 @@ export default function RequestsPage() {
 
   const handleForward = () => {
     if (forwardApp.isPending || !selected || selected.registrationConflict) return
-    if (!paymentProof) {
-      toast.error(isHi ? 'भुगतान स्क्रीनशॉट आवश्यक है' : 'Payment screenshot is required')
-      return
-    }
     forwardApp.mutate(
       {
         id: selected.id,
@@ -259,67 +255,13 @@ export default function RequestsPage() {
               onClick={handleForward}
               loading={forwardApp.isPending}
               loadingText={isHi ? 'अग्रेषित हो रहा है…' : 'Forwarding…'}
-              disabled={Boolean(selected?.registrationConflict) || !paymentProof}
+              disabled={Boolean(selected?.registrationConflict)}
             >
               {isHi ? 'अग्रेषित करें' : 'Forward'}
             </Button>
           }
         >
           <div className="space-y-3">
-            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-blue-800">
-                {isHi ? 'भुगतान विवरण (UPI / बैंक)' : 'Payment details (UPI / bank)'}
-              </p>
-              <div className="flex flex-col items-center gap-3">
-                <img
-                  src={PAYMENT_INFO.upiQrSrc}
-                  alt={`${PAYMENT_INFO.accountHolder} UPI QR`}
-                  width={220}
-                  height={340}
-                  className="w-48 sm:w-56 rounded-xl border border-white shadow-sm bg-white object-contain"
-                  loading="eager"
-                  decoding="async"
-                />
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-semibold text-blue-900">{PAYMENT_INFO.upiId}</span>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 cursor-pointer"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(PAYMENT_INFO.upiId)
-                      toast.success(isHi ? 'UPI ID कॉपी हो गया' : 'UPI ID copied')
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {isHi ? 'कॉपी' : 'Copy'}
-                  </button>
-                </div>
-              </div>
-              <dl className="space-y-1.5 text-sm border-t border-blue-100 pt-3">
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
-                  <dt className="text-neutral-500 shrink-0">{isHi ? 'खाताधारक' : 'Account holder'}</dt>
-                  <dd className="font-semibold text-neutral-900 sm:text-right">{PAYMENT_INFO.accountHolder}</dd>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
-                  <dt className="text-neutral-500 shrink-0">{isHi ? 'बैंक' : 'Bank'}</dt>
-                  <dd className="font-semibold text-neutral-900 sm:text-right">
-                    {PAYMENT_INFO.bankName} {PAYMENT_INFO.accountNumberMasked}
-                  </dd>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
-                  <dt className="text-neutral-500 shrink-0">{isHi ? 'खाता संख्या' : 'Account number'}</dt>
-                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">{PAYMENT_INFO.accountNumber}</dd>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
-                  <dt className="text-neutral-500 shrink-0">IFSC</dt>
-                  <dd className="font-semibold text-neutral-900 font-mono sm:text-right tracking-wide">{PAYMENT_INFO.ifsc}</dd>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
-                  <dt className="text-neutral-500 shrink-0">{isHi ? 'शाखा' : 'Branch'}</dt>
-                  <dd className="font-medium text-neutral-800 sm:text-right">{PAYMENT_INFO.branch}</dd>
-                </div>
-              </dl>
-            </div>
             <div>
               <Label>{isHi ? 'नोट्स (वैकल्पिक)' : 'Notes (optional)'}</Label>
               <Textarea
@@ -329,21 +271,16 @@ export default function RequestsPage() {
               />
             </div>
             <div>
-              <Label className="flex items-center gap-1">
-                {isHi ? 'भुगतान स्क्रीनशॉट' : 'Payment screenshot'}
-                <span className="text-red-600">*</span>
-                <span className="text-[11px] font-normal text-red-600">
-                  ({isHi ? 'आवश्यक' : 'required'})
-                </span>
+              <Label>
+                {isHi ? 'भुगतान स्क्रीनशॉट (वैकल्पिक)' : 'Payment screenshot (optional)'}
               </Label>
               <Input
                 type="file"
                 accept="image/*"
                 className="mt-1"
                 onChange={(e) => setPaymentProof(e.target.files?.[0] ?? null)}
-                required
               />
-              {paymentProof ? (
+              {paymentProof && (
                 <div className="mt-2 space-y-2">
                   <p className="text-xs text-emerald-700 font-medium">
                     {isHi ? `चयनित: ${paymentProof.name}` : `Selected: ${paymentProof.name}`}
@@ -356,12 +293,6 @@ export default function RequestsPage() {
                     />
                   )}
                 </div>
-              ) : (
-                <p className="mt-1 text-xs text-amber-700">
-                  {isHi
-                    ? 'बिना भुगतान स्क्रीनशॉट के अग्रेषित नहीं कर सकते।'
-                    : 'You cannot forward without uploading the payment screenshot.'}
-                </p>
               )}
             </div>
           </div>

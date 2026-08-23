@@ -45,7 +45,7 @@ const translateStatusHi = (status: string) => {
     case 'REJECTED_BY_ADMIN': return 'एडमिन अस्वीकृत'
     case 'REJECTED_BY_DISTRICT': return 'जिला अस्वीकृत'
     case 'REJECTED': return 'अस्वीकृत'
-    case 'PAYMENT_PENDING': return 'भुगतान लंबित'
+    case 'CANCELLED': return 'रद्द'
     default: return status.replace(/_/g, ' ')
   }
 }
@@ -63,6 +63,7 @@ export default function ApplicationsPage() {
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [stateFilter, setStateFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
   const [approvedQr, setApprovedQr] = useState<{
     cardId: string
@@ -78,6 +79,7 @@ export default function ApplicationsPage() {
     size: 10,
     search: search || undefined,
     status: statusFilter === 'all' ? undefined : (statusFilter as RequestStatus),
+    state: stateFilter === 'all' ? undefined : stateFilter,
     districtId: districtFilter === 'all' ? undefined : districtFilter,
   })
   const applications = appRes?.items ?? []
@@ -85,10 +87,16 @@ export default function ApplicationsPage() {
   const approve = useApproveApplication()
   const reject = useRejectApplication()
 
-  const sortedDistricts = useMemo(
-    () => [...districts].sort((a, b) => a.name.localeCompare(b.name)),
+  const stateOptions = useMemo(
+    () => [...new Set(districts.map((d) => d.state).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
     [districts],
   )
+  const sortedDistricts = useMemo(() => {
+    const list = stateFilter === 'all'
+      ? districts
+      : districts.filter((d) => d.state === stateFilter)
+    return [...list].sort((a, b) => a.name.localeCompare(b.name))
+  }, [districts, stateFilter])
 
   const columns: ColumnDef<DriverRequest>[] = [
     { key: 'ref', header: t('apps.colRef'), cell: (r) => r.referenceNumber ?? r.id.slice(0, 8), sortable: true, sortValue: (r) => r.referenceNumber ?? r.id },
@@ -157,7 +165,25 @@ export default function ApplicationsPage() {
         title={t('apps.title')}
         subtitle={t('apps.subtitle')}
         action={
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:flex-wrap">
+            <Select
+              value={stateFilter}
+              onValueChange={(v) => {
+                setStateFilter(v)
+                setDistrictFilter('all')
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={isHi ? 'राज्य' : 'State'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{isHi ? 'सभी राज्य' : 'All states'}</SelectItem>
+                {stateOptions.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select
               value={districtFilter}
               onValueChange={(v) => { setDistrictFilter(v); setPage(1) }}

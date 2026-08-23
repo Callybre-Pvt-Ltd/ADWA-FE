@@ -53,7 +53,6 @@ export function statusToVariant(status: string): BadgeVariant {
     pending: 'warning',
     approved: 'info',
     rejected: 'danger',
-    payment_pending: 'warning',
     payment_confirmed: 'info',
     id_generated: 'success',
     expired: 'danger',

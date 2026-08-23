@@ -61,9 +61,8 @@ export default function DistrictManagementPage() {
     size: 15,
     search: search || undefined,
   })
-  const { data: allUsersRes } = useUsers({ page: 1, size: 500 })
   const users = userRes?.items ?? []
-  const allUsers = allUsersRes?.items ?? users
+  const inchargeTotal = userRes?.total ?? 0
   const { data: districts } = useDistricts()
   const createUser = useCreateUser()
   const updateUser = useUpdateUser()
@@ -92,26 +91,12 @@ export default function DistrictManagementPage() {
     return INDIA_STATE_NAMES.filter((s) => present.has(s))
   }, [districts])
 
-  const assignedDistrictIds = useMemo(() => {
-    const ids = new Set<string>()
-    for (const u of allUsers) {
-      if (u.status === 'ACTIVE' && u.districtId) {
-        if (editing && u.id === editing.id) continue
-        ids.add(u.districtId)
-      }
-    }
-    return ids
-  }, [allUsers, editing])
-
+  // BE enforces one active incharge per district — list all districts for the selected state.
   const availableDistrictsForForm = useMemo(() => {
-    const list = (districts ?? []).filter(
+    return (districts ?? []).filter(
       (d) => d.status === 'active' && (!formState || d.state === formState),
     )
-    if (editing?.districtId) {
-      return list.filter((d) => d.id === editing.districtId || !assignedDistrictIds.has(d.id))
-    }
-    return list.filter((d) => !assignedDistrictIds.has(d.id))
-  }, [districts, assignedDistrictIds, editing, formState])
+  }, [districts, formState])
 
   const filteredUsers = useMemo(() => {
     if (!filterState) return users
@@ -124,16 +109,13 @@ export default function DistrictManagementPage() {
   const stats = useMemo(() => {
     const activeDistricts = (districts ?? []).filter((d) => d.status === 'active')
     const states = new Set(activeDistricts.map((d) => d.state))
-    const withIncharge = new Set(
-      allUsers.filter((u) => u.status === 'ACTIVE' && u.districtId).map((u) => u.districtId),
-    )
     return {
       states: states.size,
       districts: activeDistricts.length,
-      incharges: allUsers.filter((u) => u.status === 'ACTIVE').length,
-      uncovered: activeDistricts.filter((d) => !withIncharge.has(d.id)).length,
+      incharges: inchargeTotal,
+      uncovered: Math.max(0, activeDistricts.length - inchargeTotal),
     }
-  }, [districts, allUsers])
+  }, [districts, inchargeTotal])
 
   const openCreate = () => {
     setEditing(null)
