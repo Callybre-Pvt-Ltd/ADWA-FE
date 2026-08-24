@@ -44,7 +44,6 @@ export default function MultiStepForm() {
   const [districtContact, setDistrictContact] = useState<{
     phone: string
     name?: string
-    isDistrict: boolean
   } | null>(null)
   const [declared, setDeclared] = useState(false)
   const submitRequest = useSubmitDriverRequest()
@@ -85,15 +84,9 @@ export default function MultiStepForm() {
         setDistrictContact({
           phone,
           name: result.districtContactName || undefined,
-          isDistrict: true,
         })
       } else {
-        // No real district helpline — show state/admin contact + ref number.
-        setDistrictContact({
-          phone: CONTACT_INFO.supportPhone,
-          name: undefined,
-          isDistrict: false,
-        })
+        setDistrictContact(null)
       }
     } catch {
       // The mutation hook displays the API error toast.
@@ -113,7 +106,7 @@ export default function MultiStepForm() {
         <div className="flex flex-col items-center justify-center pb-5 mb-5 border-b border-neutral-100 print:pb-4 print:mb-4 print:border-neutral-200">
           <AdwaSeal size="md" className="mb-2" />
           <h1 className="text-xs sm:text-sm font-extrabold text-neutral-900 tracking-wide uppercase">
-            Auto-Rickshaw Driver Welfare Association
+            All Drivers Welfare Association
           </h1>
           <p className="text-xs text-neutral-500 font-medium mt-0.5">Application Submission Receipt</p>
         </div>
@@ -130,30 +123,42 @@ export default function MultiStepForm() {
           <p className="mt-2 text-xs text-neutral-500">{t('apply.successSave')}</p>
         </div>
 
-        {districtContact && (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-left">
-            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="mt-4 space-y-3 text-left">
+          {districtContact && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+              <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" />
+                {t('apply.successDistrictContact')}
+              </p>
+              {districtContact.name && (
+                <p className="mt-1 text-sm font-medium text-neutral-800">{districtContact.name}</p>
+              )}
+              <a
+                href={`tel:${districtContact.phone.replace(/\s+/g, '')}`}
+                className="mt-1 inline-block text-lg font-bold text-emerald-900 font-mono tracking-wide hover:underline"
+              >
+                {districtContact.phone}
+              </a>
+              <p className="mt-2 text-xs text-neutral-500">{t('apply.successContactHint')}</p>
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4">
+            <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5" />
-              {districtContact.isDistrict
-                ? t('apply.successDistrictContact')
-                : t('apply.successAdminContact')}
+              {t('apply.successAdminContact')}
             </p>
-            {districtContact.name && (
-              <p className="mt-1 text-sm font-medium text-neutral-800">{districtContact.name}</p>
-            )}
             <a
-              href={`tel:${districtContact.isDistrict ? districtContact.phone.replace(/\s+/g, '') : CONTACT_INFO.phoneTel}`}
-              className="mt-1 inline-block text-lg font-bold text-emerald-900 font-mono tracking-wide hover:underline"
+              href={`tel:${CONTACT_INFO.phoneTel}`}
+              className="mt-1 inline-block text-lg font-bold text-blue-900 font-mono tracking-wide hover:underline"
             >
-              {districtContact.phone}
+              {CONTACT_INFO.supportPhone}
             </a>
             <p className="mt-2 text-xs text-neutral-500">
-              {districtContact.isDistrict
-                ? t('apply.successContactHint')
-                : t('apply.successAdminContactHint', { ref: referenceNumber })}
+              {t('apply.successAdminContactHint', { ref: referenceNumber })}
             </p>
           </div>
-        )}
+        </div>
 
         <p className="mt-4 text-sm text-neutral-500 leading-relaxed print:text-xs print:mt-3">{t('apply.successMsg')}</p>
 
