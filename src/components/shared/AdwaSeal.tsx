@@ -23,7 +23,7 @@ export function AdwaSeal({ size = 'md', className }: AdwaSealProps) {
     >
       <img
         src={logoImg}
-        alt="ADWA Logo"
+        alt="ADWA — All Drivers Welfare Association logo"
         className="h-full w-full object-cover scale-[1.35]"
       />
     </div>

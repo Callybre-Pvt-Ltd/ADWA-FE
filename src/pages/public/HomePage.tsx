@@ -113,16 +113,16 @@ export default function HomePage() {
               <div className="flex justify-center lg:justify-start items-center gap-4 mb-6">
                 <AdwaSeal size="lg" />
                 <div className="text-left">
-                  <p className="text-lg sm:text-xl font-black text-white leading-tight">
+                  <h1 className="text-lg sm:text-xl font-black text-white leading-tight">
                     {isHi ? 'ऑल ड्राइवर्स वेलफेयर' : 'All Drivers Welfare'}
-                  </p>
-                  <p className="text-lg sm:text-xl font-black text-orange-300 leading-tight">
-                    {isHi ? 'एसोसिएशन' : 'Association'}
-                  </p>
+                    <span className="block text-orange-300">
+                      {isHi ? 'एसोसिएशन (ADWA)' : 'Association (ADWA)'}
+                    </span>
+                  </h1>
                   <p className="text-xs text-white/50 mt-0.5">
                     {isHi
                       ? `पंजीकरण क्रमांक: ${CONTACT_INFO.registryNumber} · म.प्र.`
-                      : `Reg. ${CONTACT_INFO.registryNumber} · M.P.`}
+                      : `Reg. ${CONTACT_INFO.registryNumber} · M.P. · alldriverswelfareassociation.org`}
                   </p>
                 </div>
               </div>
@@ -386,6 +386,27 @@ export default function HomePage() {
               )
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Brand SEO — crawlable entity text for alldrivers / drivers association queries */}
+      <section className="section-padding bg-white border-t border-neutral-100" aria-labelledby="adwa-brand-seo">
+        <div className="container-wide max-w-3xl">
+          <h2 id="adwa-brand-seo" className="text-xl font-extrabold text-neutral-900">
+            {isHi
+              ? 'ADWA — ऑल ड्राइवर्स वेलफेयर एसोसिएशन (आधिकारिक)'
+              : 'ADWA — All Drivers Welfare Association (Official)'}
+          </h2>
+          <p className="mt-3 text-sm text-neutral-600 leading-relaxed">
+            {isHi
+              ? 'ADWA (ऑल ड्राइवर्स वेलफेयर एसोसिएशन) पेशेवर ड्राइवरों की आधिकारिक ड्राइवर्स एसोसिएशन है। हमारी वेबसाइट alldriverswelfareassociation.org है — नाम में Drivers (बहुवचन) है। ADWA, alldrivers, drivers association जैसी खोजें इसी संगठन को दर्शाती हैं।'
+              : 'ADWA (All Drivers Welfare Association) is the official drivers association for professional drivers. Our website is alldriverswelfareassociation.org — note the plural Drivers. Searches for ADWA, adwa, alldrivers, all drivers, drivers association, and drivers welfare association refer to this organisation.'}
+          </p>
+          <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
+            {isHi
+              ? 'एक समान नाम वाली साइट जो domain में singular “driver” इस्तेमाल करती है, ADWA से जुड़ी नहीं है। केवल https://www.alldriverswelfareassociation.org/ ही आधिकारिक पोर्टल है।'
+              : 'A similarly named website that uses singular “driver” in its domain is not affiliated with ADWA. Only https://www.alldriverswelfareassociation.org/ is the official portal for membership, digital driver ID cards, renewal and QR verification.'}
+          </p>
         </div>
       </section>
 

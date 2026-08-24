@@ -23,6 +23,42 @@ export default function AboutPage() {
           <motion.div {...fadeInUp} className="prose max-w-none">
             <p className="text-lg text-neutral-700">{t('about.aboutText')}</p>
           </motion.div>
+          <motion.aside
+            {...fadeInUp}
+            className="mt-8 rounded-xl border border-navy-100 bg-navy-50/60 p-5 text-sm text-neutral-800"
+          >
+            <h2 className="text-base font-bold text-navy-900">
+              Official name: All Drivers Welfare Association (ADWA)
+            </h2>
+            <p className="mt-2 leading-relaxed">
+              Our organisation is <strong>All Drivers Welfare Association</strong> — note the
+              plural <strong>Drivers</strong>. The official website is{' '}
+              <a
+                className="font-semibold text-navy-700 underline underline-offset-2"
+                href="https://www.alldriverswelfareassociation.org/"
+              >
+                alldriverswelfareassociation.org
+              </a>
+              . Searches for <strong>ADWA</strong> or <strong>adwa</strong> refer to this site.
+              A similarly named website that uses singular “driver” in the domain is not affiliated
+              with ADWA.
+            </p>
+            <dl className="mt-4 space-y-3 border-t border-navy-100 pt-4">
+              <div>
+                <dt className="font-semibold text-navy-900">What is ADWA?</dt>
+                <dd className="mt-1 text-neutral-700">
+                  ADWA is All Drivers Welfare Association — digital membership, verified driver ID
+                  cards and welfare support for professional drivers in Madhya Pradesh, India.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-navy-900">Official website?</dt>
+                <dd className="mt-1 text-neutral-700">
+                  https://www.alldriverswelfareassociation.org/ (Drivers with an “s”).
+                </dd>
+              </div>
+            </dl>
+          </motion.aside>
         </div>
       </section>
 

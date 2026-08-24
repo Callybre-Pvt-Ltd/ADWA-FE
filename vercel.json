@@ -26,7 +26,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|id_card/|favicon\\.png|robots\\.txt).*)",
+      "source": "/((?!assets/|id_card/|gallery/|members/|payment/|favicon\\.png|favicon-.*\\.png|apple-touch-icon\\.png|logo\\.png|og-logo\\.png|favicon\\.svg|robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|icons\\.svg).*)",
       "destination": "/index.html"
     }
   ]

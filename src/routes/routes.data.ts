@@ -32,7 +32,11 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: true,
     showInSidebar: false,
     navOrder: 1,
-    meta: { title: 'Home' },
+    meta: {
+      title: 'ADWA — All Drivers Welfare Association',
+      description:
+        'Official All Drivers Welfare Association (ADWA). Plural Drivers — alldriverswelfareassociation.org.',
+    },
   },
   {
     key: 'services',
@@ -44,7 +48,10 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: true,
     showInSidebar: false,
     navOrder: 2,
-    meta: { title: 'Services' },
+    meta: {
+      title: 'Driver Services | ADWA',
+      description: 'ADWA digital ID, membership, renewal and verification services.',
+    },
   },
   {
     key: 'apply',
@@ -56,7 +63,10 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: true,
     showInSidebar: false,
     navOrder: 3,
-    meta: { title: 'Application' },
+    meta: {
+      title: 'Apply for Driver Membership | ADWA',
+      description: 'Apply online for All Drivers Welfare Association membership and ID card.',
+    },
   },
   {
     key: 'renewal',
@@ -68,7 +78,7 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: false,
     navOrder: 4,
-    meta: { title: 'Renewal' },
+    meta: { title: 'Renew Membership | ADWA', description: 'Renew your ADWA driver membership online.' },
   },
   {
     key: 'status',
@@ -80,7 +90,7 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: false,
     navOrder: 5,
-    meta: { title: 'Application Status' },
+    meta: { title: 'Application Status | ADWA', description: 'Track your ADWA application status.' },
   },
   {
     key: 'download',
@@ -92,7 +102,7 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: false,
     navOrder: 6,
-    meta: { title: 'Download Center' },
+    meta: { title: 'Download Center | ADWA', description: 'Download ADWA ID cards and documents.' },
   },
   // Secondary pages — accessible via footer / services, not navbar
   {
@@ -104,7 +114,10 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'About' },
+    meta: {
+      title: 'About ADWA — All Drivers Welfare Association',
+      description: 'About the official All Drivers Welfare Association (plural Drivers).',
+    },
   },
   {
     key: 'history',
@@ -115,7 +128,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'History' },
+    meta: { title: 'History | ADWA' },
   },
   {
     key: 'guidelines',
@@ -126,7 +139,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Guidelines' },
+    meta: { title: 'Guidelines | ADWA' },
   },
   {
     key: 'rules',
@@ -137,7 +150,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Rules' },
+    meta: { title: 'Rules | ADWA' },
   },
   {
     key: 'team',
@@ -148,7 +161,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Team' },
+    meta: { title: 'Team | ADWA' },
   },
   {
     key: 'gallery',
@@ -160,7 +173,7 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: true,
     showInSidebar: false,
     navOrder: 6,
-    meta: { title: 'Gallery' },
+    meta: { title: 'Gallery | ADWA' },
   },
   {
     key: 'members',
@@ -172,7 +185,7 @@ export const publicRoutes: RouteConfig[] = [
     showInNav: false,
     showInSidebar: false,
     navOrder: 5,
-    meta: { title: 'Members' },
+    meta: { title: 'Members | ADWA' },
   },
   {
     key: 'notifications',
@@ -183,7 +196,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Notifications' },
+    meta: { title: 'Notifications | ADWA' },
   },
   {
     key: 'verify',
@@ -194,7 +207,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Verify Card' },
+    meta: { title: 'Verify Driver ID | ADWA' },
   },
   {
     key: 'contact',
@@ -205,7 +218,7 @@ export const publicRoutes: RouteConfig[] = [
     layout: 'public',
     showInNav: false,
     showInSidebar: false,
-    meta: { title: 'Contact' },
+    meta: { title: 'Contact ADWA', description: 'Contact All Drivers Welfare Association.' },
   },
 ]
 
