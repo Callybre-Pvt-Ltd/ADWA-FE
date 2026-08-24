@@ -11,7 +11,7 @@ export const SITE = {
   ogImagePath: '/og-logo.png',
   logoPath: '/logo.png',
   email: 'alldriverwelfareassociation.mp@gmail.com',
-  phone: '+91-9589074870',
+  phone: '+91-9977282547',
   address: {
     street: 'House No. 08, Bhouri, Tehsil Huzur',
     locality: 'Bhopal',
