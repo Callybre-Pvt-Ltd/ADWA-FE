@@ -88,7 +88,7 @@ export default function MultiStepForm() {
           isDistrict: true,
         })
       } else {
-        // No district / incharge mobile — fall back to admin helpline + ref number.
+        // No real district helpline — show state/admin contact + ref number.
         setDistrictContact({
           phone: CONTACT_INFO.supportPhone,
           name: undefined,
