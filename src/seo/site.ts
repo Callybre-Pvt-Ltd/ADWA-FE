@@ -26,10 +26,10 @@ export const SITE = {
 } as const
 
 export const DEFAULT_TITLE =
-  'All Drivers Welfare Association (ADWA) | Official alldrivers Site — Drivers Association India'
+  'ADWA | Official All Drivers Welfare Association — alldriverswelfareassociation.org'
 
 export const DEFAULT_DESCRIPTION =
-  'Official All Drivers Welfare Association (ADWA) — search “alldrivers”, “drivers association”, “ADWA”. Digital driver ID, membership & welfare at alldriverswelfareassociation.org (Drivers with an “s”). Not the singular-driver lookalike site.'
+  'ADWA (All Drivers Welfare Association) official website. Search ADWA, adwa, alldrivers, drivers association. Membership & digital driver ID at alldriverswelfareassociation.org (Drivers with an “s”). Not alldriverwelfareassociation.org.'
 
 /**
  * Aggressive keyword coverage for brand + related searches.
@@ -40,9 +40,14 @@ export const DEFAULT_KEYWORDS = [
   'ADWA',
   'adwa',
   'ADWA official',
+  'ADWA official website',
+  'what is ADWA',
+  'ADWA meaning',
   'ADWA India',
   'ADWA website',
   'ADWA online',
+  'ADWA Madhya Pradesh',
+  'ADWA Bhopal',
   // Full name + plurals
   'All Drivers Welfare Association',
   'All Drivers Welfare',
@@ -94,6 +99,12 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     path: '/',
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
+  },
+  '/adwa': {
+    path: '/adwa',
+    title: 'ADWA | What is ADWA? Official All Drivers Welfare Association',
+    description:
+      'ADWA means All Drivers Welfare Association. Official website alldriverswelfareassociation.org. Apply for membership and driver ID. Not affiliated with singular-driver lookalike sites.',
   },
   '/services': {
     path: '/services',

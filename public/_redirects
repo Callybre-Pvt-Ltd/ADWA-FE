@@ -1,7 +1,12 @@
+/favicon.ico  /favicon.ico  200
+/favicon-48x48.png  /favicon-48x48.png  200
+/favicon-96x96.png  /favicon-96x96.png  200
 /robots.txt  /robots.txt  200
 /sitemap.xml  /sitemap.xml  200
 /llms.txt  /llms.txt  200
 /site.webmanifest  /site.webmanifest  200
 /logo.png  /logo.png  200
 /favicon.png  /favicon.png  200
+/adwa  /adwa.html  200
+/adwa/  /adwa.html  200
 /*    /index.html   200

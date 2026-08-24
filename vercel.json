@@ -26,7 +26,15 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|id_card/|gallery/|members/|payment/|favicon\\.png|favicon-.*\\.png|apple-touch-icon\\.png|logo\\.png|og-logo\\.png|favicon\\.svg|robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|icons\\.svg).*)",
+      "source": "/adwa",
+      "destination": "/adwa.html"
+    },
+    {
+      "source": "/adwa/",
+      "destination": "/adwa.html"
+    },
+    {
+      "source": "/((?!assets/|id_card/|gallery/|members/|payment/|adwa\\.html|favicon\\.ico|favicon\\.png|favicon-.*\\.png|apple-touch-icon\\.png|logo\\.png|og-logo\\.png|favicon\\.svg|robots\\.txt|sitemap\\.xml|llms\\.txt|site\\.webmanifest|icons\\.svg).*)",
       "destination": "/index.html"
     }
   ]

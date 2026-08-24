@@ -92,6 +92,14 @@ export function Footer() {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <a
+                    href="/adwa"
+                    className="text-sm md:text-base text-white/80 hover:text-orange-400 font-medium transition-colors"
+                  >
+                    What is ADWA?
+                  </a>
+                </li>
               </ul>
             </div>
 

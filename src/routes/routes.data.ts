@@ -33,9 +33,23 @@ export const publicRoutes: RouteConfig[] = [
     showInSidebar: false,
     navOrder: 1,
     meta: {
-      title: 'ADWA — All Drivers Welfare Association',
+      title: 'ADWA | Official All Drivers Welfare Association',
       description:
-        'Official All Drivers Welfare Association (ADWA). Plural Drivers — alldriverswelfareassociation.org.',
+        'ADWA official website — All Drivers Welfare Association. alldriverswelfareassociation.org',
+    },
+  },
+  {
+    key: 'adwa',
+    path: '/adwa',
+    label: 'nav.about',
+    icon: 'BadgeCheck',
+    component: lazyPage(() => import('../pages/public/AdwaBrandPage')),
+    layout: 'public',
+    showInNav: false,
+    showInSidebar: false,
+    meta: {
+      title: 'ADWA | What is ADWA?',
+      description: 'ADWA means All Drivers Welfare Association — official website.',
     },
   },
   {
