@@ -125,7 +125,10 @@ export function DataTable<T>({
   }, [data, search, sortKey, sortDir, columns, isServer])
 
   const totalPages = isServer ? (pagination?.totalPages ?? 1) : Math.ceil(filtered.length / PAGE_SIZE)
-  const paged = isServer ? data : filtered.slice(localPage * PAGE_SIZE, (localPage + 1) * PAGE_SIZE)
+  // Server mode still paginates server-side, but a column-sort click should
+  // reorder the current page instead of being a silent no-op — `filtered`
+  // already carries the sort, it was just being discarded here.
+  const paged = isServer ? filtered : filtered.slice(localPage * PAGE_SIZE, (localPage + 1) * PAGE_SIZE)
 
   const handleSort = (key: string) => {
     if (sortKey === key) {

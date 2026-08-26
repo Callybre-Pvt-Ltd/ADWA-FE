@@ -108,20 +108,33 @@ export const cardsService = {
     }
   },
 
-  /** Fetch the generated PDF and trigger a browser download. */
-  async downloadPdf(id: string, filename?: string): Promise<void> {
-    const { downloadUrl } = await this.getDownloadUrl(id)
-    const response = await fetch(downloadUrl)
-    if (!response.ok) {
-      throw new Error('Could not download ID card PDF. Try again in a moment.')
+  /**
+   * Open the generated PDF for download.
+   *
+   * Deliberately NOT fetch→blob→createObjectURL→click: in-app browsers
+   * (WhatsApp/Instagram Custom Tabs) don't reliably support Blob downloads —
+   * it renderer-crashes on first tap there. A plain navigation to the real
+   * signed URL lets the browser's native download/PDF handling take over,
+   * which every embedded browser supports.
+   *
+   * The blank tab is opened synchronously (before the `await`) so it still
+   * counts as a direct result of the user gesture and isn't popup-blocked.
+   */
+  async downloadPdf(id: string, _filename?: string): Promise<void> {
+    const tab = window.open('', '_blank')
+    try {
+      const { downloadUrl } = await this.getDownloadUrl(id)
+      if (tab) {
+        tab.location.href = downloadUrl
+      } else {
+        // Popup blocked (e.g. gesture link broken by an await elsewhere) —
+        // fall back to same-tab navigation rather than silently doing nothing.
+        window.location.href = downloadUrl
+      }
+    } catch (error) {
+      tab?.close()
+      throw error
     }
-    const blob = await response.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = objectUrl
-    link.download = filename ?? `adwa-id-card-${id}.pdf`
-    link.click()
-    URL.revokeObjectURL(objectUrl)
   },
 
   async getVerifyUrl(id: string): Promise<{ verificationUrl: string; verificationCode: string }> {

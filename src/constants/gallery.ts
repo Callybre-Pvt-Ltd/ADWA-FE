@@ -66,10 +66,10 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   { kind: 'image', src: '/gallery/event-37.webp', altEn: 'Association event photo', altHi: 'संघ कार्यक्रम की तस्वीर', width: 1600, height: 1200 },
   { kind: 'image', src: '/gallery/event-38.webp', altEn: 'Association event photo', altHi: 'संघ कार्यक्रम की तस्वीर', width: 1600, height: 1205 },
   { kind: 'image', src: '/gallery/event-39.webp', altEn: 'Association event photo', altHi: 'संघ कार्यक्रम की तस्वीर', width: 1440, height: 1084 },
+  { kind: 'image', src: '/gallery/event-40.webp', altEn: 'Association event photo', altHi: 'संघ कार्यक्रम की तस्वीर', width: 963, height: 1280 },
   { kind: 'video', src: '/gallery/event-video-1.mp4', poster: '/gallery/event-video-1-poster.webp', altEn: 'Association event video', altHi: 'संघ कार्यक्रम वीडियो', width: 360, height: 640, durationSec: 97 },
-  { kind: 'video', src: '/gallery/event-video-2.mp4', poster: '/gallery/event-video-2-poster.webp', altEn: 'Association event video', altHi: 'संघ कार्यक्रम वीडियो', width: 360, height: 640, durationSec: 262 },
-  { kind: 'video', src: '/gallery/event-video-3.mp4', poster: '/gallery/event-video-3-poster.webp', altEn: 'Association event video', altHi: 'संघ कार्यक्रम वीडियो', width: 848, height: 478, durationSec: 17 },
   { kind: 'video', src: '/gallery/event-video-4.mp4', poster: '/gallery/event-video-4-poster.webp', altEn: 'Association event video', altHi: 'संघ कार्यक्रम वीडियो', width: 960, height: 960, durationSec: 31 },
+  { kind: 'video', src: '/gallery/event-video-5.mp4', poster: '/gallery/event-video-5-poster.webp', altEn: 'Association event video', altHi: 'संघ कार्यक्रम वीडियो', width: 480, height: 850, durationSec: 303 },
 ]
 
 /** @deprecated kept for any lingering imports — use GALLERY_ITEMS */
