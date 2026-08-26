@@ -119,8 +119,12 @@ export const cardsService = {
    *
    * The blank tab is opened synchronously (before the `await`) so it still
    * counts as a direct result of the user gesture and isn't popup-blocked.
+   *
+   * No filename param: the browser names the file from the signed URL /
+   * its Content-Disposition — we no longer control it client-side since
+   * there's no blob to attach a `download` attribute to.
    */
-  async downloadPdf(id: string, _filename?: string): Promise<void> {
+  async downloadPdf(id: string): Promise<void> {
     const tab = window.open('', '_blank')
     try {
       const { downloadUrl } = await this.getDownloadUrl(id)

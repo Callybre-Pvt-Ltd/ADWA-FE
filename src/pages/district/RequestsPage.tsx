@@ -142,10 +142,7 @@ export default function RequestsPage() {
         )
       }
       const card = await driversService.getActiveCard(driver.id)
-      await cardsService.downloadPdf(
-        card.id,
-        `ADWA-${driver.memberNumber || card.cardNumber}.pdf`,
-      )
+      await cardsService.downloadPdf(card.id)
       toast.success(isHi ? 'कार्ड डाउनलोड होना शुरू हो गया है' : 'Card download started')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : (isHi ? 'डाउनलोड विफल' : 'Download failed'))
