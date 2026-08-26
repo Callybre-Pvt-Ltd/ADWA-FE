@@ -109,36 +109,20 @@ export const cardsService = {
   },
 
   /**
-   * Open the generated PDF for download.
+   * Trigger the generated PDF's download.
    *
    * Deliberately NOT fetch→blob→createObjectURL→click: in-app browsers
    * (WhatsApp/Instagram Custom Tabs) don't reliably support Blob downloads —
-   * it renderer-crashes on first tap there. A plain navigation to the real
-   * signed URL lets the browser's native download/PDF handling take over,
-   * which every embedded browser supports.
-   *
-   * The blank tab is opened synchronously (before the `await`) so it still
-   * counts as a direct result of the user gesture and isn't popup-blocked.
-   *
-   * No filename param: the browser names the file from the signed URL /
-   * its Content-Disposition — we no longer control it client-side since
-   * there's no blob to attach a `download` attribute to.
+   * it renderer-crashes on first tap there. Also deliberately NOT a new
+   * tab: the signed URL now carries `?download=` (see driver_card_service),
+   * so the storage host responds with Content-Disposition: attachment — a
+   * same-tab navigation to it downloads the file without actually leaving
+   * the page, which is exactly "click → file downloads" with no
+   * about:blank tab and no dead PDF-viewer page to land on.
    */
   async downloadPdf(id: string): Promise<void> {
-    const tab = window.open('', '_blank')
-    try {
-      const { downloadUrl } = await this.getDownloadUrl(id)
-      if (tab) {
-        tab.location.href = downloadUrl
-      } else {
-        // Popup blocked (e.g. gesture link broken by an await elsewhere) —
-        // fall back to same-tab navigation rather than silently doing nothing.
-        window.location.href = downloadUrl
-      }
-    } catch (error) {
-      tab?.close()
-      throw error
-    }
+    const { downloadUrl } = await this.getDownloadUrl(id)
+    window.location.href = downloadUrl
   },
 
   async getVerifyUrl(id: string): Promise<{ verificationUrl: string; verificationCode: string }> {
