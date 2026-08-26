@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useDriverRequestList,
   useDriverRequest,
   useForwardApplication,
   useRejectApplication,
 } from '@/hooks/useDriverRequests'
+import { CARDS_QUERY_KEY } from '@/hooks/useCards'
+import { PRESELECT_STORAGE_KEY } from '@/features/id-card/preselect'
 import { DriverRequestDetailView } from '@/features/driver-request/DriverRequestDetailView'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
@@ -24,7 +28,7 @@ import type { DriverRequest, RequestStatus } from '@/types/driver.types'
 import { ClipboardList, Download } from 'lucide-react'
 import { nameTranslations, districtMapEnToHi } from '@/utils/translations'
 import { toast } from 'sonner'
-import { cardsService, driversService } from '@/services'
+import { driversService } from '@/services'
 
 const requestStatusMapEnToHi: Record<string, string> = {
   'PENDING_DISTRICT_REVIEW': 'जिला समीक्षा लंबित',
@@ -39,6 +43,8 @@ const requestStatusMapEnToHi: Record<string, string> = {
 export default function RequestsPage() {
   const { i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [status, setStatus] = useState<string>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [rejectOpen, setRejectOpen] = useState(false)
@@ -79,7 +85,13 @@ export default function RequestsPage() {
   }
 
   const columns: ColumnDef<DriverRequest>[] = [
-    { key: 'ref', header: isHi ? 'आवेदन #' : 'Application No.', cell: (r) => r.referenceNumber ?? r.id.slice(0, 8) },
+    {
+      key: 'ref',
+      header: isHi ? 'आवेदन #' : 'Application No.',
+      cell: (r) => r.referenceNumber ?? r.id.slice(0, 8),
+      sortable: true,
+      sortValue: (r) => r.referenceNumber ?? r.id,
+    },
     { key: 'name', header: isHi ? 'नाम' : 'Name', cell: (r) => isHi ? (nameTranslations[r.name] || r.name) : r.name, sortable: true, sortValue: (r) => r.name },
     { key: 'mobile', header: isHi ? 'मोबाइल' : 'Mobile', cell: (r) => r.mobile },
     { key: 'district', header: isHi ? 'जिला' : 'District', cell: (r) => isHi ? (districtMapEnToHi[r.district] || r.district) : r.district },
@@ -128,6 +140,21 @@ export default function RequestsPage() {
 
   const handleDownloadApprovedCard = async () => {
     if (!selected || selected.status !== 'APPROVED' || downloadingCard) return
+    const go = (cardId: string) => {
+      try {
+        sessionStorage.setItem(PRESELECT_STORAGE_KEY, cardId)
+      } catch {
+        /* ignore */
+      }
+      void queryClient.invalidateQueries({ queryKey: CARDS_QUERY_KEY })
+      navigate(`/district/id-generation?cardId=${encodeURIComponent(cardId)}`)
+    }
+    // The request response carries the driver's active card id directly
+    // (resolved server-side) — no more guessing the driver by mobile/name.
+    if (selected.activeCardId) {
+      go(selected.activeCardId)
+      return
+    }
     setDownloadingCard(true)
     try {
       const res = await driversService.getAll({ search: selected.mobile, size: 20 })
@@ -142,8 +169,7 @@ export default function RequestsPage() {
         )
       }
       const card = await driversService.getActiveCard(driver.id)
-      await cardsService.downloadPdf(card.id)
-      toast.success(isHi ? 'कार्ड डाउनलोड होना शुरू हो गया है' : 'Card download started')
+      go(card.id)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : (isHi ? 'डाउनलोड विफल' : 'Download failed'))
     } finally {
@@ -218,7 +244,7 @@ export default function RequestsPage() {
                 className="w-full cursor-pointer gap-2"
                 onClick={() => void handleDownloadApprovedCard()}
                 loading={downloadingCard}
-                loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
+                loadingText={isHi ? 'खोला जा रहा है…' : 'Opening…'}
               >
                 <Download className="h-4 w-4" />
                 {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}

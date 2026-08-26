@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useDrivers, useDriverActiveCard } from '@/hooks/useDrivers'
-import { cardsService, driversService } from '@/services'
+import { driversService } from '@/services'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
@@ -16,6 +17,7 @@ import { formatDate } from '@/utils/formatters'
 import type { Driver } from '@/types/driver.types'
 import { Download, Users } from 'lucide-react'
 import { nameTranslations } from '@/utils/translations'
+import { PRESELECT_STORAGE_KEY } from '@/features/id-card/preselect'
 
 const statusMapEnToHi: Record<string, string> = {
   'APPROVED': 'स्वीकृत',
@@ -31,10 +33,11 @@ const DOWNLOADABLE_STATUSES = new Set(['APPROVED', 'ID_CARD_GENERATED', 'ACTIVE'
 export default function DriversPage() {
   const { i18n } = useTranslation()
   const isHi = i18n.language === 'hi'
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Driver | null>(null)
-  const [downloading, setDownloading] = useState(false)
+  const [opening, setOpening] = useState(false)
 
   const { data: driverRes, isLoading, isError, refetch } = useDrivers({
     page,
@@ -51,8 +54,11 @@ export default function DriversPage() {
     return statusMapEnToHi[s] || s.replace(/_/g, ' ')
   }
 
+  // "Download" here doesn't fetch the PDF itself — it hands off to the ID
+  // Generation section with this driver's card pre-selected, so the actual
+  // download (and any edit-before-download) happens from that one place.
   const handleDownload = async () => {
-    if (downloading || !selected) return
+    if (opening || !selected) return
     if (!DOWNLOADABLE_STATUSES.has(selected.status)) {
       toast.error(
         isHi
@@ -61,19 +67,23 @@ export default function DriversPage() {
       )
       return
     }
-    setDownloading(true)
+    setOpening(true)
     try {
       const card = activeCard ?? (await driversService.getActiveCard(selected.id))
-      await cardsService.downloadPdf(card.id)
-      toast.success(isHi ? 'कार्ड डाउनलोड होना शुरू हो गया है' : 'Card download started')
+      try {
+        sessionStorage.setItem(PRESELECT_STORAGE_KEY, card.id)
+      } catch {
+        /* ignore */
+      }
+      navigate(`/district/id-generation?cardId=${encodeURIComponent(card.id)}`)
     } catch (err) {
       toast.error(
         err instanceof Error
           ? err.message
-          : (isHi ? 'डाउनलोड विफल रहा' : 'Download failed'),
+          : (isHi ? 'कार्ड नहीं मिला' : 'Could not find this driver’s card'),
       )
     } finally {
-      setDownloading(false)
+      setOpening(false)
     }
   }
 
@@ -128,7 +138,7 @@ export default function DriversPage() {
       <AppDrawer
         open={!!selected}
         onClose={() => setSelected(null)}
-        loading={downloading}
+        loading={opening}
         title={selected ? (isHi && nameTranslations[selected.name] ? nameTranslations[selected.name] : selected.name) : ''}
         footerMode="inline"
         footer={
@@ -137,9 +147,9 @@ export default function DriversPage() {
               <Button
                 className="w-full cursor-pointer"
                 onClick={() => void handleDownload()}
-                loading={downloading || (statusOk && cardLoading)}
-                loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
-                disabled={!canDownload || downloading || cardLoading}
+                loading={opening || (statusOk && cardLoading)}
+                loadingText={isHi ? 'खोला जा रहा है…' : 'Opening…'}
+                disabled={!canDownload || opening || cardLoading}
               >
                 <Download className="h-4 w-4" /> {isHi ? 'आईडी कार्ड डाउनलोड करें' : 'Download ID Card'}
               </Button>

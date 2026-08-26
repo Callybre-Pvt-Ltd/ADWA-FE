@@ -67,6 +67,8 @@ export function mapDriverRequest(raw: ApiDriverRequest): DriverRequest {
     conflictReferenceNumber: item.conflictReferenceNumber ?? undefined,
     districtContactPhone: item.districtContactPhone ?? undefined,
     districtContactName: item.districtContactName ?? undefined,
+    driverId: item.driverId ?? undefined,
+    activeCardId: item.activeCardId ?? undefined,
     documents: (item.documents as ApiDriverRequest[] | undefined)?.map(mapDocument) ?? [],
     statusHistory:
       (item.statusHistory as ApiDriverRequest[] | undefined)?.map(

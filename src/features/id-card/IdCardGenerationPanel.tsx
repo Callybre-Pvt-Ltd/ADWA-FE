@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Printer, Download, Upload, IdCard, Pencil, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,16 +15,31 @@ import { IDCardOverlay } from '@/features/id-card/IDCardOverlay'
 import { IdCardFormFields } from '@/features/id-card/IdCardFormFields'
 import { formToPayload, snapshotToForm, type IdCardFormValues } from '@/features/id-card/idCardForm'
 import { plusOneYearIso, todayIso } from '@/utils/cardDates'
-import { useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto, useDownloadCard } from '@/hooks/useCards'
+import { CARDS_QUERY_KEY, useCards, useGenerateIdCard, useCardSnapshot, useUploadCardPhoto, useDownloadCard } from '@/hooks/useCards'
 import { cardsService, type DriverCard } from '@/services/api/cards.service'
 import { useAuth } from '@/context/AuthContext'
 import { nameTranslations } from '@/utils/translations'
+import { PRESELECT_STORAGE_KEY } from '@/features/id-card/preselect'
 
 function cardLabel(card: DriverCard, isHi: boolean): string {
   const raw = card.fullNameSnapshot?.trim() || ''
   const name = isHi && raw && nameTranslations[raw] ? nameTranslations[raw] : raw
   if (name) return `${name} (${card.cardNumber})`
   return card.cardNumber
+}
+
+function readInitialCardId(fromUrl: string | null): string | null {
+  if (fromUrl) return fromUrl
+  try {
+    const stored = sessionStorage.getItem(PRESELECT_STORAGE_KEY)
+    if (stored) {
+      sessionStorage.removeItem(PRESELECT_STORAGE_KEY)
+      return stored
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
 }
 
 export function IdCardGenerationPanel() {
@@ -33,12 +50,70 @@ export function IdCardGenerationPanel() {
   const isDistrict = user?.role === 'district'
 
   const { data: cardRes, isLoading, isError, refetch } = useCards({ status: 'ACTIVE', size: 100 })
-  const allCards = cardRes?.items ?? []
-  // API already scopes district users to their district.
-  const cards = allCards
+  const listedCards = cardRes?.items ?? []
 
-  const [selectedCardId, setSelectedCardId] = useState('')
-  const selectedCard = cards.find((c) => c.id === selectedCardId) ?? cards[0]
+  const [searchParams, setSearchParams] = useSearchParams()
+  // Lock the deep-link id once — do NOT keep depending on the live URL.
+  // Clearing ?cardId used to disable the by-id fetch and drop the card from
+  // the merged list, then selection fell back to cards[0].
+  const lockedCardIdRef = useRef<string | null>(readInitialCardId(searchParams.get('cardId')))
+  const lockedCardId = lockedCardIdRef.current
+  const urlClearedRef = useRef(false)
+
+  const {
+    data: lockedCard,
+    isFetching: lockedFetching,
+    isError: lockedError,
+  } = useQuery({
+    queryKey: [...CARDS_QUERY_KEY, 'by-id', lockedCardId],
+    queryFn: () => cardsService.get(lockedCardId!),
+    enabled: Boolean(lockedCardId),
+    staleTime: 60_000,
+    retry: 1,
+  })
+
+  const cards = useMemo(() => {
+    if (!lockedCard) return listedCards
+    if (listedCards.some((c) => c.id === lockedCard.id)) {
+      // Put the deep-linked card first so it's obvious in the dropdown.
+      return [lockedCard, ...listedCards.filter((c) => c.id !== lockedCard.id)]
+    }
+    return [lockedCard, ...listedCards]
+  }, [listedCards, lockedCard])
+
+  const [selectedCardId, setSelectedCardId] = useState<string>(() => lockedCardId ?? '')
+
+  // Once the locked card is available, force-select it (and only then strip URL).
+  useEffect(() => {
+    if (!lockedCardId) return
+    if (!lockedCard || lockedCard.id !== lockedCardId) return
+    setSelectedCardId(lockedCardId)
+    if (!urlClearedRef.current && searchParams.get('cardId')) {
+      urlClearedRef.current = true
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('cardId')
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [lockedCardId, lockedCard, searchParams, setSearchParams])
+
+  // Default selection only when there is no deep-link target.
+  useEffect(() => {
+    if (lockedCardId) return
+    if (cards.length === 0) {
+      setSelectedCardId('')
+      return
+    }
+    if (!selectedCardId || !cards.some((c) => c.id === selectedCardId)) {
+      setSelectedCardId(cards[0].id)
+    }
+  }, [cards, selectedCardId, lockedCardId])
+
+  const selectedCard = cards.find((c) => c.id === selectedCardId) ?? undefined
 
   const { data: snapshot, isLoading: snapshotLoading } = useCardSnapshot(selectedCard?.id ?? null)
   const generate = useGenerateIdCard()
@@ -50,13 +125,8 @@ export function IdCardGenerationPanel() {
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  // A replacement photo is staged locally (preview only) until Save — it must
-  // NOT hit the server on file-select, or Cancel has nothing left to revert.
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null)
   const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
-  // Switching to a different driver's card mid-edit shouldn't carry the edit
-  // gate (or a staged, unsaved photo) over — reset during render (not an
-  // effect) when the selection changes.
   const [editingForCardId, setEditingForCardId] = useState(selectedCardId)
   if (selectedCardId !== editingForCardId) {
     setEditingForCardId(selectedCardId)
@@ -75,20 +145,8 @@ export function IdCardGenerationPanel() {
   )
 
   useEffect(() => {
-    if (snapshot) {
-      setForm(snapshotToForm(snapshot))
-    }
+    if (snapshot) setForm(snapshotToForm(snapshot))
   }, [snapshot])
-
-  useEffect(() => {
-    if (cards.length === 0) {
-      setSelectedCardId('')
-      return
-    }
-    if (!selectedCardId || !cards.some((c) => c.id === selectedCardId)) {
-      setSelectedCardId(cards[0].id)
-    }
-  }, [cards, selectedCardId])
 
   useEffect(() => {
     if (!selectedCard?.id) return
@@ -113,8 +171,6 @@ export function IdCardGenerationPanel() {
     }
   }, [selectedCard?.id])
 
-  // Load the real snapshotted passport photo via authenticated API (not the
-  // sample portrait baked into the template artwork).
   useEffect(() => {
     let cancelled = false
     let objectUrl: string | null = null
@@ -160,8 +216,6 @@ export function IdCardGenerationPanel() {
       return
     }
     try {
-      // Staged photo replacement only actually uploads now, on Save — not
-      // when the file was picked — so Cancel can still fully revert it.
       if (editPhotoFile) {
         await uploadPhoto.mutateAsync({ cardId: selectedCard.id, file: editPhotoFile })
       }
@@ -185,8 +239,25 @@ export function IdCardGenerationPanel() {
     setIsEditing(false)
   }
 
-  if (isLoading) return <SkeletonCard />
+  const waitingForLocked = Boolean(lockedCardId) && !lockedCard && lockedFetching
+
+  if (isLoading || waitingForLocked) return <SkeletonCard />
   if (isError) return <ErrorState onRetry={() => refetch()} />
+
+  if (lockedCardId && !lockedCard && lockedError && !lockedFetching) {
+    return (
+      <EmptyState
+        icon={IdCard}
+        title={isHi ? 'कार्ड नहीं मिला' : 'Card not found'}
+        description={
+          isHi
+            ? 'इस आवेदन का आईडी कार्ड नहीं मिला। कार्ड सूची से चुनें।'
+            : 'Could not open that application’s ID card. Pick a driver from the list.'
+        }
+      />
+    )
+  }
+
   if (!cards.length) {
     return (
       <EmptyState
@@ -201,6 +272,12 @@ export function IdCardGenerationPanel() {
     )
   }
 
+  // Deep-link still resolving into Select options — don't mount Select with a
+  // value that isn't in the item list yet (Radix shows blank / first item).
+  if (lockedCardId && selectedCardId === lockedCardId && !selectedCard) {
+    return <SkeletonCard />
+  }
+
   const emptyForm: IdCardFormValues = {
     fullName: '', fatherName: '', designation: '', mobileNumber: '',
     licenseNumber: '', policeStation: '', city: '', state: '',
@@ -209,7 +286,13 @@ export function IdCardGenerationPanel() {
 
   return (
     <div className="space-y-6">
-      <Select value={selectedCard?.id} onValueChange={setSelectedCardId}>
+      <Select
+        value={selectedCard?.id ?? selectedCardId}
+        onValueChange={(id) => {
+          lockedCardIdRef.current = null
+          setSelectedCardId(id)
+        }}
+      >
         <SelectTrigger>
           <SelectValue placeholder={d('idCard.selectDriver')} />
         </SelectTrigger>
@@ -255,7 +338,6 @@ export function IdCardGenerationPanel() {
         </Button>
       </div>
 
-      {/* Edit fields, photo upload, save — admin and district */}
       <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-neutral-900">{d('idCard.cardInfo')}</h3>
@@ -337,8 +419,6 @@ export function IdCardGenerationPanel() {
                       toast.error(isHi ? 'कृपया एक छवि फ़ाइल चुनें' : 'Please choose an image file')
                       return
                     }
-                    // Stage only — this must not upload until Save, or
-                    // Cancel would have nothing left to revert.
                     if (editPhotoPreviewUrl) URL.revokeObjectURL(editPhotoPreviewUrl)
                     setEditPhotoFile(file)
                     setEditPhotoPreviewUrl(URL.createObjectURL(file))
@@ -377,3 +457,4 @@ export function IdCardGenerationPanel() {
     </div>
   )
 }
+

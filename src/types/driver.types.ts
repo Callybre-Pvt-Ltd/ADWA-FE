@@ -148,6 +148,9 @@ export type DriverRequest = {
   conflictReferenceNumber?: string
   districtContactPhone?: string
   districtContactName?: string
+  /** The driver this request became once approved, and their current active card. */
+  driverId?: string
+  activeCardId?: string
   documents?: ApplicationDocument[]
   statusHistory?: ApplicationStatusHistory[]
 }

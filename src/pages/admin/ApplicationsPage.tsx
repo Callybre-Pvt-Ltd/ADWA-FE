@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   useDriverRequestList,
@@ -8,6 +9,9 @@ import {
   useDriverRequest,
 } from '@/hooks/useDriverRequests'
 import { useDistricts } from '@/hooks/useDistricts'
+import { CARDS_QUERY_KEY } from '@/hooks/useCards'
+import { PRESELECT_STORAGE_KEY } from '@/features/id-card/preselect'
+import { driversService } from '@/services'
 import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { DriverRequestDetailView } from '@/features/driver-request/DriverRequestDetailView'
 import { normalizeVerifyUrl } from '@/utils/verifyUrl'
@@ -58,8 +62,11 @@ const actionableStatuses = new Set<RequestStatus>([
 export default function ApplicationsPage() {
   const { t, i18n } = useTranslation('dashboard')
   const isHi = i18n.language === 'hi'
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: districts = [] } = useDistricts()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [openingIdCard, setOpeningIdCard] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -119,6 +126,44 @@ export default function ApplicationsPage() {
     setConfirmAction(null)
     setRejectReason('')
     setApprovedQr(null)
+  }
+
+  const handleOpenIdCard = async () => {
+    if (!selected || openingIdCard) return
+    const go = (cardId?: string | null) => {
+      if (cardId) {
+        try {
+          sessionStorage.setItem(PRESELECT_STORAGE_KEY, cardId)
+        } catch {
+          /* ignore */
+        }
+      }
+      void queryClient.invalidateQueries({ queryKey: CARDS_QUERY_KEY })
+      navigate(cardId ? `/admin/id-cards?cardId=${encodeURIComponent(cardId)}` : '/admin/id-cards')
+    }
+    if (selected.activeCardId) {
+      go(selected.activeCardId)
+      return
+    }
+    setOpeningIdCard(true)
+    try {
+      // Prefer driver linked on the request; fall back to mobile/name search.
+      if (selected.driverId) {
+        const card = await driversService.getActiveCard(selected.driverId)
+        go(card.id)
+        return
+      }
+      const res = await driversService.getAll({ search: selected.mobile, size: 20 })
+      const driver =
+        res.items.find((d) => d.mobile.replace(/\D/g, '') === selected.mobile.replace(/\D/g, ''))
+        ?? res.items.find((d) => d.name.trim().toLowerCase() === selected.name.trim().toLowerCase())
+      const card = driver ? await driversService.getActiveCard(driver.id) : null
+      go(card?.id)
+    } catch {
+      go(null)
+    } finally {
+      setOpeningIdCard(false)
+    }
   }
 
   const handleConfirm = () => {
@@ -255,11 +300,14 @@ export default function ApplicationsPage() {
               </p>
             )}
             {isApproved && (
-              <Button asChild className="w-full gap-2">
-                <Link to="/admin/id-cards">
-                  <IdCard className="h-4 w-4" />
-                  {isHi ? 'आईडी कार्ड बनाएँ / देखें' : 'Generate / view ID card'}
-                </Link>
+              <Button
+                className="w-full gap-2"
+                onClick={() => void handleOpenIdCard()}
+                loading={openingIdCard}
+                loadingText={isHi ? 'खोला जा रहा है…' : 'Opening…'}
+              >
+                <IdCard className="h-4 w-4" />
+                {isHi ? 'आईडी कार्ड बनाएँ / देखें' : 'Generate / view ID card'}
               </Button>
             )}
             {canAct && hasConflict && (
@@ -322,7 +370,16 @@ export default function ApplicationsPage() {
               driverName={approvedQr.driverName}
             />
             <Button asChild variant="outline" className="w-full gap-2">
-              <Link to="/admin/id-cards">
+              <Link
+                to={`/admin/id-cards?cardId=${encodeURIComponent(approvedQr.cardId)}`}
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem(PRESELECT_STORAGE_KEY, approvedQr.cardId)
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+              >
                 <IdCard className="h-4 w-4" />
                 {isHi ? 'आईडी कार्ड पैनल खोलें' : 'Open ID card panel'}
               </Link>

@@ -39,7 +39,7 @@ function mapVerification(raw: ApiVerification): CardVerificationResult {
   }
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') ?? 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') ?? 'http://localhost:8002'
 
 export function resolveVerificationPhotoUrl(photoPath: string | undefined): string | undefined {
   if (!photoPath) return undefined
