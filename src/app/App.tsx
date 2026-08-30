@@ -8,6 +8,7 @@ import { DistrictLayout } from '@/layouts/DistrictLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { publicRoutes, districtRoutes, adminRoutes } from '@/routes/routes.data'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
+import { RouteErrorBoundary } from '@/components/shared/RouteErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
 import DistrictLoginPage from '@/pages/auth/DistrictLoginPage'
 import AdminLoginPage from '@/pages/auth/AdminLoginPage'
@@ -30,6 +31,7 @@ function PageLoader() {
 const router = createBrowserRouter([
   {
     element: <PublicLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { path: '/dashboard', element: <Navigate to="/services" replace /> },
       { path: '/payment', element: <Navigate to="/services" replace /> },
@@ -41,6 +43,7 @@ const router = createBrowserRouter([
             <route.component />
           </Suspense>
         ),
+        errorElement: <RouteErrorBoundary />,
       })),
     ],
   },
@@ -51,6 +54,7 @@ const router = createBrowserRouter([
         <DistrictLoginPage />
       </Suspense>
     ),
+    errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/admin/login',
@@ -59,9 +63,11 @@ const router = createBrowserRouter([
         <AdminLoginPage />
       </Suspense>
     ),
+    errorElement: <RouteErrorBoundary />,
   },
   {
     element: <DistrictLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { path: '/district/dashboard', element: <Navigate to="/district/requests" replace /> },
       ...districtRoutes.map((route) => ({
@@ -71,11 +77,13 @@ const router = createBrowserRouter([
             <route.component />
           </Suspense>
         ),
+        errorElement: <RouteErrorBoundary />,
       })),
     ],
   },
   {
     element: <AdminLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { path: '/admin/dashboard', element: <Navigate to="/admin/applications" replace /> },
       { path: '/admin/events', element: <Navigate to="/admin/applications" replace /> },
@@ -87,6 +95,7 @@ const router = createBrowserRouter([
             <route.component />
           </Suspense>
         ),
+        errorElement: <RouteErrorBoundary />,
       })),
     ],
   },

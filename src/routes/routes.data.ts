@@ -18,7 +18,30 @@ export type RouteConfig = {
   children?: RouteConfig[]
 }
 
-const lazyPage = (factory: () => Promise<{ default: ComponentType }>) => lazy(factory)
+const lazyPage = (factory: () => Promise<{ default: ComponentType }>) =>
+  lazy(async () => {
+    try {
+      const component = await factory()
+      sessionStorage.removeItem('adwa_chunk_retry')
+      return component
+    } catch (error) {
+      const isChunkError =
+        error instanceof Error &&
+        (error.message.includes('dynamically imported module') ||
+          error.message.includes('Loading chunk') ||
+          error.message.includes('Failed to fetch'))
+
+      const hasReloaded = sessionStorage.getItem('adwa_chunk_retry')
+      if (isChunkError && !hasReloaded) {
+        sessionStorage.setItem('adwa_chunk_retry', 'true')
+        window.location.reload()
+        return new Promise<{ default: ComponentType }>(() => {})
+      }
+
+      sessionStorage.removeItem('adwa_chunk_retry')
+      throw error
+    }
+  })
 
 /** Navbar: Home, Application, Support — Services via /services & footer */
 export const publicRoutes: RouteConfig[] = [
