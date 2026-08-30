@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
-import { jsPDF } from 'jspdf'
 import {
   G,
   buildDistrictQrPayload,
@@ -386,10 +385,11 @@ export function DistrictInchargeCardOverlay({
         )
         win.document.close()
       },
-      downloadPdf: () => {
+      downloadPdf: async () => {
         const canvas = canvasRef.current
         if (!canvas) return
         const slug = (values.fullName || 'district-id').trim().replace(/\s+/g, '-').slice(0, 40)
+        const { jsPDF } = await import('jspdf')
         const doc = new jsPDF({
           orientation: PDF_WIDTH_MM >= PDF_HEIGHT_MM ? 'landscape' : 'portrait',
           unit: 'mm',

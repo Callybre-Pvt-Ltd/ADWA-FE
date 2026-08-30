@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, lazy } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nextProvider } from 'react-i18next'
@@ -10,9 +10,10 @@ import { publicRoutes, districtRoutes, adminRoutes } from '@/routes/routes.data'
 import { SkeletonCard } from '@/components/shared/SkeletonCard'
 import { RouteErrorBoundary } from '@/components/shared/RouteErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
-import DistrictLoginPage from '@/pages/auth/DistrictLoginPage'
-import AdminLoginPage from '@/pages/auth/AdminLoginPage'
 import i18n from '@/i18n'
+
+const DistrictLoginPage = lazy(() => import('@/pages/auth/DistrictLoginPage'))
+const AdminLoginPage = lazy(() => import('@/pages/auth/AdminLoginPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
