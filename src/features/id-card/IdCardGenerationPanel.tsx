@@ -56,8 +56,7 @@ export function IdCardGenerationPanel() {
   // Lock the deep-link id once — do NOT keep depending on the live URL.
   // Clearing ?cardId used to disable the by-id fetch and drop the card from
   // the merged list, then selection fell back to cards[0].
-  const lockedCardIdRef = useRef<string | null>(readInitialCardId(searchParams.get('cardId')))
-  const lockedCardId = lockedCardIdRef.current
+  const [lockedCardId, setLockedCardId] = useState<string | null>(() => readInitialCardId(searchParams.get('cardId')))
   const urlClearedRef = useRef(false)
 
   const {
@@ -289,7 +288,7 @@ export function IdCardGenerationPanel() {
       <Select
         value={selectedCard?.id ?? selectedCardId}
         onValueChange={(id) => {
-          lockedCardIdRef.current = null
+          setLockedCardId(null)
           setSelectedCardId(id)
         }}
       >

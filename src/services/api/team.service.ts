@@ -50,7 +50,7 @@ export const teamService = {
   async getActivities(): Promise<ActivityItem[]> {
     try {
       const logs = await auditLogsService.getAll()
-      return logs.slice(0, 10).map((log) => ({
+      return (logs.items ?? []).slice(0, 10).map((log) => ({
         id: log.id,
         message: `${log.action} · ${log.entity}`,
         timestamp: log.timestamp,

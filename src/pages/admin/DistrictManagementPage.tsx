@@ -99,12 +99,13 @@ export default function DistrictManagementPage() {
   }, [districts, formState])
 
   const filteredUsers = useMemo(() => {
-    if (!filterState) return users
-    return users.filter((u) => {
+    const list = userRes?.items ?? []
+    if (!filterState) return list
+    return list.filter((u) => {
       const d = u.districtId ? districtById.get(u.districtId) : undefined
       return d?.state === filterState
     })
-  }, [users, filterState, districtById])
+  }, [userRes?.items, filterState, districtById])
 
   const stats = useMemo(() => {
     const activeDistricts = (districts ?? []).filter((d) => d.status === 'active')

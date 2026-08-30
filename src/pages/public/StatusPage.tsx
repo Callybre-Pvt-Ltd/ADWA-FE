@@ -43,7 +43,7 @@ export default function StatusPage() {
     recover.mutate({ mobile: recoverMobile.trim(), dob: recoverDob })
   }
 
-  const useRecovered = (app: RecoveredApplication) => {
+  const handleSelectRecovered = (app: RecoveredApplication) => {
     setValue('refNumber', app.referenceNumber)
     setValue('mobile', recoverMobile.trim())
     setRecoverOpen(false)
@@ -170,7 +170,7 @@ export default function StatusPage() {
                           className="mt-1.5"
                         />
                       </div>
-                      <Button size="sm" className="shrink-0" onClick={() => useRecovered(app)}>
+                      <Button size="sm" className="shrink-0" onClick={() => handleSelectRecovered(app)}>
                         {t('track.recover.useThis')}
                       </Button>
                     </div>

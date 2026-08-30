@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
 import type { Driver, DriverStatus } from '@/types/driver.types'
-import { Download, QrCode, ShieldAlert } from 'lucide-react'
+import { Download, ShieldAlert } from 'lucide-react'
 
 const DRIVER_STATUSES: DriverStatus[] = [
   'APPROVED', 'ID_CARD_GENERATED', 'ACTIVE', 'SUSPENDED', 'EXPIRED',
