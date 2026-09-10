@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { driversService } from '@/services'
 import { useDrivers, useSuspendDriver, useActivateDriver, useDriverActiveCard, DRIVERS_QUERY_KEY } from '@/hooks/useDrivers'
+import { useDeleteCard } from '@/hooks/useCards'
 import { DriverQrPanel } from '@/features/qr-verify/DriverQrPanel'
 import { useDistricts } from '@/hooks/useDistricts'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -19,7 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/utils/formatters'
 import type { Driver, DriverStatus } from '@/types/driver.types'
-import { Download, ShieldAlert } from 'lucide-react'
+import { Download, QrCode, ShieldAlert } from 'lucide-react'
 
 const DRIVER_STATUSES: DriverStatus[] = [
   'APPROVED', 'ID_CARD_GENERATED', 'ACTIVE', 'SUSPENDED', 'EXPIRED',
@@ -45,6 +46,7 @@ export default function DriverManagementPage() {
   const [selected, setSelected] = useState<Driver | null>(null)
   const [suspendOpen, setSuspendOpen] = useState(false)
   const [suspendReason, setSuspendReason] = useState('')
+  const [deleteCardOpen, setDeleteCardOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
 
@@ -72,6 +74,7 @@ export default function DriverManagementPage() {
   const suspend = useSuspendDriver()
   const activate = useActivateDriver()
   const { data: activeCard, isLoading: isLoadingCard } = useDriverActiveCard(selected?.id ?? null)
+  const deleteCard = useDeleteCard()
 
   const prefetchActiveCard = (driverId: string) => {
     void queryClient.prefetchQuery({
@@ -111,6 +114,19 @@ export default function DriverManagementPage() {
     if (activate.isPending || !selected) return
     await activate.mutateAsync(selected.id)
     setSelected(null)
+  }
+
+  const handleDeleteCard = () => {
+    if (!activeCard || deleteCard.isPending) return
+    deleteCard.mutate(
+      { cardId: activeCard.id },
+      {
+        onSuccess: () => {
+          setDeleteCardOpen(false)
+          setSelected(null)
+        },
+      },
+    )
   }
 
   const canSuspend = selected && ['ACTIVE', 'ID_CARD_GENERATED', 'APPROVED'].includes(selected.status)
@@ -246,11 +262,20 @@ export default function DriverManagementPage() {
                 </div>
               </div>
             ) : activeCard ? (
-              <DriverQrPanel
-                cardId={activeCard.id}
-                verificationCode={activeCard.verificationCode}
-                driverName={selected.name}
-              />
+              <div className="space-y-3">
+                <DriverQrPanel
+                  cardId={activeCard.id}
+                  verificationCode={activeCard.verificationCode}
+                  driverName={selected.name}
+                />
+                <Button
+                  variant="destructive"
+                  className="w-full cursor-pointer"
+                  onClick={() => setDeleteCardOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" /> {isHi ? 'आईडी कार्ड हटाएं' : 'Delete ID Card'}
+                </Button>
+              </div>
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 text-sm space-y-1">
                 <p className="font-medium flex items-center gap-2">
@@ -299,6 +324,35 @@ export default function DriverManagementPage() {
             placeholder={isHi ? 'निलंबन का कारण दर्ज करें...' : 'Reason for suspension...'}
           />
         </div>
+      </AppModal>
+
+      <AppModal
+        open={deleteCardOpen}
+        onClose={() => setDeleteCardOpen(false)}
+        loading={deleteCard.isPending}
+        title={isHi ? 'आईडी कार्ड हटाएं' : 'Delete ID Card'}
+        description={
+          isHi
+            ? `क्या आप वाकई ${selected?.name ?? ''} का आईडी कार्ड (${activeCard?.cardNumber ?? ''}) हटाना चाहते हैं? यह कार्ड नंबर उसी जिले में अगले जारी किए गए कार्ड को दिया जाएगा।`
+            : `Delete the ID card for ${selected?.name ?? ''} (${activeCard?.cardNumber ?? ''})? This card number will be reused by the next card issued in this district.`
+        }
+        footer={
+          <Button
+            variant="destructive"
+            className="w-full cursor-pointer"
+            onClick={handleDeleteCard}
+            loading={deleteCard.isPending}
+            loadingText={isHi ? 'हटाया जा रहा है…' : 'Deleting…'}
+          >
+            {isHi ? 'हटाने की पुष्टि करें' : 'Confirm Delete'}
+          </Button>
+        }
+      >
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          {isHi
+            ? 'यह कार्रवाई पूर्ववत नहीं की जा सकती। इस कार्ड की जानकारी सूची से हट जाएगी।'
+            : 'This cannot be undone. The card will no longer appear anywhere in the system.'}
+        </p>
       </AppModal>
     </div>
   )

@@ -191,8 +191,15 @@ const FRONT = {
     { key: 'dateOfBirth',   y: 1837 },
   ] as { key: keyof IdCardFormValues; y: number }[],
 
-  // Barcode / QR slot (header "बारकोड" box)
-  qr: { x: 1140, y: 400, w: 159, h: 162 },
+  // Barcode / QR slot (header "बारकोड" box). Enlarged from 159x162 to
+  // 220x220, shifted left (full-image x 2565 → 2520). Verified by
+  // rendering test overlays against the actual template PNG — pixel-level
+  // text-boundary checks, not just blank-margin averages, since "Pradesh"
+  // above and the "Dist.-Bhopal - 462030" line below sit closer than a
+  // simple whitespace scan suggested. Clears both, plus the card's printed
+  // border on the right. Keep in sync with the backend's matching
+  // full-image-space entry in card_generation/layout.py.
+  qr: { x: 1094, y: 330, w: 250, h: 250 },
 
   fontSize: 55,
   fontFamily: '"Noto Sans Devanagari", "Noto Sans", sans-serif',

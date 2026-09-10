@@ -1,17 +1,19 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { IdCard, Download, Printer, Pencil, Check, X } from 'lucide-react'
+import { IdCard, Download, Printer, Pencil, Check, X, Trash2 } from 'lucide-react'
 import {
   useDistrictInchargeCardList,
   useUpdateDistrictInchargeCard,
   useUploadDistrictInchargeCardPhoto,
+  useDeleteDistrictInchargeCard,
 } from '@/hooks/useDistrictInchargeCards'
 import { useDistricts } from '@/hooks/useDistricts'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { SkeletonTable } from '@/components/shared/SkeletonTable'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { AppModal } from '@/components/shared/AppModal'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,8 +70,10 @@ export function DistrictInchargeCardsList() {
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null)
   const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
   const [photoVersions, setPhotoVersions] = useState<Record<string, number>>({})
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const updateCard = useUpdateDistrictInchargeCard()
   const uploadCardPhoto = useUploadDistrictInchargeCardPhoto()
+  const deleteCard = useDeleteDistrictInchargeCard()
 
   const { data, isLoading, isError, refetch } = useDistrictInchargeCardList({
     page,
@@ -155,6 +159,19 @@ export function DistrictInchargeCardsList() {
     } catch {
       /* mutation hooks already toast the error */
     }
+  }
+
+  const handleDelete = () => {
+    if (!viewCard || deleteCard.isPending) return
+    deleteCard.mutate(
+      { id: viewCard.id },
+      {
+        onSuccess: () => {
+          setDeleteOpen(false)
+          setViewCard(null)
+        },
+      },
+    )
   }
 
   const columns: ColumnDef<DistrictInchargeCard>[] = [
@@ -333,6 +350,14 @@ export function DistrictInchargeCardsList() {
                       {isHi ? 'संपादित करें' : 'Edit'}
                     </Button>
                   </div>
+                  <Button
+                    variant="destructive"
+                    className="w-full gap-2"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {isHi ? 'कार्ड हटाएं' : 'Delete Card'}
+                  </Button>
 
                   <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
                     <ViewField
@@ -427,6 +452,35 @@ export function DistrictInchargeCardsList() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AppModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        loading={deleteCard.isPending}
+        title={isHi ? 'कार्ड हटाएं' : 'Delete Card'}
+        description={
+          isHi
+            ? `क्या आप वाकई ${viewCard?.fullName ?? ''} का कार्ड (${viewCard?.cardNumber ?? ''}) हटाना चाहते हैं? यह कार्ड नंबर उसी जिले में अगले जारी किए गए कार्ड को दिया जाएगा।`
+            : `Delete the card for ${viewCard?.fullName ?? ''} (${viewCard?.cardNumber ?? ''})? This card number will be reused by the next card issued in this district.`
+        }
+        footer={
+          <Button
+            variant="destructive"
+            className="w-full cursor-pointer"
+            onClick={handleDelete}
+            loading={deleteCard.isPending}
+            loadingText={isHi ? 'हटाया जा रहा है…' : 'Deleting…'}
+          >
+            {isHi ? 'हटाने की पुष्टि करें' : 'Confirm Delete'}
+          </Button>
+        }
+      >
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          {isHi
+            ? 'यह कार्रवाई पूर्ववत नहीं की जा सकती। इस कार्ड की जानकारी सूची से हट जाएगी।'
+            : 'This cannot be undone. The card will no longer appear anywhere in the system.'}
+        </p>
+      </AppModal>
     </div>
   )
 }

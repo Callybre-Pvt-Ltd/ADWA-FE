@@ -210,6 +210,21 @@ export const cardsService = {
     }
   },
 
+  /**
+   * Soft delete. Excluded from listings; the card's number becomes eligible
+   * for reuse by the next card issued in that district.
+   */
+  async deleteCard(id: string, reason?: string): Promise<DriverCard> {
+    try {
+      const { data } = await apiClient.delete<APIResponse<ApiCard>>(`/cards/${id}`, {
+        data: { reason: reason ?? null },
+      })
+      return mapCard(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
   async uploadPhoto(id: string, file: File): Promise<CardSnapshot> {
     try {
       const formData = new FormData()

@@ -396,7 +396,19 @@ export function DistrictInchargeCardOverlay({
           format: [PDF_WIDTH_MM, PDF_HEIGHT_MM],
         })
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, PDF_WIDTH_MM, PDF_HEIGHT_MM)
-        doc.save(`${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`)
+        // No server here to set Content-Disposition, so a real "save the
+        // file, don't navigate" download only has one route for a
+        // client-built blob: an <a download> click. (This is the same thing
+        // jsPDF's own doc.save() does internally — doing it ourselves adds
+        // no crash-safety over that, it's just explicit about what runs.)
+        const url = URL.createObjectURL(doc.output('blob'))
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`
+        link.click()
+        // Delayed revoke — an immediate one can race the browser actually
+        // starting to read the blob.
+        setTimeout(() => URL.revokeObjectURL(url), 30_000)
       },
     })
   }, [onActionsReady, values.fullName, values.cardNumber])

@@ -43,6 +43,20 @@ export function useDownloadCard() {
   })
 }
 
+export function useDeleteCard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ cardId, reason }: { cardId: string; reason?: string }) =>
+      cardsService.deleteCard(cardId, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CARDS_QUERY_KEY })
+      qc.invalidateQueries({ queryKey: ['drivers'] })
+      toast.success('Card deleted')
+    },
+    onError: (err: Error) => toast.error(`Delete failed: ${err.message}`),
+  })
+}
+
 export function useUploadCardPhoto() {
   const qc = useQueryClient()
   return useMutation({

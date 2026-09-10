@@ -120,4 +120,20 @@ export const districtInchargeCardsService = {
       throw await extractError(error)
     }
   },
+
+  /**
+   * Soft delete. Excluded from listings; the card's number becomes eligible
+   * for reuse by the next card issued in that district.
+   */
+  async deleteCard(id: string, reason?: string): Promise<DistrictInchargeCard> {
+    try {
+      const { data } = await apiClient.delete<APIResponse<Record<string, unknown>>>(
+        `/district-incharge-cards/${id}`,
+        { data: { reason: reason ?? null } },
+      )
+      return toCamelCase<DistrictInchargeCard>(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
 }

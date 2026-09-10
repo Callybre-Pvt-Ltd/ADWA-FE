@@ -30,6 +30,19 @@ export function useUpdateDistrictInchargeCard() {
   })
 }
 
+export function useDeleteDistrictInchargeCard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      districtInchargeCardsService.deleteCard(id, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: DISTRICT_INCHARGE_CARDS_QUERY_KEY })
+      toast.success('Card deleted')
+    },
+    onError: (err: Error) => toast.error(`Delete failed: ${err.message}`),
+  })
+}
+
 export function useUploadDistrictInchargeCardPhoto() {
   const qc = useQueryClient()
   return useMutation({

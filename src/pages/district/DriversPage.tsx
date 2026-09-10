@@ -3,11 +3,13 @@ import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useDrivers, useDriverActiveCard } from '@/hooks/useDrivers'
+import { useDeleteCard } from '@/hooks/useCards'
 import { driversService } from '@/services'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { StatusBadge, statusToVariant } from '@/components/shared/StatusBadge'
 import { AppDrawer } from '@/components/shared/AppDrawer'
+import { AppModal } from '@/components/shared/AppModal'
 import { SkeletonTable } from '@/components/shared/SkeletonTable'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -15,7 +17,7 @@ import { AvatarWithInitials } from '@/components/shared/AvatarWithInitials'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/utils/formatters'
 import type { Driver } from '@/types/driver.types'
-import { Download, Users } from 'lucide-react'
+import { Download, Trash2, Users } from 'lucide-react'
 import { nameTranslations } from '@/utils/translations'
 import { PRESELECT_STORAGE_KEY } from '@/features/id-card/preselect'
 
@@ -38,6 +40,7 @@ export default function DriversPage() {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Driver | null>(null)
   const [opening, setOpening] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const { data: driverRes, isLoading, isError, refetch } = useDrivers({
     page,
@@ -48,6 +51,20 @@ export default function DriversPage() {
   const { data: activeCard, isLoading: cardLoading, isError: cardError } = useDriverActiveCard(
     selected?.id ?? null,
   )
+  const deleteCard = useDeleteCard()
+
+  const handleDelete = () => {
+    if (!activeCard || deleteCard.isPending) return
+    deleteCard.mutate(
+      { cardId: activeCard.id },
+      {
+        onSuccess: () => {
+          setDeleteOpen(false)
+          setSelected(null)
+        },
+      },
+    )
+  }
 
   const translateStatus = (s: string) => {
     if (!isHi) return s.replace(/_/g, ' ')
@@ -162,6 +179,15 @@ export default function DriversPage() {
                     : (isHi ? 'अभी तक कोई आईडी कार्ड नहीं बना।' : 'No ID card record yet.')}
                 </p>
               )}
+              {activeCard?.id && !cardLoading && (
+                <Button
+                  variant="destructive"
+                  className="w-full cursor-pointer"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" /> {isHi ? 'आईडी कार्ड हटाएं' : 'Delete ID Card'}
+                </Button>
+              )}
             </div>
           ) : undefined
         }
@@ -187,6 +213,35 @@ export default function DriversPage() {
           </div>
         )}
       </AppDrawer>
+
+      <AppModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        loading={deleteCard.isPending}
+        title={isHi ? 'आईडी कार्ड हटाएं' : 'Delete ID Card'}
+        description={
+          isHi
+            ? `क्या आप वाकई ${selected?.name ?? ''} का आईडी कार्ड (${activeCard?.cardNumber ?? ''}) हटाना चाहते हैं? यह कार्ड नंबर उसी जिले में अगले जारी किए गए कार्ड को दिया जाएगा।`
+            : `Delete the ID card for ${selected?.name ?? ''} (${activeCard?.cardNumber ?? ''})? This card number will be reused by the next card issued in this district.`
+        }
+        footer={
+          <Button
+            variant="destructive"
+            className="w-full cursor-pointer"
+            onClick={handleDelete}
+            loading={deleteCard.isPending}
+            loadingText={isHi ? 'हटाया जा रहा है…' : 'Deleting…'}
+          >
+            {isHi ? 'हटाने की पुष्टि करें' : 'Confirm Delete'}
+          </Button>
+        }
+      >
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          {isHi
+            ? 'यह कार्रवाई पूर्ववत नहीं की जा सकती। इस कार्ड की जानकारी सूची से हट जाएगी।'
+            : 'This cannot be undone. The card will no longer appear anywhere in the system.'}
+        </p>
+      </AppModal>
     </div>
   )
 }
