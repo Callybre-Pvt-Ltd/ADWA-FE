@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { IdCard, Download, Printer, Pencil, Check, X, Trash2 } from 'lucide-react'
@@ -9,6 +9,7 @@ import {
   useDeleteDistrictInchargeCard,
 } from '@/hooks/useDistrictInchargeCards'
 import { useDistricts } from '@/hooks/useDistricts'
+import { BLOOD_GROUPS } from '@/constants'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { SkeletonTable } from '@/components/shared/SkeletonTable'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -30,6 +31,7 @@ import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { districtMapEnToHi } from '@/utils/translations'
 import { plusOneYearIso, toDateInputValue } from '@/utils/cardDates'
 import type { DistrictInchargeCard } from '@/services/api/districtInchargeCards.service'
+import { districtInchargeCardsService } from '@/services/api/districtInchargeCards.service'
 
 /** Public, unauthenticated — same endpoint the QR verify page uses. `version`
  * cache-busts the browser's <img> cache right after a photo replace, since
@@ -42,6 +44,7 @@ function cardPhotoUrl(verificationCode: string, version?: number): string {
 type EditForm = {
   fullName: string
   designation: string
+  bloodGroup: string
   issuedAt: string
   expiresAt: string
 }
@@ -66,14 +69,52 @@ export function DistrictInchargeCardsList() {
   const [viewCard, setViewCard] = useState<DistrictInchargeCard | null>(null)
   const viewActionsRef = useRef<DistrictInchargeCardActions | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState<EditForm>({ fullName: '', designation: '', issuedAt: '', expiresAt: '' })
+  const [editForm, setEditForm] = useState<EditForm>({ fullName: '', designation: '', bloodGroup: '', issuedAt: '', expiresAt: '' })
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null)
   const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
+  /** Same-origin blob URL for the open card's photo — canvas preview can't rely on
+   * cross-origin <img>/fetch of the public verification URL (list thumbnails can). */
+  const [viewPhotoUrl, setViewPhotoUrl] = useState<string | null>(null)
   const [photoVersions, setPhotoVersions] = useState<Record<string, number>>({})
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [printing, setPrinting] = useState(false)
   const updateCard = useUpdateDistrictInchargeCard()
   const uploadCardPhoto = useUploadDistrictInchargeCardPhoto()
   const deleteCard = useDeleteDistrictInchargeCard()
+
+  useEffect(() => {
+    if (!viewCard) {
+      setViewPhotoUrl(null)
+      return
+    }
+    let cancelled = false
+    let objectUrl: string | null = null
+    const cardId = viewCard.id
+    // Bust cache after an in-modal photo replace.
+    void photoVersions[cardId]
+
+    ;(async () => {
+      try {
+        const blob = await districtInchargeCardsService.getPhotoBlob(cardId)
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(blob)
+        if (cancelled) {
+          URL.revokeObjectURL(objectUrl)
+          objectUrl = null
+          return
+        }
+        setViewPhotoUrl(objectUrl)
+      } catch {
+        if (!cancelled) setViewPhotoUrl(null)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [viewCard, photoVersions])
 
   const { data, isLoading, isError, refetch } = useDistrictInchargeCardList({
     page,
@@ -99,6 +140,7 @@ export function DistrictInchargeCardsList() {
     setEditForm({
       fullName: card.fullName,
       designation: card.designation || '',
+      bloodGroup: card.bloodGroup || '',
       issuedAt,
       expiresAt: toDateInputValue(card.expiresAt) || (issuedAt ? plusOneYearIso(issuedAt) : ''),
     })
@@ -146,6 +188,7 @@ export function DistrictInchargeCardsList() {
         data: {
           fullName,
           designation: editForm.designation.trim(),
+          bloodGroup: editForm.bloodGroup || undefined,
           issuedAt: editForm.issuedAt || undefined,
           expiresAt: editForm.expiresAt || undefined,
         },
@@ -158,6 +201,30 @@ export function DistrictInchargeCardsList() {
       cancelEdit()
     } catch {
       /* mutation hooks already toast the error */
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!viewActionsRef.current || downloading) return
+    setDownloading(true)
+    try {
+      await viewActionsRef.current.downloadPdf()
+    } catch {
+      toast.error(isHi ? 'PDF डाउनलोड विफल। कृपया फिर कोशिश करें।' : 'Download failed. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const handlePrint = async () => {
+    if (!viewActionsRef.current || printing) return
+    setPrinting(true)
+    try {
+      await viewActionsRef.current.print()
+    } catch {
+      toast.error(isHi ? 'प्रिंट विफल। कृपया फिर कोशिश करें।' : 'Print failed. Please try again.')
+    } finally {
+      setPrinting(false)
     }
   }
 
@@ -321,13 +388,14 @@ export function DistrictInchargeCardsList() {
                 values={{
                   fullName: isEditing ? editForm.fullName : viewCard.fullName,
                   designation: isEditing ? editForm.designation : (viewCard.designation || ''),
+                  bloodGroup: isEditing ? editForm.bloodGroup : (viewCard.bloodGroup || ''),
                   districtName: viewCard.districtNameSnapshot,
                   districtCode: viewCard.districtCodeSnapshot,
                   cardNumber: viewCard.cardNumber,
                   issueDate: isEditing ? editForm.issuedAt : toDateInputValue(viewCard.issuedAt),
                   expiryDate: isEditing ? editForm.expiresAt : toDateInputValue(viewCard.expiresAt),
                 }}
-                photoUrl={editPhotoPreviewUrl || cardPhotoUrl(viewCard.verificationCode, photoVersions[viewCard.id])}
+                photoUrl={editPhotoPreviewUrl || viewPhotoUrl}
                 verificationUrl={normalizeVerifyUrl('', viewCard.verificationCode)}
                 onActionsReady={(actions) => {
                   viewActionsRef.current = actions
@@ -336,12 +404,23 @@ export function DistrictInchargeCardsList() {
 
               {!isEditing ? (
                 <>
-                  <div className="flex gap-2">
-                    <Button className="flex-1 gap-2" onClick={() => viewActionsRef.current?.downloadPdf()}>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      className="flex-1 gap-2"
+                      onClick={() => void handleDownload()}
+                      loading={downloading}
+                      loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
+                    >
                       <Download className="h-4 w-4" />
                       {isHi ? 'PDF डाउनलोड' : 'Download PDF'}
                     </Button>
-                    <Button variant="outline" className="flex-1 gap-2" onClick={() => viewActionsRef.current?.print()}>
+                    <Button
+                      variant="outline"
+                      className="flex-1 gap-2"
+                      onClick={() => void handlePrint()}
+                      loading={printing}
+                      loadingText={isHi ? 'तैयार हो रहा है…' : 'Preparing…'}
+                    >
                       <Printer className="h-4 w-4" />
                       {isHi ? 'प्रिंट करें' : 'Print'}
                     </Button>
@@ -359,7 +438,7 @@ export function DistrictInchargeCardsList() {
                     {isHi ? 'कार्ड हटाएं' : 'Delete Card'}
                   </Button>
 
-                  <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2 text-sm">
                     <ViewField
                       label={isHi ? 'स्थिति' : 'Status'}
                       value={<StatusBadge variant={statusToVariant(viewCard.status)} label={viewCard.status.replace(/_/g, ' ')} />}
@@ -367,6 +446,10 @@ export function DistrictInchargeCardsList() {
                     <ViewField
                       label={isHi ? 'सत्यापन कोड' : 'Verification code'}
                       value={<span className="break-all font-mono text-xs">{viewCard.verificationCode}</span>}
+                    />
+                    <ViewField
+                      label={isHi ? 'रक्त समूह' : 'Blood group'}
+                      value={viewCard.bloodGroup || '—'}
                     />
                   </dl>
                 </>
@@ -390,7 +473,23 @@ export function DistrictInchargeCardsList() {
                       onChange={(e) => setEditForm((prev) => ({ ...prev, designation: e.target.value }))}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="edit-blood-group">{isHi ? 'रक्त समूह' : 'Blood group'}</Label>
+                    <Select
+                      value={editForm.bloodGroup}
+                      onValueChange={(v) => setEditForm((prev) => ({ ...prev, bloodGroup: v }))}
+                    >
+                      <SelectTrigger id="edit-blood-group" className="mt-1">
+                        <SelectValue placeholder={isHi ? 'रक्त समूह चुनें' : 'Select blood group'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BLOOD_GROUPS.map((bg) => (
+                          <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="edit-issue">{isHi ? 'जारी तिथि' : 'Issue date'}</Label>
                       <Input

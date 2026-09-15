@@ -10,6 +10,7 @@ export type DistrictInchargeCard = {
   status: string
   fullName: string
   designation?: string
+  bloodGroup?: string
   districtNameSnapshot: string
   districtCodeSnapshot: string
   issuedAt?: string
@@ -27,6 +28,7 @@ export type IssueDistrictInchargeCardInput = {
   districtId: string
   fullName: string
   designation?: string
+  bloodGroup?: string
   issuedAt?: string
   expiresAt?: string
   photo: File
@@ -42,6 +44,7 @@ export type ListDistrictInchargeCardsFilters = {
 export type UpdateDistrictInchargeCardInput = {
   fullName?: string
   designation?: string
+  bloodGroup?: string
   issuedAt?: string
   expiresAt?: string
 }
@@ -53,6 +56,7 @@ export const districtInchargeCardsService = {
       formData.append('district_id', input.districtId)
       formData.append('full_name', input.fullName)
       if (input.designation) formData.append('designation', input.designation)
+      if (input.bloodGroup) formData.append('blood_group', input.bloodGroup)
       if (input.issuedAt) formData.append('issued_at', input.issuedAt)
       if (input.expiresAt) formData.append('expires_at', input.expiresAt)
       formData.append('photo', input.photo)
@@ -93,6 +97,7 @@ export const districtInchargeCardsService = {
       const payload: Record<string, string | undefined> = {
         full_name: input.fullName,
         designation: input.designation,
+        blood_group: input.bloodGroup,
         issued_at: input.issuedAt,
         expires_at: input.expiresAt,
       }
@@ -116,6 +121,17 @@ export const districtInchargeCardsService = {
         { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return toCamelCase<DistrictInchargeCard>(unwrapResponse(data))
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
+  async getPhotoBlob(id: string): Promise<Blob> {
+    try {
+      const { data } = await apiClient.get<Blob>(`/district-incharge-cards/${id}/photo`, {
+        responseType: 'blob',
+      })
+      return data
     } catch (error) {
       throw await extractError(error)
     }

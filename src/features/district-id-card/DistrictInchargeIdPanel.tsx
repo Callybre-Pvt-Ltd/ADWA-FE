@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useDistricts } from '@/hooks/useDistricts'
+import { BLOOD_GROUPS } from '@/constants'
 import { districtInchargeCardsService } from '@/services'
 import { DistrictInchargeCardOverlay, type DistrictInchargeCardActions } from './DistrictInchargeCardOverlay'
 import { type DistrictInchargeCardForm } from './districtInchargeCardGeometry'
@@ -21,6 +22,7 @@ export function DistrictInchargeIdPanel() {
   const [form, setForm] = useState<DistrictInchargeCardForm>({
     fullName: '',
     designation: '',
+    bloodGroup: '',
     districtName: '',
     districtCode: '',
     cardNumber: '',
@@ -34,6 +36,8 @@ export function DistrictInchargeIdPanel() {
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null)
   const [issued, setIssued] = useState(false)
   const [issuing, setIssuing] = useState(false)
+  const [printing, setPrinting] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const actionsRef = useRef<DistrictInchargeCardActions | null>(null)
 
@@ -99,6 +103,7 @@ export function DistrictInchargeIdPanel() {
       ...prev,
       fullName: '',
       designation: '',
+      bloodGroup: '',
       cardNumber: '',
       issueDate: todayIso(),
       expiryDate: plusOneYearIso(todayIso()),
@@ -133,6 +138,7 @@ export function DistrictInchargeIdPanel() {
           districtId,
           fullName: form.fullName.trim(),
           designation: form.designation.trim() || undefined,
+          bloodGroup: form.bloodGroup || undefined,
           issuedAt: form.issueDate || undefined,
           expiresAt: form.expiryDate || undefined,
           photo: photoFile,
@@ -164,12 +170,19 @@ export function DistrictInchargeIdPanel() {
     [issued, verificationUrl, canIssue, photoFile, districtId, form, isHi],
   )
 
-  const ensureIssuedThen = async (action: () => void) => {
+  const ensureIssuedThen = async (
+    action: () => Promise<void> | undefined,
+    onError: () => void,
+  ) => {
     const alreadyHadQr = Boolean(issued && verificationUrl)
     const url = alreadyHadQr ? verificationUrl : await issueCard({ silent: true })
     if (!url) return
     await new Promise((r) => setTimeout(r, alreadyHadQr ? 80 : 450))
-    action()
+    try {
+      await action()
+    } catch {
+      onError()
+    }
   }
 
   const stateOptions = useMemo(
@@ -223,8 +236,22 @@ export function DistrictInchargeIdPanel() {
           <Button
             variant="outline"
             className="flex-1 gap-2"
-            disabled={(!canIssue && !canExport) || issuing}
-            onClick={() => void ensureIssuedThen(() => actionsRef.current?.print())}
+            disabled={(!canIssue && !canExport) || issuing || printing}
+            loading={printing}
+            loadingText={isHi ? 'तैयार हो रहा है…' : 'Preparing…'}
+            onClick={() =>
+              void (async () => {
+                setPrinting(true)
+                try {
+                  await ensureIssuedThen(
+                    () => actionsRef.current?.print(),
+                    () => toast.error(isHi ? 'प्रिंट विफल। कृपया फिर कोशिश करें।' : 'Print failed. Please try again.'),
+                  )
+                } finally {
+                  setPrinting(false)
+                }
+              })()
+            }
           >
             <Printer className="h-4 w-4" />
             {isHi ? 'प्रिंट करें' : 'Print'}
@@ -232,8 +259,22 @@ export function DistrictInchargeIdPanel() {
           <Button
             variant="outline"
             className="flex-1 gap-2"
-            disabled={(!canIssue && !canExport) || issuing}
-            onClick={() => void ensureIssuedThen(() => actionsRef.current?.downloadPdf())}
+            disabled={(!canIssue && !canExport) || issuing || downloading}
+            loading={downloading}
+            loadingText={isHi ? 'डाउनलोड हो रहा है…' : 'Downloading…'}
+            onClick={() =>
+              void (async () => {
+                setDownloading(true)
+                try {
+                  await ensureIssuedThen(
+                    () => actionsRef.current?.downloadPdf(),
+                    () => toast.error(isHi ? 'PDF डाउनलोड विफल। कृपया फिर कोशिश करें।' : 'Download failed. Please try again.'),
+                  )
+                } finally {
+                  setDownloading(false)
+                }
+              })()
+            }
           >
             <Download className="h-4 w-4" />
             {isHi ? 'PDF डाउनलोड' : 'Download PDF'}
@@ -342,6 +383,24 @@ export function DistrictInchargeIdPanel() {
         </div>
 
         <div>
+          <Label>{isHi ? 'रक्त समूह' : 'Blood group'}</Label>
+          <Select
+            value={form.bloodGroup}
+            onValueChange={(v) => setField('bloodGroup', v)}
+            disabled={issued}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder={isHi ? 'रक्त समूह चुनें' : 'Select blood group'} />
+            </SelectTrigger>
+            <SelectContent>
+              {BLOOD_GROUPS.map((bg) => (
+                <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
           <Label>{isHi ? 'कार्ड नंबर' : 'Card number'}</Label>
           <div className="mt-1 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 font-mono text-sm text-neutral-800">
             {form.cardNumber ||
@@ -349,7 +408,7 @@ export function DistrictInchargeIdPanel() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label htmlFor="di-issue">{isHi ? 'जारी तिथि' : 'Issue date'}</Label>
             <Input

@@ -65,33 +65,31 @@ function loadSeal(): Promise<HTMLImageElement | null> {
   return _sealPromise
 }
 
-function loadBlobUrl(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    // No-op for blob:/data: URLs (already same-origin); required for remote photo
-    // URLs (e.g. admin viewing an already-issued card) so the canvas isn't tainted
-    // and toDataURL()/download still works.
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = url
-  })
+/** Decode any photo/QR URL into a bitmap safe for canvas (no CORS taint, no revoke races). */
+async function loadCanvasImage(url: string): Promise<ImageBitmap> {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Failed to load image (${res.status})`)
+  const blob = await res.blob()
+  return createImageBitmap(blob)
 }
 
 function cover(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: ImageBitmap,
   dx: number, dy: number, dw: number, dh: number,
 ) {
-  const ir = img.naturalWidth / img.naturalHeight
+  const iw = img.width
+  const ih = img.height
+  if (!iw || !ih) return
+  const ir = iw / ih
   const tr = dw / dh
-  let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight
+  let sx = 0, sy = 0, sw = iw, sh = ih
   if (ir > tr) {
-    sw = img.naturalHeight * tr
-    sx = (img.naturalWidth - sw) / 2
+    sw = ih * tr
+    sx = (iw - sw) / 2
   } else {
-    sh = img.naturalWidth / tr
-    sy = (img.naturalHeight - sh) * 0.3
+    sh = iw / tr
+    sy = (ih - sh) * 0.3
   }
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
 }
@@ -146,58 +144,85 @@ function paintFitCentered(
   ctx.fillText(display, cx, baseline)
 }
 
-/** Left-aligned, up to 2 lines: shrink to fit one line, else word-wrap and shrink both lines to fit. */
+/** Left-aligned, up to 3 lines. Shrinks hard for small printed cards (~6cm face);
+ *  Devanagari titles often have no spaces, so we wrap by grapheme when needed. */
 function paintFitWrapped(
   ctx: CanvasRenderingContext2D,
   opts: { x: number; baseline: number; maxW: number; size: number; floor: number; font: string; weight: number },
   text: string,
 ) {
   const { x, baseline, maxW, size: startSize, floor, font, weight } = opts
-  let size = startSize
   const setFont = (s: number) => { ctx.font = `${weight} ${s}px ${font}` }
-  setFont(size)
 
-  let lines = [text]
-  if (ctx.measureText(text).width > maxW) {
-    while (size > floor && ctx.measureText(text).width > maxW) {
-      size -= 1
-      setFont(size)
+  const unitsFor = (raw: string): { units: string[]; joiner: string } => {
+    const words = raw.split(/\s+/).filter(Boolean)
+    if (words.length > 1) return { units: words, joiner: ' ' }
+    // No spaces (common for Hindi designations) — split graphemes so we can wrap.
+    if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+      const seg = new Intl.Segmenter('hi', { granularity: 'grapheme' })
+      return { units: [...seg.segment(raw)].map((s) => s.segment), joiner: '' }
     }
-    if (ctx.measureText(text).width > maxW) {
-      // Doesn't fit on one line even at the floor size — word-wrap to 2 lines.
-      size = startSize
-      setFont(size)
-      const words = text.split(/\s+/)
-      let line1 = ''
-      let splitAt = words.length
-      for (let i = 0; i < words.length; i++) {
-        const attempt = line1 ? `${line1} ${words[i]}` : words[i]
-        if (!line1 || ctx.measureText(attempt).width <= maxW) {
-          line1 = attempt
-        } else {
-          splitAt = i
-          break
-        }
-      }
-      const line2 = words.slice(splitAt).join(' ')
-      lines = line2 ? [line1, line2] : [line1]
-      while (size > floor && lines.some((l) => ctx.measureText(l).width > maxW)) {
-        size -= 1
-        setFont(size)
-      }
-      lines = lines.map((l) => {
-        if (ctx.measureText(l).width <= maxW) return l
-        let t = l
-        while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1)
-        return `${t}…`
-      })
-    }
+    return { units: Array.from(raw), joiner: '' }
   }
 
+  const fitLines = (raw: string, size: number, maxLines: number, allowEllipsis: boolean): string[] | null => {
+    setFont(size)
+    if (ctx.measureText(raw).width <= maxW) return [raw]
+
+    const { units, joiner } = unitsFor(raw)
+    const lines: string[] = []
+    let current = ''
+    for (let i = 0; i < units.length; i++) {
+      const attempt = current ? `${current}${joiner}${units[i]}` : units[i]
+      if (!current || ctx.measureText(attempt).width <= maxW) {
+        current = attempt
+        continue
+      }
+      if (lines.length >= maxLines - 1) {
+        // Last line: take the rest
+        const rest = [current, ...units.slice(i)].join(joiner)
+        if (ctx.measureText(rest).width <= maxW) {
+          lines.push(rest)
+          return lines
+        }
+        if (!allowEllipsis) return null
+        let t = rest
+        while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1)
+        lines.push(`${t}…`)
+        return lines
+      }
+      lines.push(current)
+      current = units[i]
+    }
+    if (current) {
+      if (ctx.measureText(current).width <= maxW) lines.push(current)
+      else if (!allowEllipsis) return null
+      else {
+        let t = current
+        while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1)
+        lines.push(`${t}…`)
+      }
+    }
+    return lines
+  }
+
+  let size = startSize
+  let lines: string[] | null = null
+  while (size >= floor) {
+    lines = fitLines(text, size, 3, false)
+    if (lines) break
+    size -= 2
+  }
+  if (!lines) {
+    size = floor
+    lines = fitLines(text, size, 3, true) ?? [text]
+  }
+
+  setFont(size)
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
-  const lineH = size * 1.12
-  const startY = lines.length === 2 ? baseline - lineH / 2 : baseline
+  const lineH = size * 1.15
+  const startY = baseline - ((lines.length - 1) * lineH) / 2
   lines.forEach((line, i) => ctx.fillText(line, x, startY + i * lineH))
 }
 
@@ -215,17 +240,18 @@ async function drawQr(
       width: Math.max(box.w, box.h) * 2,
       color: { dark: '#000000', light: '#ffffff' },
     })
-    const qr = await loadBlobUrl(dataUrl)
+    const qr = await loadCanvasImage(dataUrl)
     const pad = 2
     ctx.drawImage(qr, box.x + pad, box.y + pad, box.w - pad * 2, box.h - pad * 2)
+    qr.close()
   } catch {
     /* leave blank slot */
   }
 }
 
 export type DistrictInchargeCardActions = {
-  print: () => void
-  downloadPdf: () => void
+  print: () => Promise<void>
+  downloadPdf: () => Promise<void>
 }
 
 type Props = {
@@ -242,6 +268,10 @@ export function DistrictInchargeCardOverlay({
   onActionsReady,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // print/downloadPdf read canvasRef synchronously off of whatever's already
+  // painted — this tracks the in-flight render() so they can await the real
+  // paint (photo/template/seal/QR all loaded) instead of racing it.
+  const renderPromiseRef = useRef<Promise<void> | null>(null)
 
   const render = useCallback(async () => {
     const canvas = canvasRef.current
@@ -282,8 +312,9 @@ export function DistrictInchargeCardOverlay({
     roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
     ctx.fill()
     if (photoUrl) {
+      let photo: ImageBitmap | null = null
       try {
-        const photo = await loadBlobUrl(photoUrl)
+        photo = await loadCanvasImage(photoUrl)
         ctx.save()
         roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
         ctx.clip()
@@ -296,6 +327,9 @@ export function DistrictInchargeCardOverlay({
         ctx.stroke()
         ctx.restore()
       } catch { /* leave blank */ }
+      finally {
+        photo?.close()
+      }
     }
 
     erase(ctx, G.name.erase)
@@ -325,18 +359,35 @@ export function DistrictInchargeCardOverlay({
     }
 
     // Keep "पदाधिकारी :-" from template; paint admin role on the right.
-    // Wraps to a 2nd line (and shrinks) instead of overrunning the card's
-    // printed vertical border when the role is long.
+    // Shrinks + wraps (incl. no-space Hindi) so long titles stay inside the
+    // ~6cm printed face instead of running into the card border.
     erase(ctx, G.designation.erase)
     const role = values.designation.trim()
     if (role) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(
+        G.designation.erase.x,
+        G.designation.erase.y,
+        G.designation.erase.w,
+        G.designation.erase.h,
+      )
+      ctx.clip()
       ctx.fillStyle = G.designation.color
-      const maxW = G.designation.erase.x + G.designation.erase.w - G.designation.x - 6
       paintFitWrapped(
         ctx,
-        { x: G.designation.x, baseline: G.designation.baseline, maxW, size: G.designation.size, floor: 46, font: NAME_FONT, weight: 500 },
+        {
+          x: G.designation.x,
+          baseline: G.designation.baseline,
+          maxW: G.designation.maxW,
+          size: G.designation.size,
+          floor: G.designation.floor,
+          font: NAME_FONT,
+          weight: 500,
+        },
         role,
       )
+      ctx.restore()
     }
 
     // Back: card no / dates — shrink font to fit box; `size` is a ceiling, not fixed.
@@ -365,18 +416,22 @@ export function DistrictInchargeCardOverlay({
   }, [photoUrl, values, verificationUrl])
 
   useEffect(() => {
-    void render()
+    renderPromiseRef.current = render()
   }, [render])
 
   useEffect(() => {
     if (!onActionsReady) return
     onActionsReady({
-      print: () => {
+      print: async () => {
+        // Wait for the actual paint (photo/template/seal/QR) instead of
+        // grabbing whatever half-drawn frame happens to be on the canvas —
+        // this is what caused "downloads/prints before the photo loads".
+        await renderPromiseRef.current
         const canvas = canvasRef.current
-        if (!canvas) return
+        if (!canvas) throw new Error('Card is not ready yet')
         const dataUrl = canvas.toDataURL('image/png')
         const win = window.open('', '_blank')
-        if (!win) return
+        if (!win) throw new Error('Popup blocked — allow popups to print')
         win.document.write(
           `<html><head><title>District ID Card</title>
           <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#eee}
@@ -386,8 +441,9 @@ export function DistrictInchargeCardOverlay({
         win.document.close()
       },
       downloadPdf: async () => {
+        await renderPromiseRef.current
         const canvas = canvasRef.current
-        if (!canvas) return
+        if (!canvas) throw new Error('Card is not ready yet')
         const slug = (values.fullName || 'district-id').trim().replace(/\s+/g, '-').slice(0, 40)
         const { jsPDF } = await import('jspdf')
         const doc = new jsPDF({
@@ -405,7 +461,14 @@ export function DistrictInchargeCardOverlay({
         const link = document.createElement('a')
         link.href = url
         link.download = `${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`
-        link.click()
+        // Some in-app/mobile browsers silently ignore click() on an anchor
+        // that isn't in the document — attach it first.
+        document.body.appendChild(link)
+        try {
+          link.click()
+        } finally {
+          link.remove()
+        }
         // Delayed revoke — an immediate one can race the browser actually
         // starting to read the blob.
         setTimeout(() => URL.revokeObjectURL(url), 30_000)

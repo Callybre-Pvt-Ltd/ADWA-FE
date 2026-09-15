@@ -43,11 +43,20 @@ export function buildQueryParams(params: Record<string, string | number | boolea
 export async function extractError(error: unknown): Promise<Error> {
   if (error && typeof error === 'object' && 'response' in error) {
     const axiosError = error as {
-      response?: { data?: APIResponse<unknown> & { error?: { details?: unknown } } }
+      response?: { data?: unknown }
       message?: string
       code?: string
     }
-    const data = axiosError.response?.data
+    let raw = axiosError.response?.data
+    // responseType: 'blob' turns JSON error bodies into Blobs — parse them back.
+    if (typeof Blob !== 'undefined' && raw instanceof Blob) {
+      try {
+        raw = JSON.parse(await raw.text())
+      } catch {
+        raw = undefined
+      }
+    }
+    const data = raw as (APIResponse<unknown> & { error?: { details?: unknown } }) | undefined
     if (data?.message && data.message !== 'Internal server error') {
       return new Error(data.message)
     }

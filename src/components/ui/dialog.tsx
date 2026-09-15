@@ -32,8 +32,8 @@ export const DialogContent = React.forwardRef<
       role="dialog"
       aria-modal="true"
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4',
-        'border border-neutral-200 bg-white p-6 shadow-lg rounded-lg',
+        'fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4',
+        'border border-neutral-200 bg-white p-4 sm:p-6 shadow-lg rounded-lg max-h-[calc(100%-2rem)] overflow-y-auto',
         className,
       )}
       {...props}

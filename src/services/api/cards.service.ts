@@ -109,20 +109,54 @@ export const cardsService = {
   },
 
   /**
-   * Trigger the generated PDF's download.
+   * Download the generated PDF without navigating the SPA away.
    *
-   * Deliberately NOT fetch→blob→createObjectURL→click: in-app browsers
-   * (WhatsApp/Instagram Custom Tabs) don't reliably support Blob downloads —
-   * it renderer-crashes on first tap there. Also deliberately NOT a new
-   * tab: the signed URL now carries `?download=` (see driver_card_service),
-   * so the storage host responds with Content-Disposition: attachment — a
-   * same-tab navigation to it downloads the file without actually leaving
-   * the page, which is exactly "click → file downloads" with no
-   * about:blank tab and no dead PDF-viewer page to land on.
+   * `window.location.href = signedUrl` crashes many mobile browsers (Chrome /
+   * OEM WebViews open the huge PDF in-viewer and OOM → "System crashed due to
+   * an unknown error"). Instead we stream bytes through our API and save via
+   * a same-origin blob URL + <a download>.
    */
-  async downloadPdf(id: string): Promise<void> {
-    const { downloadUrl } = await this.getDownloadUrl(id)
-    window.location.href = downloadUrl
+  async downloadPdf(id: string, filename?: string): Promise<void> {
+    try {
+      const { data, headers } = await apiClient.get<Blob>(`/cards/${id}/pdf`, {
+        responseType: 'blob',
+        timeout: 120_000,
+      })
+
+      // Axios can hand us a JSON error body typed as Blob when the API fails.
+      if (data.type && data.type.includes('application/json')) {
+        const text = await data.text()
+        let message = 'Could not download ID card PDF'
+        try {
+          const parsed = JSON.parse(text) as { message?: string; detail?: string }
+          message = parsed.message || parsed.detail || message
+        } catch { /* keep default */ }
+        throw new Error(message)
+      }
+
+      const fromHeader = (() => {
+        const cd = headers['content-disposition'] as string | undefined
+        if (!cd) return undefined
+        const m = /filename="([^"]+)"/i.exec(cd)
+        return m?.[1]
+      })()
+
+      const objectUrl = URL.createObjectURL(data)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = filename || fromHeader || `ADWA-card-${id}.pdf`
+      link.rel = 'noopener'
+      document.body.appendChild(link)
+      try {
+        link.click()
+      } finally {
+        link.remove()
+      }
+      // Delayed revoke — some mobile browsers start the download asynchronously.
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+    } catch (error) {
+      throw await extractError(error)
+    }
   },
 
   async getVerifyUrl(id: string): Promise<{ verificationUrl: string; verificationCode: string }> {

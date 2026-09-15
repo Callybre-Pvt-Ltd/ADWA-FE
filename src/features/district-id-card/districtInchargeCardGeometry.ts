@@ -24,14 +24,17 @@ export const G = {
     color: '#2E3092',
   },
   /**
-   * Keep template label "पदाधिकारी :-" on the left; erase + paint only the role
-   * on the right (tight box around the text line).
+   * Keep template label "पदाधिकारी :-" on the left; paint only the role on the
+   * right. Printed face is ~6cm wide — keep a fat right inset so long Hindi
+   * titles never kiss the card border.
    */
   designation: {
-    erase: { x: 2101, y: 1700, w: 650, h: 184 },
+    erase: { x: 2088, y: 1695, w: 560, h: 175 },
     x: 2095,
-    baseline: 1793,
-    size: 83,
+    baseline: 1780,
+    size: 64,
+    floor: 26,
+    maxW: 540,
     color: '#2E3092',
   },
   cardNumber: {
@@ -60,6 +63,7 @@ export const G = {
 export type DistrictInchargeCardForm = {
   fullName: string
   designation: string
+  bloodGroup: string
   districtName: string
   districtCode: string
   cardNumber: string
