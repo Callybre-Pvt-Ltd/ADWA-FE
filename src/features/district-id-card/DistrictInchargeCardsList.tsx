@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { IdCard, Download, Printer, Pencil, Check, X, Trash2 } from 'lucide-react'
@@ -30,7 +30,10 @@ import { formatDate } from '@/utils/formatters'
 import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { districtMapEnToHi } from '@/utils/translations'
 import { plusOneYearIso, toDateInputValue } from '@/utils/cardDates'
-import type { DistrictInchargeCard } from '@/services/api/districtInchargeCards.service'
+import {
+  districtInchargeCardsService,
+  type DistrictInchargeCard,
+} from '@/services/api/districtInchargeCards.service'
 
 /** Public, unauthenticated — same endpoint the QR verify page uses. `version`
  * cache-busts the browser's <img> cache right after a photo replace, since
@@ -85,17 +88,37 @@ export function DistrictInchargeCardsList() {
   const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
   const [photoVersions, setPhotoVersions] = useState<Record<string, number>>({})
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [modalPhotoUrl, setModalPhotoUrl] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
   const [printing, setPrinting] = useState(false)
   const updateCard = useUpdateDistrictInchargeCard()
   const uploadCardPhoto = useUploadDistrictInchargeCardPhoto()
   const deleteCard = useDeleteDistrictInchargeCard()
 
-  // Same public photo URL the list column uses — it already loads reliably.
-  // (Authenticated blob fetch was failing silently, leaving the modal blank.)
-  const openCardPhotoUrl = viewCard
-    ? cardPhotoUrl(viewCard.verificationCode, photoVersions[viewCard.id])
-    : null
+  // Modal preview + print: fetch photo via authenticated API (canvas fetch on the
+  // public /verification/.../photo URL fails cross-origin CORS even when <img> works).
+  useEffect(() => {
+    if (!viewCard) {
+      setModalPhotoUrl(null)
+      return
+    }
+    let objectUrl: string | null = null
+    let cancelled = false
+    districtInchargeCardsService
+      .getPhotoBlob(viewCard.id)
+      .then((blob) => {
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(blob)
+        setModalPhotoUrl(objectUrl)
+      })
+      .catch(() => {
+        if (!cancelled) setModalPhotoUrl(null)
+      })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [viewCard?.id, photoVersions[viewCard?.id ?? '']])
 
   const { data, isLoading, isError, refetch } = useDistrictInchargeCardList({
     page,
@@ -192,10 +215,14 @@ export function DistrictInchargeCardsList() {
   }
 
   const handleDownload = async () => {
-    if (!viewActionsRef.current || downloading) return
+    if (!viewCard || downloading) return
     setDownloading(true)
     try {
-      await viewActionsRef.current.downloadPdf()
+      const slug = viewCard.fullName.trim().replace(/\s+/g, '-').slice(0, 40)
+      await districtInchargeCardsService.downloadPdf(
+        viewCard.id,
+        `${viewCard.cardNumber}-${slug || 'card'}.pdf`,
+      )
     } catch {
       toast.error(isHi ? 'PDF डाउनलोड विफल। कृपया फिर कोशिश करें।' : 'Download failed. Please try again.')
     } finally {
@@ -382,7 +409,7 @@ export function DistrictInchargeCardsList() {
                   issueDate: isEditing ? editForm.issuedAt : toDateInputValue(viewCard.issuedAt),
                   expiryDate: isEditing ? editForm.expiresAt : toDateInputValue(viewCard.expiresAt),
                 }}
-                photoUrl={editPhotoPreviewUrl || openCardPhotoUrl}
+                photoUrl={editPhotoPreviewUrl || modalPhotoUrl}
                 verificationUrl={normalizeVerifyUrl('', viewCard.verificationCode)}
                 onActionsReady={(actions) => {
                   viewActionsRef.current = actions

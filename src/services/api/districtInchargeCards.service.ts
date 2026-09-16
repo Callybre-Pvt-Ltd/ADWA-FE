@@ -152,6 +152,48 @@ export const districtInchargeCardsService = {
     }
   },
 
+  /** Server-rendered PDF — card data + photo fetched from storage on the backend. */
+  async downloadPdf(id: string, filename?: string): Promise<void> {
+    try {
+      const { data, headers } = await apiClient.get<Blob>(`/district-incharge-cards/${id}/pdf`, {
+        responseType: 'blob',
+        timeout: 120_000,
+      })
+
+      if (data.type?.includes('application/json')) {
+        const text = await data.text()
+        let message = 'Could not download district ID card PDF'
+        try {
+          const parsed = JSON.parse(text) as { message?: string; detail?: string }
+          message = parsed.message || parsed.detail || message
+        } catch { /* keep default */ }
+        throw new Error(message)
+      }
+
+      const fromHeader = (() => {
+        const cd = headers['content-disposition'] as string | undefined
+        if (!cd) return undefined
+        const m = /filename="([^"]+)"/i.exec(cd)
+        return m?.[1]
+      })()
+
+      const objectUrl = URL.createObjectURL(data)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = filename || fromHeader || `ADWA-district-${id}.pdf`
+      link.rel = 'noopener'
+      document.body.appendChild(link)
+      try {
+        link.click()
+      } finally {
+        link.remove()
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000)
+      }
+    } catch (error) {
+      throw await extractError(error)
+    }
+  },
+
   /**
    * Soft delete. Excluded from listings; the card's number becomes eligible
    * for reuse by the next card issued in that district.

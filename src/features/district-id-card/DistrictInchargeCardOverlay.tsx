@@ -65,11 +65,15 @@ function loadSeal(): Promise<HTMLImageElement | null> {
   return _sealPromise
 }
 
-/** Decode any photo/QR URL into a bitmap safe for canvas (no CORS taint, no revoke races). */
-async function loadCanvasImage(url: string): Promise<ImageBitmap> {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Failed to load image (${res.status})`)
-  const blob = await res.blob()
+/** Decode a blob URL, remote URL, or Blob into a bitmap safe for canvas. */
+async function loadCanvasImage(source: string | Blob): Promise<ImageBitmap> {
+  const blob =
+    typeof source === 'string'
+      ? await fetch(source).then((res) => {
+          if (!res.ok) throw new Error(`Failed to load image (${res.status})`)
+          return res.blob()
+        })
+      : source
   return createImageBitmap(blob)
 }
 
@@ -253,7 +257,7 @@ async function paintDistrictCard(
   canvas: HTMLCanvasElement,
   opts: {
     values: DistrictInchargeCardForm
-    photoUrl: string | null
+    photoUrl: string | Blob | null
     verificationUrl: string | null | undefined
   },
   isCancelled?: () => boolean,
@@ -396,7 +400,7 @@ async function paintDistrictCard(
  *  can't wipe the canvas mid-export (that produced blank-template downloads). */
 async function renderExportCanvas(opts: {
   values: DistrictInchargeCardForm
-  photoUrl: string | null
+  photoUrl: string | Blob | null
   verificationUrl: string | null | undefined
 }): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas')
@@ -411,7 +415,7 @@ export type DistrictInchargeCardActions = {
 
 type Props = {
   values: DistrictInchargeCardForm
-  photoUrl: string | null
+  photoUrl: string | Blob | null
   verificationUrl?: string | null
   onActionsReady?: (actions: DistrictInchargeCardActions) => void
 }
