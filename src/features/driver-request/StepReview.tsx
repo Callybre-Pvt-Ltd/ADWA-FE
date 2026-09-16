@@ -124,7 +124,6 @@ export default function StepReview({ goToStep, declared, setDeclared, submitting
           <ReviewRow label={f('bloodGroup')} value={data.bloodGroup} />
           <ReviewRow label={f('aadhaar')} value={data.aadharNumber ? `••••••••${data.aadharNumber.slice(-4)}` : '—'} />
           <ReviewRow label={f('license')} value={data.licenseNumber} />
-          <ReviewRow label={f('experience')} value={`${data.experienceYears} years`} />
         </ReviewSection>
       </div>
 

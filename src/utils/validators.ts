@@ -50,10 +50,8 @@ export const driverDetailsSchema = z.object({
   }),
   aadharNumber: z.string().regex(/^\d{12}$/, msg('Enter your 12-digit Aadhaar number', '12 अंकों का आधार नंबर डालें')),
   licenseNumber: z.string().min(5, msg('Enter your license number', 'लाइसेंस नंबर डालें')),
-  experienceYears: z.coerce
-    .number()
-    .min(0, msg('Enter driving experience', 'अनुभव दर्ज करें'))
-    .max(60, msg('Experience value is too high', 'अनुभव बहुत अधिक है')),
+  // Kept for API compatibility — no longer collected in the form.
+  experienceYears: z.coerce.number().min(0).max(60).default(0).optional(),
 })
 
 const requiredFile = (en: string, hi: string) =>
@@ -107,7 +105,7 @@ export function buildDriverRequestFormData(data: DriverRequestFormData): FormDat
   formData.append('state', data.state)
   formData.append('pincode', data.pincode)
   formData.append('license_number', data.licenseNumber)
-  formData.append('experience_years', String(data.experienceYears))
+  formData.append('experience_years', String(data.experienceYears ?? 0))
   formData.append('aadhaar_number', data.aadharNumber)
   if (data.driverPhoto) formData.append('driver_photo', data.driverPhoto)
   if (data.aadhaarFront) formData.append('aadhaar_front', data.aadhaarFront)

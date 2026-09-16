@@ -249,6 +249,161 @@ async function drawQr(
   }
 }
 
+async function paintDistrictCard(
+  canvas: HTMLCanvasElement,
+  opts: {
+    values: DistrictInchargeCardForm
+    photoUrl: string | null
+    verificationUrl: string | null | undefined
+  },
+  isCancelled?: () => boolean,
+): Promise<void> {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas is not available')
+  const cancelled = () => Boolean(isCancelled?.())
+
+  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
+  if (fonts) {
+    try {
+      await Promise.all([
+        fonts.load(`600 ${G.name.size}px "Poppins"`),
+        fonts.load(`600 ${G.name.size}px "Mukta"`),
+        fonts.load(`600 ${G.name.size}px "Noto Sans Devanagari"`),
+      ])
+    } catch { /* ignore */ }
+  }
+  if (cancelled()) return
+
+  const [template, seal] = await Promise.all([loadTemplate(), loadSeal()])
+  if (cancelled()) return
+
+  canvas.width = G.width
+  canvas.height = G.height
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.clearRect(0, 0, G.width, G.height)
+  ctx.drawImage(template, 0, 0, G.width, G.height)
+
+  await drawQr(ctx, buildDistrictQrPayload(opts.verificationUrl), G.qr)
+  if (cancelled()) return
+
+  ctx.fillStyle = '#ffffff'
+  roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
+  ctx.fill()
+  if (opts.photoUrl) {
+    let photo: ImageBitmap | null = null
+    try {
+      photo = await loadCanvasImage(opts.photoUrl)
+      if (cancelled()) return
+      ctx.save()
+      roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
+      ctx.clip()
+      cover(ctx, photo, G.photo.x, G.photo.y, G.photo.w, G.photo.h)
+      ctx.restore()
+      ctx.save()
+      roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      ctx.restore()
+    } catch { /* leave blank */ }
+    finally {
+      photo?.close()
+    }
+  }
+  if (cancelled()) return
+
+  erase(ctx, G.name.erase)
+  const name = opts.values.fullName.trim()
+  if (name) {
+    ctx.fillStyle = G.name.color
+    paintFitCentered(
+      ctx,
+      { cx: G.name.cx, baseline: G.name.baseline, maxW: G.name.erase.w - 20, size: G.name.size, floor: 50, font: NAME_FONT, weight: 600 },
+      name,
+    )
+  }
+
+  if (seal) {
+    ctx.save()
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(
+      seal,
+      Math.round(G.seal.x),
+      Math.round(G.seal.y),
+      Math.round(G.seal.w),
+      Math.round(G.seal.h),
+    )
+    ctx.restore()
+  }
+
+  erase(ctx, G.designation.erase)
+  const role = opts.values.designation.trim()
+  if (role) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(
+      G.designation.erase.x,
+      G.designation.erase.y,
+      G.designation.erase.w,
+      G.designation.erase.h,
+    )
+    ctx.clip()
+    ctx.fillStyle = G.designation.color
+    paintFitWrapped(
+      ctx,
+      {
+        x: G.designation.x,
+        baseline: G.designation.baseline,
+        maxW: G.designation.maxW,
+        size: G.designation.size,
+        floor: G.designation.floor,
+        font: NAME_FONT,
+        weight: 500,
+      },
+      role,
+    )
+    ctx.restore()
+  }
+
+  const paint = (
+    field: { erase: { x: number; y: number; w: number; h: number }; x: number; baseline: number; size: number; color: string },
+    text: string,
+  ) => {
+    erase(ctx, field.erase)
+    if (!text) return
+    ctx.fillStyle = field.color
+    const maxW = field.erase.w - 6
+    let size = field.size
+    ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
+    while (size > 10 && ctx.measureText(text).width > maxW) {
+      size -= 1
+      ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
+    }
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, field.x, field.baseline, maxW)
+  }
+
+  paint(G.cardNumber, opts.values.cardNumber.trim())
+  paint(G.issueDate, formatCardDate(opts.values.issueDate))
+  paint(G.expiryDate, formatCardDate(opts.values.expiryDate))
+}
+
+/** Paint a fresh offscreen card for print/PDF so a concurrent preview re-render
+ *  can't wipe the canvas mid-export (that produced blank-template downloads). */
+async function renderExportCanvas(opts: {
+  values: DistrictInchargeCardForm
+  photoUrl: string | null
+  verificationUrl: string | null | undefined
+}): Promise<HTMLCanvasElement> {
+  const canvas = document.createElement('canvas')
+  await paintDistrictCard(canvas, opts)
+  return canvas
+}
+
 export type DistrictInchargeCardActions = {
   print: () => Promise<void>
   downloadPdf: () => Promise<void>
@@ -268,168 +423,31 @@ export function DistrictInchargeCardOverlay({
   onActionsReady,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  // print/downloadPdf read canvasRef synchronously off of whatever's already
-  // painted — this tracks the in-flight render() so they can await the real
-  // paint (photo/template/seal/QR all loaded) instead of racing it.
-  const renderPromiseRef = useRef<Promise<void> | null>(null)
+  const renderGenRef = useRef(0)
+  const latestOptsRef = useRef({ values, photoUrl, verificationUrl })
+  latestOptsRef.current = { values, photoUrl, verificationUrl }
 
-  const render = useCallback(async () => {
+  const renderPreview = useCallback(async () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
-    if (fonts) {
-      try {
-        await Promise.all([
-          fonts.load(`600 ${G.name.size}px "Poppins"`),
-          fonts.load(`600 ${G.name.size}px "Mukta"`),
-          fonts.load(`600 ${G.name.size}px "Noto Sans Devanagari"`),
-        ])
-      } catch { /* ignore */ }
-    }
-
-    const [template, seal] = await Promise.all([loadTemplate(), loadSeal()])
-
-    // Template artwork is already baked at 600dpi (print quality), so no extra
-    // multiplier is needed here — doubling a canvas this size would blow past
-    // Safari's canvas-area ceiling for no visual gain.
-    const dpr = 1
-    canvas.width = G.width * dpr
-    canvas.height = G.height * dpr
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
-    ctx.clearRect(0, 0, G.width, G.height)
-    ctx.drawImage(template, 0, 0, G.width, G.height)
-
-    // QR over the template "बारकोड" box — opens /verify/{code} details page
-    await drawQr(ctx, buildDistrictQrPayload(verificationUrl), G.qr)
-
-    // Front: photo + name
-    ctx.fillStyle = '#ffffff'
-    roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
-    ctx.fill()
-    if (photoUrl) {
-      let photo: ImageBitmap | null = null
-      try {
-        photo = await loadCanvasImage(photoUrl)
-        ctx.save()
-        roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
-        ctx.clip()
-        cover(ctx, photo, G.photo.x, G.photo.y, G.photo.w, G.photo.h)
-        ctx.restore()
-        ctx.save()
-        roundClip(ctx, G.photo.x, G.photo.y, G.photo.w, G.photo.h, G.photo.r)
-        ctx.strokeStyle = 'rgba(0,0,0,0.25)'
-        ctx.lineWidth = 1.5
-        ctx.stroke()
-        ctx.restore()
-      } catch { /* leave blank */ }
-      finally {
-        photo?.close()
-      }
-    }
-
-    erase(ctx, G.name.erase)
-    const name = values.fullName.trim()
-    if (name) {
-      ctx.fillStyle = G.name.color
-      paintFitCentered(
-        ctx,
-        { cx: G.name.cx, baseline: G.name.baseline, maxW: G.name.erase.w - 20, size: G.name.size, floor: 50, font: NAME_FONT, weight: 600 },
-        name,
-      )
-    }
-
-    // Seal after name wipe — draw from high-res asset with high-quality scaling
-    if (seal) {
-      ctx.save()
-      ctx.imageSmoothingEnabled = true
-      ctx.imageSmoothingQuality = 'high'
-      ctx.drawImage(
-        seal,
-        Math.round(G.seal.x),
-        Math.round(G.seal.y),
-        Math.round(G.seal.w),
-        Math.round(G.seal.h),
-      )
-      ctx.restore()
-    }
-
-    // Keep "पदाधिकारी :-" from template; paint admin role on the right.
-    // Shrinks + wraps (incl. no-space Hindi) so long titles stay inside the
-    // ~6cm printed face instead of running into the card border.
-    erase(ctx, G.designation.erase)
-    const role = values.designation.trim()
-    if (role) {
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(
-        G.designation.erase.x,
-        G.designation.erase.y,
-        G.designation.erase.w,
-        G.designation.erase.h,
-      )
-      ctx.clip()
-      ctx.fillStyle = G.designation.color
-      paintFitWrapped(
-        ctx,
-        {
-          x: G.designation.x,
-          baseline: G.designation.baseline,
-          maxW: G.designation.maxW,
-          size: G.designation.size,
-          floor: G.designation.floor,
-          font: NAME_FONT,
-          weight: 500,
-        },
-        role,
-      )
-      ctx.restore()
-    }
-
-    // Back: card no / dates — shrink font to fit box; `size` is a ceiling, not fixed.
-    const paint = (
-      field: { erase: { x: number; y: number; w: number; h: number }; x: number; baseline: number; size: number; color: string },
-      text: string,
-    ) => {
-      erase(ctx, field.erase)
-      if (!text) return
-      ctx.fillStyle = field.color
-      const maxW = field.erase.w - 6
-      let size = field.size
-      ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
-      while (size > 10 && ctx.measureText(text).width > maxW) {
-        size -= 1
-        ctx.font = `700 ${size}px "Noto Sans", ${FONT}`
-      }
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(text, field.x, field.baseline, maxW)
-    }
-
-    paint(G.cardNumber, values.cardNumber.trim())
-    paint(G.issueDate, formatCardDate(values.issueDate))
-    paint(G.expiryDate, formatCardDate(values.expiryDate))
-  }, [photoUrl, values, verificationUrl])
+    const gen = ++renderGenRef.current
+    await paintDistrictCard(
+      canvas,
+      latestOptsRef.current,
+      () => gen !== renderGenRef.current,
+    )
+  }, [])
 
   useEffect(() => {
-    renderPromiseRef.current = render()
-  }, [render])
+    void renderPreview()
+  }, [renderPreview, values, photoUrl, verificationUrl])
 
   useEffect(() => {
     if (!onActionsReady) return
     onActionsReady({
       print: async () => {
-        // Wait for the actual paint (photo/template/seal/QR) instead of
-        // grabbing whatever half-drawn frame happens to be on the canvas —
-        // this is what caused "downloads/prints before the photo loads".
-        await renderPromiseRef.current
-        const canvas = canvasRef.current
-        if (!canvas) throw new Error('Card is not ready yet')
-        const dataUrl = canvas.toDataURL('image/png')
+        const exportCanvas = await renderExportCanvas(latestOptsRef.current)
+        const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.95)
         const win = window.open('', '_blank')
         if (!win) throw new Error('Popup blocked — allow popups to print')
         win.document.write(
@@ -441,40 +459,44 @@ export function DistrictInchargeCardOverlay({
         win.document.close()
       },
       downloadPdf: async () => {
-        await renderPromiseRef.current
-        const canvas = canvasRef.current
-        if (!canvas) throw new Error('Card is not ready yet')
-        const slug = (values.fullName || 'district-id').trim().replace(/\s+/g, '-').slice(0, 40)
+        // Always paint a dedicated canvas — never snapshot the live preview
+        // canvas, which may be mid-repaint (cleared to blank template) when the
+        // photo blob arrives right as the user hits Download.
+        const exportCanvas = await renderExportCanvas(latestOptsRef.current)
+        const slug = (latestOptsRef.current.values.fullName || 'district-id')
+          .trim()
+          .replace(/\s+/g, '-')
+          .slice(0, 40)
         const { jsPDF } = await import('jspdf')
         const doc = new jsPDF({
           orientation: PDF_WIDTH_MM >= PDF_HEIGHT_MM ? 'landscape' : 'portrait',
           unit: 'mm',
           format: [PDF_WIDTH_MM, PDF_HEIGHT_MM],
         })
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, PDF_WIDTH_MM, PDF_HEIGHT_MM)
-        // No server here to set Content-Disposition, so a real "save the
-        // file, don't navigate" download only has one route for a
-        // client-built blob: an <a download> click. (This is the same thing
-        // jsPDF's own doc.save() does internally — doing it ourselves adds
-        // no crash-safety over that, it's just explicit about what runs.)
+        // JPEG is much smaller than PNG at this resolution; huge PNGs have made
+        // jsPDF emit a blank page on some browsers.
+        doc.addImage(
+          exportCanvas.toDataURL('image/jpeg', 0.92),
+          'JPEG',
+          0,
+          0,
+          PDF_WIDTH_MM,
+          PDF_HEIGHT_MM,
+        )
         const url = URL.createObjectURL(doc.output('blob'))
         const link = document.createElement('a')
         link.href = url
-        link.download = `${values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`
-        // Some in-app/mobile browsers silently ignore click() on an anchor
-        // that isn't in the document — attach it first.
+        link.download = `${latestOptsRef.current.values.cardNumber || 'ADWA-district'}-${slug || 'card'}.pdf`
         document.body.appendChild(link)
         try {
           link.click()
         } finally {
           link.remove()
         }
-        // Delayed revoke — an immediate one can race the browser actually
-        // starting to read the blob.
         setTimeout(() => URL.revokeObjectURL(url), 30_000)
       },
     })
-  }, [onActionsReady, values.fullName, values.cardNumber])
+  }, [onActionsReady])
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white">

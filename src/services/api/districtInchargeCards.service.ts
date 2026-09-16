@@ -11,6 +11,9 @@ export type DistrictInchargeCard = {
   fullName: string
   designation?: string
   bloodGroup?: string
+  mobileNumber?: string
+  aadhaarNumber?: string
+  licenseNumber?: string
   districtNameSnapshot: string
   districtCodeSnapshot: string
   issuedAt?: string
@@ -29,6 +32,9 @@ export type IssueDistrictInchargeCardInput = {
   fullName: string
   designation?: string
   bloodGroup?: string
+  mobileNumber?: string
+  aadhaarNumber?: string
+  licenseNumber?: string
   issuedAt?: string
   expiresAt?: string
   photo: File
@@ -45,6 +51,9 @@ export type UpdateDistrictInchargeCardInput = {
   fullName?: string
   designation?: string
   bloodGroup?: string
+  mobileNumber?: string
+  aadhaarNumber?: string
+  licenseNumber?: string
   issuedAt?: string
   expiresAt?: string
 }
@@ -57,6 +66,9 @@ export const districtInchargeCardsService = {
       formData.append('full_name', input.fullName)
       if (input.designation) formData.append('designation', input.designation)
       if (input.bloodGroup) formData.append('blood_group', input.bloodGroup)
+      if (input.mobileNumber) formData.append('mobile_number', input.mobileNumber)
+      if (input.aadhaarNumber) formData.append('aadhaar_number', input.aadhaarNumber)
+      if (input.licenseNumber) formData.append('license_number', input.licenseNumber)
       if (input.issuedAt) formData.append('issued_at', input.issuedAt)
       if (input.expiresAt) formData.append('expires_at', input.expiresAt)
       formData.append('photo', input.photo)
@@ -98,6 +110,9 @@ export const districtInchargeCardsService = {
         full_name: input.fullName,
         designation: input.designation,
         blood_group: input.bloodGroup,
+        mobile_number: input.mobileNumber,
+        aadhaar_number: input.aadhaarNumber,
+        license_number: input.licenseNumber,
         issued_at: input.issuedAt,
         expires_at: input.expiresAt,
       }

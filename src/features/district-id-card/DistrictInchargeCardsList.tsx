@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { IdCard, Download, Printer, Pencil, Check, X, Trash2 } from 'lucide-react'
@@ -31,7 +31,6 @@ import { normalizeVerifyUrl } from '@/utils/verifyUrl'
 import { districtMapEnToHi } from '@/utils/translations'
 import { plusOneYearIso, toDateInputValue } from '@/utils/cardDates'
 import type { DistrictInchargeCard } from '@/services/api/districtInchargeCards.service'
-import { districtInchargeCardsService } from '@/services/api/districtInchargeCards.service'
 
 /** Public, unauthenticated — same endpoint the QR verify page uses. `version`
  * cache-busts the browser's <img> cache right after a photo replace, since
@@ -45,6 +44,9 @@ type EditForm = {
   fullName: string
   designation: string
   bloodGroup: string
+  mobileNumber: string
+  aadhaarNumber: string
+  licenseNumber: string
   issuedAt: string
   expiresAt: string
 }
@@ -69,12 +71,18 @@ export function DistrictInchargeCardsList() {
   const [viewCard, setViewCard] = useState<DistrictInchargeCard | null>(null)
   const viewActionsRef = useRef<DistrictInchargeCardActions | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState<EditForm>({ fullName: '', designation: '', bloodGroup: '', issuedAt: '', expiresAt: '' })
+  const [editForm, setEditForm] = useState<EditForm>({
+    fullName: '',
+    designation: '',
+    bloodGroup: '',
+    mobileNumber: '',
+    aadhaarNumber: '',
+    licenseNumber: '',
+    issuedAt: '',
+    expiresAt: '',
+  })
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null)
   const [editPhotoPreviewUrl, setEditPhotoPreviewUrl] = useState<string | null>(null)
-  /** Same-origin blob URL for the open card's photo — canvas preview can't rely on
-   * cross-origin <img>/fetch of the public verification URL (list thumbnails can). */
-  const [viewPhotoUrl, setViewPhotoUrl] = useState<string | null>(null)
   const [photoVersions, setPhotoVersions] = useState<Record<string, number>>({})
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -83,38 +91,11 @@ export function DistrictInchargeCardsList() {
   const uploadCardPhoto = useUploadDistrictInchargeCardPhoto()
   const deleteCard = useDeleteDistrictInchargeCard()
 
-  useEffect(() => {
-    if (!viewCard) {
-      setViewPhotoUrl(null)
-      return
-    }
-    let cancelled = false
-    let objectUrl: string | null = null
-    const cardId = viewCard.id
-    // Bust cache after an in-modal photo replace.
-    void photoVersions[cardId]
-
-    ;(async () => {
-      try {
-        const blob = await districtInchargeCardsService.getPhotoBlob(cardId)
-        if (cancelled) return
-        objectUrl = URL.createObjectURL(blob)
-        if (cancelled) {
-          URL.revokeObjectURL(objectUrl)
-          objectUrl = null
-          return
-        }
-        setViewPhotoUrl(objectUrl)
-      } catch {
-        if (!cancelled) setViewPhotoUrl(null)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [viewCard, photoVersions])
+  // Same public photo URL the list column uses — it already loads reliably.
+  // (Authenticated blob fetch was failing silently, leaving the modal blank.)
+  const openCardPhotoUrl = viewCard
+    ? cardPhotoUrl(viewCard.verificationCode, photoVersions[viewCard.id])
+    : null
 
   const { data, isLoading, isError, refetch } = useDistrictInchargeCardList({
     page,
@@ -141,6 +122,9 @@ export function DistrictInchargeCardsList() {
       fullName: card.fullName,
       designation: card.designation || '',
       bloodGroup: card.bloodGroup || '',
+      mobileNumber: card.mobileNumber || '',
+      aadhaarNumber: card.aadhaarNumber || '',
+      licenseNumber: card.licenseNumber || '',
       issuedAt,
       expiresAt: toDateInputValue(card.expiresAt) || (issuedAt ? plusOneYearIso(issuedAt) : ''),
     })
@@ -189,6 +173,9 @@ export function DistrictInchargeCardsList() {
           fullName,
           designation: editForm.designation.trim(),
           bloodGroup: editForm.bloodGroup || undefined,
+          mobileNumber: editForm.mobileNumber.trim() || undefined,
+          aadhaarNumber: editForm.aadhaarNumber.trim() || undefined,
+          licenseNumber: editForm.licenseNumber.trim() || undefined,
           issuedAt: editForm.issuedAt || undefined,
           expiresAt: editForm.expiresAt || undefined,
         },
@@ -395,7 +382,7 @@ export function DistrictInchargeCardsList() {
                   issueDate: isEditing ? editForm.issuedAt : toDateInputValue(viewCard.issuedAt),
                   expiryDate: isEditing ? editForm.expiresAt : toDateInputValue(viewCard.expiresAt),
                 }}
-                photoUrl={editPhotoPreviewUrl || viewPhotoUrl}
+                photoUrl={editPhotoPreviewUrl || openCardPhotoUrl}
                 verificationUrl={normalizeVerifyUrl('', viewCard.verificationCode)}
                 onActionsReady={(actions) => {
                   viewActionsRef.current = actions
@@ -451,6 +438,18 @@ export function DistrictInchargeCardsList() {
                       label={isHi ? 'रक्त समूह' : 'Blood group'}
                       value={viewCard.bloodGroup || '—'}
                     />
+                    <ViewField
+                      label={isHi ? 'मोबाइल नंबर' : 'Mobile number'}
+                      value={viewCard.mobileNumber || '—'}
+                    />
+                    <ViewField
+                      label={isHi ? 'आधार नंबर' : 'Aadhaar number'}
+                      value={viewCard.aadhaarNumber || '—'}
+                    />
+                    <ViewField
+                      label={isHi ? 'ड्राइविंग लाइसेंस' : 'Driving license'}
+                      value={viewCard.licenseNumber || '—'}
+                    />
                   </dl>
                 </>
               ) : (
@@ -488,6 +487,40 @@ export function DistrictInchargeCardsList() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-mobile">{isHi ? 'मोबाइल नंबर' : 'Mobile number'}</Label>
+                    <Input
+                      id="edit-mobile"
+                      className="mt-1"
+                      inputMode="tel"
+                      value={editForm.mobileNumber}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, mobileNumber: e.target.value }))}
+                      placeholder={isHi ? '10 अंकों का मोबाइल' : '10-digit mobile'}
+                    />
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {isHi ? 'कार्ड पर नहीं छपेगा — केवल रिकॉर्ड के लिए।' : 'Not printed on the card — record only.'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-aadhaar">{isHi ? 'आधार नंबर' : 'Aadhaar number'}</Label>
+                    <Input
+                      id="edit-aadhaar"
+                      className="mt-1"
+                      inputMode="numeric"
+                      value={editForm.aadhaarNumber}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, aadhaarNumber: e.target.value }))}
+                      placeholder="XXXX XXXX XXXX"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-license">{isHi ? 'ड्राइविंग लाइसेंस' : 'Driving license number'}</Label>
+                    <Input
+                      id="edit-license"
+                      className="mt-1 uppercase"
+                      value={editForm.licenseNumber}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, licenseNumber: e.target.value.toUpperCase() }))}
+                    />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>

@@ -216,10 +216,6 @@ function buildProfessionalRows(r: DriverRequest): DetailRow[] {
   return [
     { label: 'Aadhaar number', value: r.aadharNumber },
     { label: 'License number', value: r.licenseNumber },
-    {
-      label: 'Experience (years)',
-      value: r.experienceYears !== undefined ? r.experienceYears : undefined,
-    },
   ]
 }
 

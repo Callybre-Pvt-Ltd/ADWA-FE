@@ -29,6 +29,10 @@ export function DistrictInchargeIdPanel() {
     issueDate: todayIso(),
     expiryDate: plusOneYearIso(todayIso()),
   })
+  /** Contact fields — saved with the card record, never painted on the card. */
+  const [mobileNumber, setMobileNumber] = useState('')
+  const [aadhaarNumber, setAadhaarNumber] = useState('')
+  const [licenseNumber, setLicenseNumber] = useState('')
   const [districtId, setDistrictId] = useState<string>('')
   const [stateFilter, setStateFilter] = useState('')
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -108,6 +112,9 @@ export function DistrictInchargeIdPanel() {
       issueDate: todayIso(),
       expiryDate: plusOneYearIso(todayIso()),
     }))
+    setMobileNumber('')
+    setAadhaarNumber('')
+    setLicenseNumber('')
     if (photoUrl) URL.revokeObjectURL(photoUrl)
     setPhotoUrl(null)
     setPhotoFile(null)
@@ -139,6 +146,9 @@ export function DistrictInchargeIdPanel() {
           fullName: form.fullName.trim(),
           designation: form.designation.trim() || undefined,
           bloodGroup: form.bloodGroup || undefined,
+          mobileNumber: mobileNumber.trim() || undefined,
+          aadhaarNumber: aadhaarNumber.trim() || undefined,
+          licenseNumber: licenseNumber.trim() || undefined,
           issuedAt: form.issueDate || undefined,
           expiresAt: form.expiryDate || undefined,
           photo: photoFile,
@@ -167,7 +177,7 @@ export function DistrictInchargeIdPanel() {
         setIssuing(false)
       }
     },
-    [issued, verificationUrl, canIssue, photoFile, districtId, form, isHi],
+    [issued, verificationUrl, canIssue, photoFile, districtId, form, mobileNumber, aadhaarNumber, licenseNumber, isHi],
   )
 
   const ensureIssuedThen = async (
@@ -398,6 +408,48 @@ export function DistrictInchargeIdPanel() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 p-3 space-y-3">
+          <p className="text-xs font-medium text-neutral-600">
+            {isHi
+              ? 'संपर्क विवरण (कार्ड पर नहीं छपेगा)'
+              : 'Contact details (not printed on the card)'}
+          </p>
+          <div>
+            <Label htmlFor="di-mobile">{isHi ? 'मोबाइल नंबर' : 'Mobile number'}</Label>
+            <Input
+              id="di-mobile"
+              className="mt-1"
+              inputMode="tel"
+              disabled={issued}
+              value={mobileNumber}
+              onChange={(e) => !issued && setMobileNumber(e.target.value)}
+              placeholder={isHi ? '10 अंकों का मोबाइल' : '10-digit mobile'}
+            />
+          </div>
+          <div>
+            <Label htmlFor="di-aadhaar">{isHi ? 'आधार नंबर' : 'Aadhaar number'}</Label>
+            <Input
+              id="di-aadhaar"
+              className="mt-1"
+              inputMode="numeric"
+              disabled={issued}
+              value={aadhaarNumber}
+              onChange={(e) => !issued && setAadhaarNumber(e.target.value)}
+              placeholder="XXXX XXXX XXXX"
+            />
+          </div>
+          <div>
+            <Label htmlFor="di-license">{isHi ? 'ड्राइविंग लाइसेंस' : 'Driving license number'}</Label>
+            <Input
+              id="di-license"
+              className="mt-1 uppercase"
+              disabled={issued}
+              value={licenseNumber}
+              onChange={(e) => !issued && setLicenseNumber(e.target.value.toUpperCase())}
+            />
+          </div>
         </div>
 
         <div>

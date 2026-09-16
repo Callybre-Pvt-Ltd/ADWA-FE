@@ -28,7 +28,7 @@ export function buildSubmitFormData(data: DriverRequestFormData): FormData {
   fd.append('state', data.state)
   fd.append('pincode', data.pincode)
   fd.append('license_number', data.licenseNumber)
-  fd.append('experience_years', String(data.experienceYears))
+  fd.append('experience_years', String(data.experienceYears ?? 0))
   fd.append('aadhaar_number', data.aadharNumber)
   if (data.driverPhoto) fd.append('driver_photo', data.driverPhoto)
   if (data.aadhaarFront) fd.append('aadhaar_front', data.aadhaarFront)

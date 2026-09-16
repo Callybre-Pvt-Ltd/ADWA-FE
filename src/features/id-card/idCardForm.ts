@@ -18,7 +18,12 @@ export type IdCardFormValues = {
 
 export function snapshotToForm(snapshot: CardSnapshot): IdCardFormValues {
   const issueDate = toDateInputValue(snapshot.issueDate) || todayIso()
-  const expiryDate = toDateInputValue(snapshot.expiryDate) || plusOneYearIso(issueDate)
+  const defaultExpiry = plusOneYearIso(issueDate)
+  // Pre-generation cards may carry a short legacy expiry from old CARD_VALIDITY_MONTHS config.
+  const expiryDate =
+    snapshot.hasPdf && snapshot.generatedAt
+      ? toDateInputValue(snapshot.expiryDate) || defaultExpiry
+      : defaultExpiry
   return {
     fullName: snapshot.fullName ?? '',
     fatherName: snapshot.fatherName ?? '',

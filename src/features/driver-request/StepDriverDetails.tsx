@@ -2,19 +2,10 @@ import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { CreditCard, Car, Lock, ShieldCheck, Droplets } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { BloodGroupSelector } from "@/components/shared/BloodGroupSelector";
 import { AadharInput } from "@/components/shared/AadharInput";
 import type { DriverRequestFormData } from "@/utils/validators";
 import { FormField, FormSection } from "./FormField";
-
-const EXPERIENCE_OPTIONS = Array.from({ length: 41 }, (_, i) => i);
 
 export default function StepDriverDetails() {
   const { t } = useTranslation("pages");
@@ -24,8 +15,6 @@ export default function StepDriverDetails() {
 
   const {
     register,
-    setValue,
-    watch,
     formState: { errors },
   } = useFormContext<DriverRequestFormData>();
 
@@ -54,32 +43,6 @@ export default function StepDriverDetails() {
               })}
             />
           </div>
-        </FormField>
-
-        <FormField
-          label={f("experience")}
-          required
-          error={errors.experienceYears?.message}
-        >
-          <Select
-            value={watch("experienceYears")?.toString() ?? ""}
-            onValueChange={(v) =>
-              setValue("experienceYears", Number(v), { shouldValidate: true })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={f("experienceSelect")} />
-            </SelectTrigger>
-            <SelectContent>
-              {EXPERIENCE_OPTIONS.map((y) => (
-                <SelectItem key={y} value={String(y)}>
-                  {y === 0
-                    ? "Less than 1 year"
-                    : `${y} year${y > 1 ? "s" : ""}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </FormField>
       </FormSection>
 
