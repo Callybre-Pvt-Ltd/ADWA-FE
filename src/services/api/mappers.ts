@@ -70,6 +70,14 @@ export async function extractError(error: unknown): Promise<Error> {
     if (data?.message) return new Error(data.message)
     if (typeof data?.error === 'string') return new Error(data.error)
   }
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code?: string }).code
+    if (code === 'ECONNABORTED' || code === 'ETIMEDOUT') {
+      return new Error(
+        'The server is taking too long to respond. It may be restarting — please try again in a minute.',
+      )
+    }
+  }
   if (error instanceof Error) {
     if (error.message === 'Network Error') {
       return new Error(

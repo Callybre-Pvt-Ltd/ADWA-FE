@@ -15,6 +15,8 @@ export { API_BASE_URL }
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  // Without this, a hung/sleeping API leaves login & forms spinning forever.
+  timeout: 25_000,
 })
 
 let refreshPromise: Promise<string | null> | null = null
@@ -81,7 +83,7 @@ async function refreshAccessToken(): Promise<string | null> {
     const { data } = await axios.post<APIResponse<{
       access_token: string
       refresh_token: string
-    }>>(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken })
+    }>>(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken }, { timeout: 25_000 })
 
     if (!data.success || !data.data) return null
 

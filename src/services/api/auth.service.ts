@@ -11,7 +11,7 @@ import type { APIResponse } from '@/types/api.types'
 import type { AuthRole, AuthUser } from '@/types/auth.types'
 import type { User } from '@/types/user.types'
 import { decodeJwtPayload } from '@/utils/jwt'
-import { toCamelCase } from './mappers'
+import { extractError, toCamelCase } from './mappers'
 
 type TokenPair = {
   access_token: string
@@ -64,20 +64,24 @@ function buildAuthUserFromToken(accessToken: string, stored?: AuthUser | null): 
 
 export const authService = {
   async login(identifier: string, password: string, expectedRole: AuthRole): Promise<AuthUser> {
-    const { data } = await apiClient.post<APIResponse<LoginResponse>>('/auth/login', {
-      identifier,
-      password,
-    })
-    const login = unwrapResponse(data)
-    const user = buildAuthUser(login, identifier)
+    try {
+      const { data } = await apiClient.post<APIResponse<LoginResponse>>('/auth/login', {
+        identifier,
+        password,
+      })
+      const login = unwrapResponse(data)
+      const user = buildAuthUser(login, identifier)
 
-    if (user.role !== expectedRole) {
-      throw new Error('Invalid credentials for this portal')
+      if (user.role !== expectedRole) {
+        throw new Error('Invalid credentials for this portal')
+      }
+
+      setTokens(login.tokens.access_token, login.tokens.refresh_token)
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+      return user
+    } catch (error) {
+      throw await extractError(error)
     }
-
-    setTokens(login.tokens.access_token, login.tokens.refresh_token)
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
-    return user
   },
 
   async refresh(): Promise<void> {
