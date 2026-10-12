@@ -148,14 +148,14 @@ function paintFitCentered(
   ctx.fillText(display, cx, baseline)
 }
 
-/** Left-aligned, up to 3 lines. Shrinks hard for small printed cards (~6cm face);
+/** Left-aligned, up to 2 lines. Shrinks hard for small printed cards (~6cm face);
  *  Devanagari titles often have no spaces, so we wrap by grapheme when needed. */
 function paintFitWrapped(
   ctx: CanvasRenderingContext2D,
-  opts: { x: number; baseline: number; maxW: number; size: number; floor: number; font: string; weight: number },
+  opts: { x: number; baseline: number; maxW: number; size: number; floor: number; font: string; weight: number; maxLines: number },
   text: string,
 ) {
-  const { x, baseline, maxW, size: startSize, floor, font, weight } = opts
+  const { x, baseline, maxW, size: startSize, floor, font, weight, maxLines } = opts
   const setFont = (s: number) => { ctx.font = `${weight} ${s}px ${font}` }
 
   const unitsFor = (raw: string): { units: string[]; joiner: string } => {
@@ -213,13 +213,13 @@ function paintFitWrapped(
   let size = startSize
   let lines: string[] | null = null
   while (size >= floor) {
-    lines = fitLines(text, size, 3, false)
+    lines = fitLines(text, size, maxLines, false)
     if (lines) break
     size -= 2
   }
   if (!lines) {
     size = floor
-    lines = fitLines(text, size, 3, true) ?? [text]
+    lines = fitLines(text, size, maxLines, true) ?? [text]
   }
 
   setFont(size)
@@ -366,6 +366,7 @@ async function paintDistrictCard(
         floor: G.designation.floor,
         font: NAME_FONT,
         weight: 500,
+        maxLines: 2,
       },
       role,
     )

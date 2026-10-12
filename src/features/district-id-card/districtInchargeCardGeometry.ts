@@ -31,8 +31,8 @@ export const G = {
   designation: {
     erase: { x: 2088, y: 1695, w: 560, h: 175 },
     x: 2095,
-    baseline: 1780,
-    size: 64,
+    baseline: 1795,
+    size: 72,
     floor: 26,
     maxW: 540,
     color: '#2E3092',
